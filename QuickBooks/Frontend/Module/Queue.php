@@ -1,8 +1,8 @@
 <?php
 
-QuickBooks_Loader::load('/QuickBooks/Frontend/Module.php');
+require_once 'QuickBooks/Frontend/Module.php';
 
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks/Utilities.php';
 
 define('QUICKBOOKS_FRONTEND_MODULE_QUEUE_ERROR_SUCCESS', 's');
 define('QUICKBOOKS_FRONTEND_MODULE_QUEUE_ERROR_FAILURE', 'f');

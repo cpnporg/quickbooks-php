@@ -20,9 +20,54 @@
  */ 
 
 /**
+ * QuickBooks base package
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks framework built-in XML parser
  */
-QuickBooks_Loader::load('/QuickBooks/XML.php');
+require_once 'QuickBooks/XML.php';
+
+/**
+ * SOAP method authenticate()
+ */
+require_once 'QuickBooks/Request/Authenticate.php';
+
+/**
+ * SOAP method receiveResponseXML()
+ */
+require_once 'QuickBooks/Request/ReceiveResponseXML.php';
+
+/**
+ * SOAP method sendRequestXML()
+ */
+require_once 'QuickBooks/Request/SendRequestXML.php';
+
+/**
+ * SOAP method closeConnection()
+ */
+require_once 'QuickBooks/Request/CloseConnection.php';
+
+/**
+ * SOAP method clientVersion()
+ */
+require_once 'QuickBooks/Request/ClientVersion.php';
+
+/**
+ * SOAP method serverVersion()
+ */
+require_once 'QuickBooks/Request/ServerVersion.php';
+
+/**
+ * SOAP method getLastError()
+ */
+require_once 'QuickBooks/Request/GetLastError.php';
+
+/**
+ * SOAP method connectionError()
+ */
+require_once 'QuickBooks/Request/ConnectionError.php';
 
 /**
  * QuickBooks SOAP server component
@@ -54,10 +99,7 @@ class QuickBooks_SOAP_Server
 	protected function _requestFactory($request)
 	{
 		$class = 'QuickBooks_Request_' . ucfirst(strtolower($request));
-		$file = '/QuickBooks/Request/' . ucfirst(strtolower($request)) . '.php';
-		
-		// Make sure that class gets loaded
-		QuickBooks_Loader::load($file, false);
+		$file = 'QuickBooks/Request/' . ucfirst(strtolower($request)) . '.php';
 		
 		if (class_exists($class))
 		{
@@ -78,16 +120,12 @@ class QuickBooks_SOAP_Server
 		// determine the method, call the correct handler function 
 		//
 		
-		//print('does this get called?');
-		
 		$Parser = new QuickBooks_XML_Parser($raw_http_input);
 		
 		$errnum = 0;
 		$errmsg = '';
 		if ($Doc = $Parser->parse($errnum, $errmsg))
 		{
-			//print('parsing...');
-			
 			$Root = $Doc->getRoot();
 			
 			$Body = $Root->getChildAt('SOAP-ENV:Envelope SOAP-ENV:Body');
@@ -116,8 +154,6 @@ class QuickBooks_SOAP_Server
 				}
 			}
 			
-			//print('method is: ' . $method . "\n");
-			
 			$Response = null;
 			if (method_exists($this->_class, $method))
 			{
@@ -138,24 +174,11 @@ class QuickBooks_SOAP_Server
 			</SOAP-ENV:Envelope>';
 			
 			print($soap);
+			
 			return true;
 		}
-		else
-		{
-			$soap = '';
-			$soap .= '<?xml version="1.0" encoding="UTF-8"?>' . QUICKBOOKS_CRLF;
-			$soap .= '<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">' . QUICKBOOKS_CRLF;
-			$soap .= '	<SOAP-ENV:Body>' . QUICKBOOKS_CRLF;
-			$soap .= '		<SOAP-ENV:Fault>' . QUICKBOOKS_CRLF;
-			$soap .= '			<faultcode>SOAP-ENV:Client</faultcode>' . QUICKBOOKS_CRLF;
-			$soap .= '			<faultstring>Bad Request: ' . htmlspecialchars($errnum) . ': ' . htmlspecialchars($errmsg) . '</faultstring>' . QUICKBOOKS_CRLF;
-			$soap .= '		</SOAP-ENV:Fault>' . QUICKBOOKS_CRLF;
-			$soap .= '	</SOAP-ENV:Body>' . QUICKBOOKS_CRLF;
-			$soap .= '</SOAP-ENV:Envelope>' . QUICKBOOKS_CRLF;
-			
-			print($soap);
-			return false;
-		}
+		
+		return false;
 	}
 	
 	protected function _namespace($full_tag, &$namespace)
@@ -189,12 +212,12 @@ class QuickBooks_SOAP_Server
 				{
 					foreach ($value as $subkey => $subvalue)
 					{
-						$soap .= '<ns1:string>' . htmlspecialchars($subvalue) . '</ns1:string>' . "\n";
+						$soap .= '<ns1:string>' . htmlspecialchars($subvalue, ENT_QUOTES) . '</ns1:string>' . "\n";
 					}
 				}
 				else
 				{
-					$soap .= htmlspecialchars($value);
+					$soap .= htmlspecialchars($value, ENT_QUOTES);
 				}
 				
 				$soap .= '</ns1:' . $key . '>';
@@ -221,3 +244,5 @@ class QuickBooks_SOAP_Server
 	}
 
 }
+
+?>

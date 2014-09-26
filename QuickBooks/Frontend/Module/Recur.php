@@ -7,9 +7,11 @@
  * @subpackage Frontend
  */
 
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks.php';
 
-QuickBooks_Loader::load('/QuickBooks/Frontend/Module.php');
+require_once 'QuickBooks/Utilities.php';
+
+require_once 'QuickBooks/Frontend/Module.php';
 
 define('QUICKBOOKS_FRONTEND_MODULE_RECUR_ERROR_SUCCESS', 's');
 define('QUICKBOOKS_FRONTEND_MODULE_RECUR_ERROR_FAILURE', 'f');

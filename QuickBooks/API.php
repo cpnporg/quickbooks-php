@@ -32,61 +32,31 @@
  */
 
 /**
+ * QuickBooks base classes/constants
+ */
+require_once 'QuickBooks.php';
+
+/**
  * Generic utility methods
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks/Utilities.php';
 
 /**
  * Iterator support for the API
  */
-QuickBooks_Loader::load('/QuickBooks/Iterator.php');
+require_once 'QuickBooks/Iterator.php';
 
 /**
  * QuickBooks API source base class
  */
-QuickBooks_Loader::load('/QuickBooks/API/Source.php');
+require_once 'QuickBooks/API/Source.php';
 
-/**
- * 
- * 
- */
 define('QUICKBOOKS_API_OK', QUICKBOOKS_ERROR_OK);
-
-/**
- * 
- * 
- */ 
 define('QUICKBOOKS_API_ERROR_OK', QUICKBOOKS_API_OK);
-
-/**
- * 
- * 
- */
 define('QUICKBOOKS_API_ERROR_INTERNAL', -971);
-
-/**
- * 
- * 
- */
 define('QUICKBOOKS_API_ERROR_XML', -972);
-
-/**
- * An error message indicating there was a problem establishing a socket (TCP/HTTP?) to a remote host
- * @var integer
- */
 define('QUICKBOOKS_API_ERROR_SOCKET', -973);
-
-/**
- * An error message indicating there was a problem with a parameter passed to a method
- * @var integer
- */
 define('QUICKBOOKS_API_ERROR_PARAM', -974);
-
-/**
- * An error message indicating there was a problem with an HTTP protocol related transaction
- * @var integer
- */
-define('QUICKBOOKS_API_ERROR_HTTP', -975);
 
 // ApplicationIDs allow auto-resolving of application IDs to QuickBooks ListID and TxnIDs
 if (!defined('QUICKBOOKS_API_APPLICATIONID'))
@@ -106,6 +76,17 @@ if (!defined('QUICKBOOKS_API_APPLICATIONEDITSEQUENCE'))
 }
 
 /**
+ * Access QuickBooks via the QuickBooks Web Connector
+ * 
+ * QuickBooks_API(QUICKBOOKS_API_TYPE_RPC, 'mysql://user:pass@localhost/dbname');		// where the queue is, uses the driverFactory
+ * QuickBooks_API(QUICKBOOKS_API_TYPE_RPC, 'pear.mdb2://user:pass@localhost/dbname');	// 
+ * 
+ * @var string
+ */
+define('QUICKBOOKS_API_SOURCE_WEB', 'web');
+define('QUICKBOOKS_API_SOURCE_WEB_CONNECTOR', QUICKBOOKS_API_SOURCE_WEB);
+
+/**
  * Access a remote RDS server
  * 
  */
@@ -115,6 +96,14 @@ define('QUICKBOOKS_API_SOURCE_RDS', 'rds');
  * QuickBooks Windows COM access
  */
 define('QUICKBOOKS_API_SOURCE_COM', 'com');
+
+/**
+ * QuickBooks Online Edition access
+ * 
+ * @var string
+ */
+define('QUICKBOOKS_API_SOURCE_OE', 'oe');
+define('QUICKBOOKS_API_SOURCE_ONLINE_EDITION', QUICKBOOKS_API_SOURCE_OE);
 
 /**
  * Access an SQL mirror of the QuickBooks database schema
@@ -164,18 +153,6 @@ if (!defined('QUICKBOOKS_API_MAPPING_DELIMITER_DELIMITER'))
  */
 class QuickBooks_API
 {
-	/**
-	 * Access QuickBooks via the QuickBooks Web Connector
-	 */
-	const SOURCE_WEB = 'web';
-	const SOURCE_WEB_CONNECTOR = 'web';
-	
-	/**
-	 * Access QuickBooks Online Edition
-	 */
-	const SOURCE_OE = 'oe';
-	const SOURCE_ONLINE_EDITION = 'oe';
-	
 	/**
 	 * The type of QuickBooks source we're using
 	 * @var string
@@ -237,7 +214,7 @@ class QuickBooks_API
 	 * @param array $driver_options
 	 * @param array $callback_options
 	 */
-	public function __construct($api_driver_dsn, $user, $source_type, $source_dsn = null, $api_options = array(), $source_options = array(), $driver_options = array(), $callback_options = array())
+	public function __construct($api_driver_dsn, $user, $source_type, $source_dsn, $api_options = array(), $source_options = array(), $driver_options = array(), $callback_options = array())
 	{
 		$this->_user = $user;
 		
@@ -280,9 +257,8 @@ class QuickBooks_API
 		$defaults = array(
 			'enable_realtime' => false, 
 			'check_callbacks' => true, 
-			'qbxml_version' => null, 
+			'qbxml_version' => '4.0',
 			'qbxml_onerror' => 'stopOnError',  
-			'qbxml_locale' => null, 
 			'map_create_handler' => null, 
 			'map_to_quickbooks_handler' => null,
 			'map_to_application_handler' => null,
@@ -407,10 +383,10 @@ class QuickBooks_API
 	 */
 	protected function _sourceFactory(&$driver_obj, $user, $type, $dsn, $options = array())
 	{
-		$file = '/QuickBooks/API/Source/' . ucfirst(strtolower($type)) . '.php';
+		$file = 'QuickBooks/API/Source/' . ucfirst(strtolower($type)) . '.php';
 		$class = 'QuickBooks_API_Source_' . ucfirst(strtolower($type));
 		
-		QuickBooks_Loader::load($file);
+		require_once $file;
 		
 		if (class_exists($class))
 		{
@@ -749,16 +725,6 @@ class QuickBooks_API
 		return QuickBooks_Utilities::priorityForAction($action, $dependency);
 	}
 	
-	public function qbXMLVersion($version = null)
-	{
-		return $this->_source->qbXMLVersion($version);
-	}
-	
-	public function qbXMLLocale($locale = null)
-	{
-		return $this->_source->qbXMLLocale($locale);
-	}
-	
 	/**
 	 * 
 	 * 
@@ -842,13 +808,7 @@ class QuickBooks_API
 	}
 	
 	/**
-	 * Decode an application ID into it's parts
 	 * 
-	 * @param string $encode		The encoded application ID
-	 * @param string $type			The type of record this is for (Customer, or Account, or Item, or etc.)
-	 * @param string $tag			The tag this should be transformed into (ListID, or TxnID, or etc.)
-	 * @param string $ID			The application ID value
-	 * @return boolean
 	 */
 	static public function decodeApplicationID($encode, &$type, &$tag, &$ID)
 	{
@@ -1095,17 +1055,10 @@ class QuickBooks_API
 			}
 			else if ($this->_source->understandsQBXML())
 			{
-				// Get the version and locale we're using
-				$locale = $this->qbXMLLocale();
-				$version = $this->qbXMLVersion();
+				$qbxml = $obj->asQBXML($request, QUICKBOOKS_OBJECT_XML_DROP, "\t", $action);
 				
-				// Conver the object to qbXMl
-				$qbxml = $obj->asQBXML($request, $version, $locale, $action);				
-				
-				// Old way which didn't support locales or versions
-				//$qbxml = $obj->asQBXML($request, null, null, $action);
-				
-				//print($qbxml);
+				//print_r($obj);
+				//print('qbxml: {' . $qbxml . '}');
 				//exit;
 				
 				$tmp = $this->_source->handleQBXML($method, $action, $type, $qbxml, $callbacks, $webapp_ID, $priority, $err, $recur);
@@ -1176,14 +1129,7 @@ class QuickBooks_API
 			}
 			else if ($this->_source->understandsQBXML())
 			{
-				// Get the version and locale we're using
-				$locale = $this->qbXMLLocale();
-				$version = $this->qbXMLVersion();
-				
-				// Conver the object to qbXMl
-				$qbxml = $obj->asQBXML($request, $version, $locale, $action);
-				
-				// Process the request
+				$qbxml = $obj->asQBXML($request, QUICKBOOKS_OBJECT_XML_DROP, "\t", $action);
 				$tmp = $this->_source->handleQBXML($method, $action, $type, $qbxml, $callbacks, $webapp_ID, $priority, $err);
 			}
 			else if ($this->_source->understandsArrays())
@@ -1308,7 +1254,7 @@ class QuickBooks_API
 			{
 				//print_r($obj);
 				
-				$qbxml = $obj->asQBXML($request, null, null, $action);
+				$qbxml = $obj->asQBXML($request, QUICKBOOKS_OBJECT_XML_DROP, "\t", $action);
 				
 				//print_r($qbxml);
 				
@@ -1710,12 +1656,12 @@ class QuickBooks_API
 	
 	public function searchAccounts($arr = array(), $callback = null, $webapp_ID = null, $priority =  null, $recur = null)
 	{
-		$obj = new QuickBooks_Object_Account($arr);
+		$obj = new QuickBooks_Object_Account();
 		
 		$err = '';
 		return $this->_doQuery(__METHOD__, QUICKBOOKS_QUERY_ACCOUNT, QUICKBOOKS_OBJECT_ACCOUNT, $obj, $callback, $webapp_ID, $priority, $err, $recur);
 	}
-	
+
 	public function listCustomerTypesModifiedBetween($start_datetime, $end_datetime, $callback = null, $priority = null, $return = array(), $recur = null)
 	{
 		$obj = new QuickBooks_Object_CustomerType();
@@ -1777,144 +1723,6 @@ class QuickBooks_API
 	{
 		return $this->listPaymentMethodsModifiedBetween($datetime, null, $callback, $priority, $recur);		
 	}
-	
-	public function listClassesModifiedBetween($start_datetime, $end_datetime, $callback = null, $priority = null, $return = array(), $recur = null)
-	{
-		$obj = new QuickBooks_Object_Class();
-		
-		if (!is_null($start_datetime))
-		{
-			$obj->set('FromModifiedDate', QuickBooks_Utilities::datetime($start_datetime));
-		}
-		
-		if (!is_null($end_datetime))
-		{
-			$obj->set('ToModifiedDate', QuickBooks_Utilities::datetime($end_datetime));
-		}
-		
-		//$obj->set('IncludeRetElement', array( 'FullName', 'IsActive', 'AccountType', 'SpecialAccountType' ));
-		
-		$err = '';
-		//						$method, $action, $type, $obj, $callbacks, $webapp_ID, $priority, &$err, $recur
-		return $this->_doQuery(__METHOD__, QUICKBOOKS_QUERY_CLASS, QUICKBOOKS_OBJECT_CLASS, $obj, $callback, null, $priority, $err, $recur);
-	}
-	
-	public function listClassesModifiedBefore($datetime, $callback = null, $priority = null, $recur = null)
-	{
-		return $this->listClassesModifiedBetween(null, $datetime, $callback, $priority, $recur);
-	}
-	
-	public function listClassesModifiedAfter($datetime, $callback = null, $priority = null, $recur = null)
-	{
-		return $this->listClassesModifiedBetween($datetime, null, $callback, $priority, $recur);		
-	}
-
-	/**
-	 * Get a list of UnitOfMeasureSet objects modified between a certain date range
-	 * 
-	 * @param string $start_datetime
-	 * @param string $end_datetime
-	 * @param string $callback
-	 * @param integer $priority
-	 * @param array $return
-	 * @param mixed $recur
-	 * @return boolean
-	 */
-	public function listUnitOfMeasureSetsModifiedBetween($start_datetime, $end_datetime, $callback = null, $priority = null, $return = array(), $recur = null)
-	{
-		$obj = new QuickBooks_Object_UnitOfMeasureSet();
-		
-		if (!is_null($start_datetime))
-		{
-			$obj->set('FromModifiedDate', QuickBooks_Utilities::datetime($start_datetime));
-		}
-		
-		if (!is_null($end_datetime))
-		{
-			$obj->set('ToModifiedDate', QuickBooks_Utilities::datetime($end_datetime));
-		}
-		
-		//$obj->set('IncludeRetElement', array( 'FullName', 'IsActive', 'AccountType', 'SpecialAccountType' ));
-		
-		$err = '';
-		//						$method, $action, $type, $obj, $callbacks, $webapp_ID, $priority, &$err, $recur
-		return $this->_doQuery(__METHOD__, QUICKBOOKS_QUERY_UNITOFMEASURESET, QUICKBOOKS_OBJECT_UNITOFMEASURESET, $obj, $callback, null, $priority, $err, $recur);
-	}
-	
-	/**
-	 * Get a list of UnitOfMeasureSet objects modified before a specific date/time
-	 * 
-	 * @return boolean
-	 */
-	public function listUnitOfMeasureSetsModifiedBefore($datetime, $callback = null, $priority = null, $recur = null)
-	{
-		return $this->listUnitOfMeasureSetsModifiedBetween(null, $datetime, $callback, $priority, $recur);
-	}
-	
-	/**
-	 * Get a list of UnitOfMeasureSet objects modified after a specific date/time
-	 * 
-	 * @return boolean
-	 */
-	public function listUnitOfMeasureSetsModifiedAfter($datetime, $callback = null, $priority = null, $recur = null)
-	{
-		return $this->listUnitOfMeasureSetsModifiedBetween($datetime, null, $callback, $priority, $recur);		
-	}
-
-
-	/**
-	 * Get a list of UnitOfMeasureSet objects modified between a certain date range
-	 * 
-	 * @param string $start_datetime
-	 * @param string $end_datetime
-	 * @param string $callback
-	 * @param integer $priority
-	 * @param array $return
-	 * @param mixed $recur
-	 * @return boolean
-	 */
-	public function listSalesTaxCodesModifiedBetween($start_datetime, $end_datetime, $callback = null, $priority = null, $return = array(), $recur = null)
-	{
-		$obj = new QuickBooks_Object_SalesTaxCode();
-		
-		if (!is_null($start_datetime))
-		{
-			$obj->set('FromModifiedDate', QuickBooks_Utilities::datetime($start_datetime));
-		}
-		
-		if (!is_null($end_datetime))
-		{
-			$obj->set('ToModifiedDate', QuickBooks_Utilities::datetime($end_datetime));
-		}
-		
-		//$obj->set('IncludeRetElement', array( 'FullName', 'IsActive', 'AccountType', 'SpecialAccountType' ));
-		
-		$err = '';
-		//						$method, $action, $type, $obj, $callbacks, $webapp_ID, $priority, &$err, $recur
-		return $this->_doQuery(__METHOD__, QUICKBOOKS_QUERY_SALESTAXCODE, QUICKBOOKS_OBJECT_SALESTAXCODE, $obj, $callback, null, $priority, $err, $recur);
-	}
-	
-	/**
-	 * Get a list of UnitOfMeasureSet objects modified before a specific date/time
-	 * 
-	 * @return boolean
-	 */
-	public function listSalesTaxCodesModifiedBefore($datetime, $callback = null, $priority = null, $recur = null)
-	{
-		return $this->listSalesTaxCodesModifiedBetween(null, $datetime, $callback, $priority, $recur);
-	}
-	
-	/**
-	 * Get a list of UnitOfMeasureSet objects modified after a specific date/time
-	 * 
-	 * @return boolean
-	 */
-	public function listSalesTaxCodesModifiedAfter($datetime, $callback = null, $priority = null, $recur = null)
-	{
-		return $this->listSalesTaxCodesModifiedBetween($datetime, null, $callback, $priority, $recur);		
-	}
-
-
 
 	public function listShipMethodsModifiedBetween($start_datetime, $end_datetime, $callback = null, $priority = null, $return = array(), $recur = null)
 	{
@@ -1947,76 +1755,6 @@ class QuickBooks_API
 		return $this->listShipMethodsModifiedBetween($datetime, null, $callback, $priority, $recur);		
 	}
 
-	/**
-	 * 
-	 * 
-	 */
-	public function listSalesTaxItemsModifiedBetween($start_datetime, $end_datetime, $callback = null, $priority = null, $return = array(), $recur = null)
-	{
-		$obj = new QuickBooks_Object_SalesTaxItem();
-		
-		if (!is_null($start_datetime))
-		{
-			$obj->set('FromModifiedDate', QuickBooks_Utilities::datetime($start_datetime));
-		}
-		
-		if (!is_null($end_datetime))
-		{
-			$obj->set('ToModifiedDate', QuickBooks_Utilities::datetime($end_datetime));
-		}
-		
-		//$obj->set('IncludeRetElement', array( 'FullName', 'IsActive', 'AccountType', 'SpecialAccountType' ));
-		
-		$err = '';
-		//						$method, $action, $type, $obj, $callbacks, $webapp_ID, $priority, &$err, $recur
-		return $this->_doQuery(__METHOD__, QUICKBOOKS_QUERY_SALESTAXITEM, QUICKBOOKS_OBJECT_SALESTAXITEM, $obj, $callback, null, $priority, $err, $recur);
-	}
-	
-	public function listSalesTaxItemsModifiedBefore($datetime, $callback = null, $priority = null, $recur = null)
-	{
-		return $this->listSalesTaxItemsModifiedBetween(null, $datetime, $callback, $priority, $recur);
-	}
-	
-	public function listSalesTaxItemsModifiedAfter($datetime, $callback = null, $priority = null, $recur = null)
-	{
-		return $this->listSalesTaxItemsModifiedBetween($datetime, null, $callback, $priority, $recur);		
-	}
-
-	/**
-	 * 
-	 * 
-	 */
-	public function listSalesTaxGroupItemsModifiedBetween($start_datetime, $end_datetime, $callback = null, $priority = null, $return = array(), $recur = null)
-	{
-		$obj = new QuickBooks_Object_SalesTaxGroupItem();
-		
-		if (!is_null($start_datetime))
-		{
-			$obj->set('FromModifiedDate', QuickBooks_Utilities::datetime($start_datetime));
-		}
-		
-		if (!is_null($end_datetime))
-		{
-			$obj->set('ToModifiedDate', QuickBooks_Utilities::datetime($end_datetime));
-		}
-		
-		//$obj->set('IncludeRetElement', array( 'FullName', 'IsActive', 'AccountType', 'SpecialAccountType' ));
-		
-		$err = '';
-		//						$method, $action, $type, $obj, $callbacks, $webapp_ID, $priority, &$err, $recur
-		return $this->_doQuery(__METHOD__, QUICKBOOKS_QUERY_SALESTAXGROUPITEM, QUICKBOOKS_OBJECT_SALESTAXGROUPITEM, $obj, $callback, null, $priority, $err, $recur);
-	}
-	
-	public function listSalesTaxGroupItemsModifiedBefore($datetime, $callback = null, $priority = null, $recur = null)
-	{
-		return $this->listSalesTaxGroupItemsModifiedBetween(null, $datetime, $callback, $priority, $recur);
-	}
-	
-	public function listSalesTaxGroupItemsModifiedAfter($datetime, $callback = null, $priority = null, $recur = null)
-	{
-		return $this->listSalesTaxGroupItemsModifiedBetween($datetime, null, $callback, $priority, $recur);		
-	}
-	
 	/**
 	 * Add a journal entry to QuickBooks
 	 * 
@@ -2299,98 +2037,6 @@ class QuickBooks_API
 		$err = '';
 		return $this->_doMod(__METHOD__, QUICKBOOKS_MOD_ESTIMATE, QUICKBOOKS_OBJECT_ESTIMATE, $obj, $callback, null, $priority, $err);
 	}
-
-	/**
-	 * 
-	 */
-	public function addBill($obj, $callback = null, $webapp_ID = null, $priority = null)
-	{
-		$err = '';
-		return $this->_doAdd(__METHOD__, QUICKBOOKS_ADD_BILL, QUICKBOOKS_OBJECT_BILL, $obj, $callback, $webapp_ID, $priority, $err);
-	}
-	
-	/**
-	 * 
-	 * 
-	 */
-	public function modifyBill($obj, $callback = null, $webapp_ID = null, $priority = null)
-	{
-		if ($webapp_ID)
-		{
-			//$this->createMapping();
-		}
-		
-		$err = '';
-		return $this->_doMod(__METHOD__, QUICKBOOKS_MOD_BILL, QUICKBOOKS_OBJECT_BILL, $obj, $callback, null, $priority, $err);
-	}
-
-	/**
-	 * 
-	 */
-	public function addBillPaymentCheck($obj, $callback = null, $webapp_ID = null, $priority = null)
-	{
-		$err = '';
-		return $this->_doAdd(__METHOD__, QUICKBOOKS_ADD_BILLPAYMENTCHECK, QUICKBOOKS_OBJECT_BILLPAYMENTCHECK, $obj, $callback, $webapp_ID, $priority, $err);
-	}
-	
-	/**
-	 * 
-	 * 
-	 */
-	public function modifyBillPaymentCheck($obj, $callback = null, $webapp_ID = null, $priority = null)
-	{
-		if ($webapp_ID)
-		{
-			//$this->createMapping();
-		}
-		
-		$err = '';
-		return $this->_doMod(__METHOD__, QUICKBOOKS_MOD_BILLPAYMENTCHECK, QUICKBOOKS_OBJECT_BILLPAYMENTCHECK, $obj, $callback, null, $priority, $err);
-	}
-
-
-	public function addCheck($obj, $callback = null, $webapp_ID = null, $priority = null)
-	{
-		$err = '';
-		return $this->_doAdd(__METHOD__, QUICKBOOKS_ADD_CHECK, QUICKBOOKS_OBJECT_CHECK, $obj, $callback, $webapp_ID, $priority, $err);
-	}
-	
-	/**
-	 * 
-	 * 
-	 */
-	public function modifyCheck($obj, $callback = null, $webapp_ID = null, $priority = null)
-	{
-		if ($webapp_ID)
-		{
-			//$this->createMapping();
-		}
-		
-		$err = '';
-		return $this->_doMod(__METHOD__, QUICKBOOKS_MOD_CHECK, QUICKBOOKS_OBJECT_CHECK, $obj, $callback, null, $priority, $err);
-	}
-
-	public function addDeposit($obj, $callback = null, $webapp_ID = null, $priority = null)
-	{
-		$err = '';
-		return $this->_doAdd(__METHOD__, QUICKBOOKS_ADD_DEPOSIT, QUICKBOOKS_OBJECT_DEPOSIT, $obj, $callback, $webapp_ID, $priority, $err);
-	}
-	
-	/**
-	 * 
-	 * 
-	 */
-	public function modifyDeposit($obj, $callback = null, $webapp_ID = null, $priority = null)
-	{
-		if ($webapp_ID)
-		{
-			//$this->createMapping();
-		}
-		
-		$err = '';
-		return $this->_doMod(__METHOD__, QUICKBOOKS_MOD_DEPOSIT, QUICKBOOKS_OBJECT_DEPOSIT, $obj, $callback, null, $priority, $err);
-	}
-
 	
 	public function addReceivePayment($obj, $callback = null, $webapp_ID = null, $priority = null)
 	{
@@ -2572,18 +2218,6 @@ class QuickBooks_API
 	public function debug()
 	{
 		
-	}
-	
-	/**
-	 * 
-	 * 
-	 * @deprecated This is bad... but right now the inetgrators need this
-	 * 
-	 * @return QuickBooks_Driver_* class
-	 */
-	public function driver()
-	{
-		return $this->_driver;
 	}
 }
 

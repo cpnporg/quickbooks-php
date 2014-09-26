@@ -20,54 +20,59 @@
  */
 
 /**
+ * Base QuickBooks constants
+ */
+require_once 'QuickBooks.php';
+
+/**
  * Various QuickBooks related utilities methods
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks/Utilities.php';
 
 /**
  * Functions for calling callbacks (functions, static methods, object methods, etc.)
  */
-QuickBooks_Loader::load('/QuickBooks/Callbacks.php');
+require_once 'QuickBooks/Callbacks.php';
 
 /**
  * Response container for calls to ->authenticate()
  */
-QuickBooks_Loader::load('/QuickBooks/Result/Authenticate.php');
+require_once 'QuickBooks/Result/Authenticate.php';
 
 /**
  * Response container for calls to ->closeConnection()
  */
-QuickBooks_Loader::load('/QuickBooks/Result/CloseConnection.php');
+require_once 'QuickBooks/Result/CloseConnection.php';
 
 /**
  * Response container for calls to ->connectionError()
  */
-QuickBooks_Loader::load('/QuickBooks/Result/ConnectionError.php');
+require_once 'QuickBooks/Result/ConnectionError.php';
 
 /**
  * Response container for calls to ->getLastError()
  */
-QuickBooks_Loader::load('/QuickBooks/Result/GetLastError.php');
+require_once 'QuickBooks/Result/GetLastError.php';
 
 /**
  * Response container for calls to ->receiveResponseXML()
  */
-QuickBooks_Loader::load('/QuickBooks/Result/ReceiveResponseXML.php');
+require_once 'QuickBooks/Result/ReceiveResponseXML.php';
 
 /**
  * Response container for calls to ->sendRequestXML()
  */
-QuickBooks_Loader::load('/QuickBooks/Result/SendRequestXML.php');
+require_once 'QuickBooks/Result/SendRequestXML.php';
 
 /**
  * Response container for calls to ->getServerVersion()
  */
-QuickBooks_Loader::load('/QuickBooks/Result/ServerVersion.php');
+require_once 'QuickBooks/Result/ServerVersion.php';
 
 /**
  * Response container for calls to ->clientVersion()
  */
-QuickBooks_Loader::load('/QuickBooks/Result/ClientVersion.php');
+require_once 'QuickBooks/Result/ClientVersion.php';
 
 /**
  * Hook which gets called when the ->authenticate() method gets called
@@ -165,9 +170,6 @@ define('QUICKBOOKS_HANDLERS_HOOK_PERCENT', 'QuickBooks_Handlers::percent');
  */
 class QuickBooks_Handlers
 {
-	const HOOK_AUTHENTICATE = QUICKBOOKS_HANDLERS_HOOK_AUTHENTICATE;
-	const HOOK_LOGINSUCCESS = QUICKBOOKS_HANDLERS_HOOK_LOGINSUCCESS;
-	
 	/**
 	 * Driver object instance for backend of SOAP server
 	 * @var QuickBooks_Driver
@@ -271,8 +273,7 @@ class QuickBooks_Handlers
 		
 		$this->_callback_config = $callback_config;
 		
-		//$this->_driver->log('Handler is starting up...: ' . var_export($this->_config, true), '', QUICKBOOKS_LOG_DEBUG);
-		$this->_log('Handler is starting up...: ' . var_export($this->_config, true), '', QUICKBOOKS_LOG_DEBUG);
+		$this->_driver->log('Handler is starting up...: ' . var_export($this->_config, true), '', QUICKBOOKS_LOG_DEBUG);
 	}
 	
 	/**
@@ -292,13 +293,12 @@ class QuickBooks_Handlers
 			'qbwc_version_error_message' => null,  		// Not implemented...
 			'qbwc_interactive_url' => null, 			// Provide the URL for an interactive session to the QuickBooks Web Connector
 			'autoadd_missing_requestid' => true,  
-			'server_version' => 'PHP QuickBooks SOAP Server v' . QUICKBOOKS_PACKAGE_VERSION . ' at ' . $_SERVER['REQUEST_URI'],	// Server version string
+			'server_version' => 'PHP QuickBooks SOAP Server v' . QUICKBOOKS_VERSION . ' at ' . $_SERVER['REQUEST_URI'],	// Server version string
 			'authenticate_dsn' => null, 				// If you want to use some custom authentication scheme (and not the quickbooks_user MySQL table) you can specify your own function here
 			'map_application_identifiers' => true, 		// Try to map web application IDs to QuickBooks ListIDs/TxnIDs
 			'allow_remote_addr' => array(), 
 			'deny_remote_addr' => array(), 
 			'convert_unix_newlines' => true, 
-			'masking' => true, 
 			);
 			
 		$config = array_merge($defaults, $config);
@@ -336,31 +336,6 @@ class QuickBooks_Handlers
 	}
 	
 	/**
-	 * Log a message to the error/debug log
-	 *
-	 * @param string $msg
-	 * @param string $ticket
-	 * @param integer $level
-	 * @return boolean
-	 */
-	protected function _log($msg, $ticket, $level = QUICKBOOKS_LOG_NORMAL)
-	{
-		$Driver = $this->_driver;
-		
-		if ($this->_config['masking'])
-		{
-			$msg = QuickBooks_Utilities::mask($msg);
-		}
-		
-		if ($Driver)
-		{
-			return $Driver->log($msg, $ticket, $level);
-		}
-		
-		return false;
-	}
-	
-	/**
 	 * Queue up recurring events that are overdue to be run
 	 * 
 	 * @param string $ticket
@@ -372,8 +347,7 @@ class QuickBooks_Handlers
 		{
 			while ($next = $this->_driver->recurDequeue($user, true))
 			{
-				//$this->_driver->log('Dequeued a recurring event, enqueuing!', $ticket, QUICKBOOKS_LOG_VERBOSE);
-				$this->_log('Dequeued a recurring event, enqueuing!', $ticket, QUICKBOOKS_LOG_VERBOSE);
+				$this->_driver->log('Dequeued a recurring event, enqueuing!', $ticket, QUICKBOOKS_LOG_VERBOSE);
 				
 				$extra = null;
 				if ($next['extra'])
@@ -433,8 +407,7 @@ class QuickBooks_Handlers
 	 */
 	public function authenticate($obj)
 	{
-		//$this->_driver->log('authenticate()', '', QUICKBOOKS_LOG_VERBOSE);
-		$this->_log('authenticate()', '', QUICKBOOKS_LOG_VERBOSE);
+		$this->_driver->log('authenticate()', '', QUICKBOOKS_LOG_VERBOSE);
 		
 		$ticket = '';
 		$status = '';
@@ -450,8 +423,7 @@ class QuickBooks_Handlers
 		// Remote address allow/deny
 		if (false == $this->_checkRemote($_SERVER['REMOTE_ADDR'], $this->_config['allow_remote_addr'], $this->_config['deny_remote_addr']))
 		{
-			//$this->_driver->log('Connection from remote address rejected: ' . $_SERVER['REMOTE_ADDR'], null, QUICKBOOKS_LOG_VERBOSE);
-			$this->_log('Connection from remote address rejected: ' . $_SERVER['REMOTE_ADDR'], null, QUICKBOOKS_LOG_VERBOSE);
+			$this->_driver->log('Connection from remote address rejected: ' . $_SERVER['REMOTE_ADDR'], null, QUICKBOOKS_LOG_VERBOSE);
 			
 			return new QuickBooks_Result_Authenticate('', 'nvu', null, null);
 		}
@@ -462,12 +434,9 @@ class QuickBooks_Handlers
 		if (strlen($override_dsn))		// Custom authentication backends
 		{
 			$parse = QuickBooks_Utilities::parseDSN($override_dsn);
-			$class = 'QuickBooks_Authenticate_' . ucfirst(strtolower($parse['scheme']));
-			$file = '/QuickBooks/Authenticate/' . ucfirst(strtolower($parse['scheme'])) . '.php';
+			$class = 'QuickBooks_Authenticate_' . $parse['scheme'];
 			
-			//print('LOADING {' . $file . '}');
-			
-			QuickBooks_Loader::load($file);
+			require_once 'QuickBooks/Authenticate/' . ucfirst(strtolower($parse['scheme'])) . '.php';
 			
 			$auth = new $class($override_dsn);
 		}
@@ -486,8 +455,7 @@ class QuickBooks_Handlers
 			if ($auth->authenticate($obj->strUserName, $obj->strPassword, $customauth_company_file, $customauth_wait_before_next_update, $customauth_min_run_every_n_seconds) and 
 				$ticket = $this->_driver->authLogin($obj->strUserName, $obj->strPassword, $company_file, $wait_before_next_update, $min_run_every_n_seconds, true))
 			{
-				//$this->_driver->log('Login (' . $parse['scheme'] . '): ' . $obj->strUserName, $ticket, QUICKBOOKS_LOG_DEBUG);
-				$this->_log('Login (' . $parse['scheme'] . '): ' . $obj->strUserName, $ticket, QUICKBOOKS_LOG_DEBUG);
+				$this->_driver->log('Login (' . $parse['scheme'] . '): ' . $obj->strUserName, $ticket, QUICKBOOKS_LOG_DEBUG);
 				
 				if ($customauth_company_file)
 				{
@@ -539,7 +507,7 @@ class QuickBooks_Handlers
 					'qbwc_min_run_every_n_seconds' => $min_run_every_n_seconds, 
 					);
 				$hookerr = '';
-				$this->_callHook($ticket, QuickBooks_Handlers::HOOK_LOGINSUCCESS, null, null, null, null, $hookerr, null, array(), $hookdata);
+				$this->_callHook($ticket, QUICKBOOKS_HANDLERS_HOOK_LOGINSUCCESS, null, null, null, null, $hookerr, null, array(), $hookdata);
 				
 				// Move any recurring events that are due to the queue table
 				$this->_handleRecurringEvents($ticket);
@@ -553,8 +521,7 @@ class QuickBooks_Handlers
 			}
 			else
 			{
-				//$this->_driver->log('Login failed (' . $parse['scheme'] . '): ' . $obj->strUserName, '', QUICKBOOKS_LOG_DEBUG);
-				$this->_log('Login failed (' . $parse['scheme'] . '): ' . $obj->strUserName, '', QUICKBOOKS_LOG_DEBUG);
+				$this->_driver->log('Login failed (' . $parse['scheme'] . '): ' . $obj->strUserName, '', QUICKBOOKS_LOG_DEBUG);
 				
 				$hookdata = array(
 					'authenticate_dsn' => $override_dsn, 
@@ -574,8 +541,7 @@ class QuickBooks_Handlers
 		{
 			if ($ticket = $this->_driver->authLogin($obj->strUserName, $obj->strPassword, $company_file, $wait_before_next_update, $min_run_every_n_seconds))
 			{
-				//$this->_driver->log('Login: ' . $obj->strUserName, $ticket, QUICKBOOKS_LOG_DEBUG);
-				$this->_log('Login: ' . $obj->strUserName, $ticket, QUICKBOOKS_LOG_DEBUG);
+				$this->_driver->log('Login: ' . $obj->strUserName, $ticket, QUICKBOOKS_LOG_DEBUG);
 				
 				if (!strlen($company_file) and $this->_config['qb_company_file'])
 				{
@@ -618,8 +584,7 @@ class QuickBooks_Handlers
 			}
 			else
 			{
-				//$this->_driver->log('Login failed: ' . $obj->strUserName, '', QUICKBOOKS_LOG_DEBUG);
-				$this->_log('Login failed: ' . $obj->strUserName, '', QUICKBOOKS_LOG_DEBUG);
+				$this->_driver->log('Login failed: ' . $obj->strUserName, '', QUICKBOOKS_LOG_DEBUG);
 				
 				$hookdata = array(
 					'username' => $obj->strUserName, 
@@ -664,21 +629,15 @@ class QuickBooks_Handlers
 	 */
 	public function sendRequestXML($obj)
 	{
-		//$this->_driver->log('sendRequestXML()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
-		$this->_log('sendRequestXML()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
+		$this->_driver->log('sendRequestXML()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
 		
 		if ($this->_driver->authCheck($obj->ticket)) 
 		{
 			$user = $this->_driver->authResolve($obj->ticket);
 			
 			$hookdata = array(
-				'username' => 			$user, 
-				'ticket' => 			$obj->ticket, 
-				'strHCPResponse' => 	$obj->strHCPResponse, 
-				'strCompanyFileName' => $obj->strCompanyFileName,
-				'qbXMLCountry' => 		$obj->qbXMLCountry, 
-				'qbXMLMajorVers' => 	$obj->qbXMLMajorVers, 
-				'qbXMLMinorVers' => 	$obj->qbXMLMinorVers, 
+				'username' => $user, 
+				'ticket' => $obj->ticket, 
 				);
 			$hookerr = '';
 			$this->_callHook($obj->ticket, QUICKBOOKS_HANDLERS_HOOK_SENDREQUESTXML, null, null, null, null, $hookerr, null, array(), $hookdata);
@@ -693,8 +652,7 @@ class QuickBooks_Handlers
 			
 			if ($next = $this->_driver->queueDequeue($user, true)) // Fetch the next action/command from the queue
 			{
-				//$this->_driver->log('Dequeued: ( ' . $next['qb_action'] . ', ' . $next['ident'] . ' ) ', $obj->ticket, QUICKBOOKS_LOG_DEBUG);
-				$this->_log('Dequeued: ( ' . $next['qb_action'] . ', ' . $next['ident'] . ' ) ', $obj->ticket, QUICKBOOKS_LOG_DEBUG);
+				$this->_driver->log('Dequeued: ( ' . $next['qb_action'] . ', ' . $next['ident'] . ' ) ', $obj->ticket, QUICKBOOKS_LOG_DEBUG);
 				$this->_driver->queueStatus($obj->ticket, $next['qb_action'], $next['ident'], QUICKBOOKS_STATUS_PROCESSING);
 				
 				// Here's a strange case, interactive mode handler
@@ -723,7 +681,7 @@ class QuickBooks_Handlers
 				$xml = $this->_callMappedFunction(0, $user, $next['qb_action'], $next['ident'], $extra, $err, $last_action_time, $last_actionident_time, $obj->qbXMLMajorVers . '.' . $obj->qbXMLMinorVers, $obj->qbXMLCountry, $next['qbxml']);
 				
 				// NoOp can be returned to skip this current operation. This will cause getLastError
-				//	to be called, at which point NoOp should be returned to tell the Web
+				//	to be called, at which point NoOp should be returned *again* to tell the Web
 				//	Connector to then pause for 5 seconds before asking for another request. 
 				if ($xml == QUICKBOOKS_NOOP)
 				{
@@ -792,8 +750,7 @@ class QuickBooks_Handlers
 				}
 				else
 				{
-					//$this->_driver->log('Outgoing XML request: ' . $xml, $obj->ticket, QUICKBOOKS_LOG_DEBUG);
-					$this->_log('Outgoing XML request: ' . $xml, $obj->ticket, QUICKBOOKS_LOG_DEBUG);
+					$this->_driver->log('Outgoing XML request: ' . $xml, $obj->ticket, QUICKBOOKS_LOG_DEBUG);
 					
 					if (strlen($xml) and  // Returned XML AND 
 						!$this->_extractRequestID($xml)) // Does not have a requestID in the request
@@ -1075,8 +1032,7 @@ class QuickBooks_Handlers
 		
 		// Log the last error (for the ticket)
 		$this->_driver->errorLog($ticket, $errnum, $errmsg);
-		//$this->_driver->log('Attempting to handle error: ' . $errnum . ', ' . $errmsg);
-		$this->_log('Attempting to handle error: ' . $errnum . ', ' . $errmsg, $ticket, QUICKBOOKS_LOG_NORMAL);
+		$this->_driver->log('Attempting to handle error: ' . $errnum . ', ' . $errmsg);
 		
 		// By default, we don't want to continue if the error is not handled
 		$continue = false;
@@ -1092,14 +1048,12 @@ class QuickBooks_Handlers
 		if ($err)
 		{
 			// Log error messages returned by the error handler 
-			//$this->_driver->log('An error occured while handling error: ' . $errnum . ': ' . $errmsg . ': ' . $err, $ticket, QUICKBOOKS_LOG_NORMAL);
-			$this->_log('An error occured while handling error: ' . $errnum . ': ' . $errmsg . ': ' . $err, $ticket, QUICKBOOKS_LOG_NORMAL);
+			$this->_driver->log('An error occured while handling error: ' . $errnum . ': ' . $errmsg . ': ' . $err, $ticket, QUICKBOOKS_LOG_NORMAL);
 			$this->_driver->errorLog($ticket, QUICKBOOKS_ERROR_HANDLER, $err);
 		}
 		
 		// Log the last error (for the log)
-		//$this->_driver->log('Handled error: ' . $errnum . ': ' . $errmsg . ' (handler returned: ' . $continue . ')', $ticket, QUICKBOOKS_LOG_NORMAL);
-		$this->_log('Handled error: ' . $errnum . ': ' . $errmsg . ' (handler returned: ' . $continue . ')', $ticket, QUICKBOOKS_LOG_NORMAL);
+		$this->_driver->log('Handled error: ' . $errnum . ': ' . $errmsg . ' (handler returned: ' . $continue . ')', $ticket, QUICKBOOKS_LOG_NORMAL);
 		
 		// Update the queue status
 		if ($action and $ident)
@@ -1179,8 +1133,7 @@ class QuickBooks_Handlers
 	 */
 	public function receiveResponseXML($obj)
 	{
-		//$this->_driver->log('receiveResponseXML()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
-		$this->_log('receiveResponseXML()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
+		$this->_driver->log('receiveResponseXML()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
 		
 		if ($this->_driver->authCheck($obj->ticket)) // Check the ticket
 		{
@@ -1193,14 +1146,12 @@ class QuickBooks_Handlers
 			$hookerr = '';
 			$this->_callHook($obj->ticket, QUICKBOOKS_HANDLERS_HOOK_RECEIVERESPONSEXML, null, null, null, null, $hookerr, null, array(), $hookdata);
 			
-			//$this->_driver->log('Incoming XML response: ' . $obj->response, $obj->ticket, QUICKBOOKS_LOG_DEBUG);
-			$this->_log('Incoming XML response: ' . $obj->response, $obj->ticket, QUICKBOOKS_LOG_DEBUG);
+			$this->_driver->log('Incoming XML response: ' . $obj->response, $obj->ticket, QUICKBOOKS_LOG_DEBUG);
 			
 			// Check if we got a error message...
 			if (strlen($obj->message) or 
 				$this->_extractStatusCode($obj->response)) // or an error code
 			{
-				/*
 				if ($requestID = $this->_extractRequestID($obj->response)) // This will be non-0 if an error occurs
 				{
 					$errnum = $this->_extractStatusCode($obj->response);
@@ -1210,38 +1161,7 @@ class QuickBooks_Handlers
 					$action = '';
 					$ident = '';
 					$this->_parseRequestID($requestID, $action, $ident);
-					*/
-				
-				$action = null;
-				$ident = null;
-				
-				if ($requestID = $this->_extractRequestID($obj->response))
-				{
-					// This happens if a data validation error occurs 
-					//	(string too long, vendor name already taken, etc.)
 					
-					$errnum = $this->_extractStatusCode($obj->response);
-					
-					$action = '';
-					$ident = '';
-					$this->_parseRequestID($requestID, $action, $ident);
-				}
-				else
-				{
-					// This happens if a protocol error occurs
-					//	Poorly formed XML documents, missing XML node, missing line items, etc.)
-					
-					$errnum = $obj->hresult;
-					
-					if ($arr = $this->_driver->queueProcessing($user))
-					{
-						$action = $arr['qb_action'];
-						$ident = $arr['ident'];
-					}
-				}
-				
-				if ($user and $action and $ident)
-				{
 					// Fetch the request that was processed and EXPERIENCED AN ERROR! 
 					$extra = '';
 					if ($current = $this->_driver->queueFetch($user, $action, $ident, QUICKBOOKS_STATUS_PROCESSING))
@@ -1268,11 +1188,10 @@ class QuickBooks_Handlers
 					if ($errerr)
 					{
 						// The error handler returned an error too...
-						//$this->_driver->log('An error occured while handling quickbooks error ' . $errnum . ': ' . $errmsg . ': ' . $errerr, $obj->ticket, QUICKBOOKS_LOG_NORMAL);
-						$this->_log('An error occured while handling quickbooks error ' . $errnum . ': ' . $errmsg . ': ' . $errerr, $obj->ticket, QUICKBOOKS_LOG_NORMAL);
+						$this->_driver->log('An error occured while handling quickbooks error ' . $errnum . ': ' . $errmsg . ': ' . $errerr, $obj->ticket, QUICKBOOKS_LOG_NORMAL);
 					}
 				}
-				else	// Generic error (poorly encoded XML, XML syntax error, etc.)
+				else	// generic error (poorly encoded XML, XML syntax error, etc.)
 				{
 					$errerr = '';
 					$continue = $this->_handleError($obj->ticket, $obj->hresult, $obj->message, null, null, null, null, $errerr, $obj->response, array()); 
@@ -1280,8 +1199,7 @@ class QuickBooks_Handlers
 					if ($errerr)
 					{
 						// The error handler returned an error too...
-						//$this->_driver->log('An error occured while handling generic error ' . $obj->hresult . ': ' . $obj->message . ': ' . $errerr, $obj->ticket, QUICKBOOKS_LOG_NORMAL);
-						$this->_log('An error occured while handling generic error ' . $obj->hresult . ': ' . $obj->message . ': ' . $errerr, $obj->ticket, QUICKBOOKS_LOG_NORMAL);
+						$this->_driver->log('An error occured while handling generic error ' . $obj->hresult . ': ' . $obj->message . ': ' . $errerr, $obj->ticket, QUICKBOOKS_LOG_NORMAL);
 					}
 				}
 				
@@ -1293,13 +1211,11 @@ class QuickBooks_Handlers
 					$progress = -1;
 				}
 				
-				//$this->_driver->log('Transaction error at ' . $progress . '% complete... ', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
-				$this->_log('Transaction error at ' . $progress . '% complete... ', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
+				$this->_driver->log('Transaction error at ' . $progress . '% complete... ', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
 				
 				return new QuickBooks_Result_ReceiveResponseXML($progress);
 			}
 			
-			$extra = null;
 			$action = null;
 			$ident = null;
 			
@@ -1361,10 +1277,7 @@ class QuickBooks_Handlers
 			$last_action_time = $this->_driver->queueActionLast($user, $action);
 			$last_actionident_time = $this->_driver->queueActionIdentLast($user, $action, $ident);
 				
-			if ($ident) // If they didn't pass a requestID, $ident will not be set, and we can't call this reliably 
-			{
-				$this->_callMappedFunction(1, $user, $action, $ident, $extra, $err, $last_action_time, $last_actionident_time, $obj->response, $identifiers);
-			}
+			$this->_callMappedFunction(1, $user, $action, $ident, $extra, $err, $last_action_time, $last_actionident_time, $obj->response, $identifiers);
 			
 			// Calculate the percentage done
 			$progress = $this->_calculateProgress($obj->ticket);
@@ -1380,8 +1293,7 @@ class QuickBooks_Handlers
 				}
 			}
 			
-			//$this->_driver->log($progress . '% complete... ', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
-			$this->_log($progress . '% complete... ', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
+			$this->_driver->log($progress . '% complete... ', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
 			
 			return new QuickBooks_Result_ReceiveResponseXML($progress);
 		}
@@ -1405,8 +1317,7 @@ class QuickBooks_Handlers
 	 */
 	public function connectionError($obj)
 	{
-		//$this->_driver->log('connectionErrorXML()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
-		$this->_log('connectionErrorXML()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
+		$this->_driver->log('connectionErrorXML()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
 		
 		if ($this->_driver->authCheck($obj->ticket))
 		{
@@ -1446,8 +1357,7 @@ class QuickBooks_Handlers
 	 */
 	public function getLastError($obj)
 	{
-		//$this->_driver->log('getLastError()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
-		$this->_log('getLastError()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
+		$this->_driver->log('getLastError()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
 		
 		if ($this->_driver->authCheck($obj->ticket))
 		{
@@ -1485,8 +1395,7 @@ class QuickBooks_Handlers
 	 */
 	public function closeConnection($obj)
 	{
-		//$this->_driver->log('closeConnection()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
-		$this->_log('closeConnection()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
+		$this->_driver->log('closeConnection()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
 		
 		if ($this->_driver->authCheck($obj->ticket))
 		{
@@ -1518,8 +1427,7 @@ class QuickBooks_Handlers
 	 */
 	public function serverVersion($obj)
 	{
-		//$this->_driver->log('serverVersion()', '', QUICKBOOKS_LOG_VERBOSE);
-		$this->_log('serverVersion()', '', QUICKBOOKS_LOG_VERBOSE);
+		$this->_driver->log('serverVersion()', '', QUICKBOOKS_LOG_VERBOSE);
 		
 		$hookdata = array(  );
 		$hookerr = '';
@@ -1553,8 +1461,7 @@ class QuickBooks_Handlers
 	 */
 	public function clientVersion($obj)
 	{
-		//$this->_driver->log('clientVersion()', '', QUICKBOOKS_LOG_VERBOSE);
-		$this->_log('clientVersion()', '', QUICKBOOKS_LOG_VERBOSE);
+		$this->_driver->log('clientVersion()', '', QUICKBOOKS_LOG_VERBOSE);
 		
 		$hookdata = array();
 		$hookerr = '';
@@ -1564,8 +1471,7 @@ class QuickBooks_Handlers
 		{
 			if (version_compare($obj->strVersion, $this->_config['qbwc_min_version'], '<'))
 			{
-				//$this->_driver->log('Version Requirement, current: ' . $obj->strVersion . ', required: ' . $this->_config['qbwc_min_version'], '', QUICKBOOKS_LOG_NORMAL);
-				$this->_log('Version Requirement, current: ' . $obj->strVersion . ', required: ' . $this->_config['qbwc_min_version'], '', QUICKBOOKS_LOG_NORMAL);
+				$this->_driver->log('Version Requirement, current: ' . $obj->strVersion . ', required: ' . $this->_config['qbwc_min_version'], '', QUICKBOOKS_LOG_NORMAL);
 				
 				return new QuickBooks_Result_ClientVersion('O:' . $this->_config['qbwc_min_version']);
 			}
@@ -1589,8 +1495,7 @@ class QuickBooks_Handlers
 	 */
 	public function getInteractiveURL($obj)
 	{
-		//$this->_driver->log('getInteractiveURL()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
-		$this->_log('getInteractiveURL()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
+		$this->_driver->log('getInteractiveURL()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
 		
 		if ($this->_driver->authCheck($obj->ticket))
 		{
@@ -1618,8 +1523,7 @@ class QuickBooks_Handlers
 	 */
 	public function interactiveRejected($obj)
 	{
-		//$this->_driver->log('interactiveRejected()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
-		$this->_log('interactiveRejected()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
+		$this->_driver->log('interactiveRejected()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
 		
 		if ($this->_driver->authCheck($obj->ticket))
 		{
@@ -1649,8 +1553,7 @@ class QuickBooks_Handlers
 	 */
 	public function interactiveDone($obj)
 	{
-		//$this->_driver->log('interactiveDone()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
-		$this->_log('interactiveDone()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
+		$this->_driver->log('interactiveDone()', $obj->ticket, QUICKBOOKS_LOG_VERBOSE);
 		
 		if ($this->_driver->authCheck($obj->ticket))
 		{

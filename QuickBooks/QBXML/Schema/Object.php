@@ -10,11 +10,15 @@
  * @subpackage QBXML
  */
 
+/**
+ *
+ */
+require_once 'QuickBooks.php';
 
 /**
  *
  */
-QuickBooks_Loader::load('/QuickBooks/API.php');
+require_once 'QuickBooks/API.php';
 
 /**
  * 
@@ -30,8 +34,6 @@ define('QUICKBOOKS_QBXML_SCHEMA_TYPE_IDTYPE', 'IDTYPE');
  * 
  */
 define('QUICKBOOKS_QBXML_SCHEMA_TYPE_BOOLTYPE', 'BOOLTYPE');
-
-define('QUICKBOOKS_QBXML_SCHEMA_TYPE_AMTTYPE', 'AMTTYPE');
 
 /**
  * 
@@ -232,51 +234,9 @@ abstract class QuickBooks_QBXML_Schema_Object
 		return false;
 	}
 	
-	/**
-	 * 
-	 */
-	public function unfold($path)
-	{
-		static $paths = null;
-		
-		if (is_null($paths))
-		{
-			$paths = $this->_reorderPathsPaths();
-			$paths = array_change_key_case(array_combine(array_values($paths), array_values($paths)), CASE_LOWER);
-		}
-		
-		//print('unfolding: {' . $path . '}' . "\n");
-		
-		if (isset($paths[strtolower($path)]))
-		{
-			return $paths[strtolower($path)];
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * 
-	 * @note WARNING! These are lists of UNSUPPORTED locales, NOT lists of supported ones!
-	 * 
-	 */	
-	protected function &_inLocalePaths()
-	{
-		$arr = array();
-		return $arr;
-	}
-	
-	/**
-	 * 
-	 * @note WARNING! These are lists of UNSUPPORTED locales, NOT lists of supported ones!
-	 * 
-	 */
-	public function localePaths()
-	{
-		return $this->_inLocalePaths();
-	}
-	
 	/*
+	abstract protected function &_inLocalePaths();
+	
 	public function inLocale($path, $locale)
 	{
 		//static $paths = array(
@@ -376,3 +336,4 @@ abstract class QuickBooks_QBXML_Schema_Object
 	}
 }
 
+?>

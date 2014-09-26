@@ -11,34 +11,39 @@
  */
 
 /**
+ * QuickBooks base constants
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks object base class
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * Generic object type
  */
-QuickBooks_Loader::load('/QuickBooks/Object/Generic.php');
+require_once 'QuickBooks/Object/Generic.php';
 
 /**
  * Sales Receipt line item
  */
-QuickBooks_Loader::load('/QuickBooks/Object/SalesReceipt/SalesReceiptLine.php');
+require_once 'QuickBooks/Object/SalesReceipt/SalesReceiptLine.php';
 
 /**
  * Sales Receipt discount line item
  */
-QuickBooks_Loader::load('/QuickBooks/Object/SalesReceipt/DiscountLine.php');
+require_once 'QuickBooks/Object/SalesReceipt/DiscountLine.php';
 
 /**
  * Sales Receipt shipping line item
  */
-QuickBooks_Loader::load('/QuickBooks/Object/SalesReceipt/ShippingLine.php');
+require_once 'QuickBooks/Object/SalesReceipt/ShippingLine.php';
 
 /**
  * Sales Receipt sales tax line item
  */
-QuickBooks_Loader::load('/QuickBooks/Object/SalesReceipt/SalesTaxLine.php');
+require_once 'QuickBooks/Object/SalesReceipt/SalesTaxLine.php';
 
 /**
  * QuickBooks Sales Receipts
@@ -122,11 +127,6 @@ class QuickBooks_Object_SalesReceipt extends QuickBooks_Object
 		return $this->set('CustomerRef FullName', $name);
 	}
 	
-	public function setCustomerFullName($FullName)
-	{
-		return $this->setFullNameType('CustomerRef FullName', null, null, $FullName);
-	}
-	
 	/**
 	 * Get the customer ListID
 	 * 
@@ -189,25 +189,15 @@ class QuickBooks_Object_SalesReceipt extends QuickBooks_Object
 	}
 	*/
 	
-	public function setSalesTaxItemFullName($FullName)
-	{
-		return $this->setItemSalesTaxFullName($FullName);
-	}
-	
-	public function setItemSalesTaxFullName($FullName)
-	{
-		return $this->setFullNameType('ItemSalesTaxRef FullName', null, null, $FullName);
-	}
-	
 	public function setClassListID($ListID)
 	{
 		return $this->set('ClassRef ListID', $ListID);
 	}
 
-	public function getClassListID()
-	{
-		return $this->get('ClassRef ListID');
-	}
+  public function getClassListID()
+  {
+    return $this->get('ClassRef ListID');
+  }
 	
 	public function setClassApplicationID($value)
 	{
@@ -756,16 +746,11 @@ class QuickBooks_Object_SalesReceipt extends QuickBooks_Object
 		return parent::asList($request);
 	}
 	
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
 		//print('INVOICE got called asXML: ' . $root . ', ' . $parent . "\n");
 		//print('sales receipt got called as: {' . $root . '}, {' . QUICKBOOKS_ADD_SALESRECEIPT . "}\n");
 		//exit;
-		
-		if (is_null($object))
-		{
-			$object = $this->_object;
-		}
 		
 		switch ($root)
 		{
@@ -776,30 +761,30 @@ class QuickBooks_Object_SalesReceipt extends QuickBooks_Object
 				//	$this->_object['InvoiceLineAdd'] = $this->_object['InvoiceLine'];
 				//}
 				
-				foreach ($object['SalesReceiptLineAdd'] as $key => $obj)
+				foreach ($this->_object['SalesReceiptLineAdd'] as $key => $obj)
 				{
 					$obj->setOverride('SalesReceiptLineAdd');
 				}
 			
-				if (!empty($object['ShippingLineAdd']))
+				if (!empty($this->_object['ShippingLineAdd']))
 				{
-					foreach ($object['ShippingLineAdd'] as $key => $obj)
+					foreach ($this->_object['ShippingLineAdd'] as $key => $obj)
 					{
 						$obj->setOverride('ShippingLineAdd');
 					}
 				}
 				
-				if (!empty($object['DiscountLineAdd']))
+				if (!empty($this->_object['DiscountLineAdd']))
 				{
-					foreach ($object['DiscountLineAdd'] as $key => $obj)
+					foreach ($this->_object['DiscountLineAdd'] as $key => $obj)
 					{
 						$obj->setOverride('DiscountLineAdd');
 					}
 				}
 				
-				if (!empty($object['SalesTaxLineAdd']))
+				if (!empty($this->_object['SalesTaxLineAdd']))
 				{
-					foreach ($object['SalesTaxLineAdd'] as $key => $obj)
+					foreach ($this->_object['SalesTaxLineAdd'] as $key => $obj)
 					{
 						$obj->setOverride('SalesTaxLineAdd');
 					}
@@ -807,16 +792,16 @@ class QuickBooks_Object_SalesReceipt extends QuickBooks_Object
 				
 				break;
 			case QUICKBOOKS_MOD_SALESRECEIPT:
-				if (isset($object['SalesReceiptLine']))
+				if (isset($this->_object['SalesReceiptLine']))
 				{
-					$object['SalesReceiptLineMod'] = $object['SalesReceiptLine'];
+					$this->_object['SalesReceiptLineMod'] = $this->_object['SalesReceiptLine'];
 				}
 				break;
 		}
 		
 		//print_r($this->_object);
 		
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root, $parent);
 	}
 	
 	/**
@@ -837,11 +822,11 @@ class QuickBooks_Object_SalesReceipt extends QuickBooks_Object
 	 * @param string $root
 	 * @return string
 	 */
-	public function asQBXML($request, $version = null, $locale = null, $root = null, $parent = null)
+	public function asQBXML($request, $todo_for_empty_elements = QUICKBOOKS_OBJECT_XML_DROP, $indent = "\t", $root = null, $parent = null)
 	{
 		$this->_cleanup();
 		
-		return parent::asQBXML($request, $version, $locale, $root);
+		return parent::asQBXML($request, $todo_for_empty_elements, $indent, $root);
 	}
 	
 	/**
@@ -854,3 +839,5 @@ class QuickBooks_Object_SalesReceipt extends QuickBooks_Object
 		return QUICKBOOKS_OBJECT_SALESRECEIPT;
 	}
 }
+
+?>

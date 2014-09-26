@@ -120,7 +120,7 @@ $errmap = array(
 
 // An array of callback hooks
 $hooks = array(
-	QuickBooks_Handlers::HOOK_LOGINSUCCESS => '_quickbooks_hook_loginsuccess', 	// call this whenever a successful login occurs
+	QUICKBOOKS_HANDLERS_HOOK_LOGINSUCCESS => '_quickbooks_hook_loginsuccess', 	// call this whenever a successful login occurs
 	);
 
 // Logging level
@@ -152,13 +152,16 @@ $callback_options = array(
 //	- You are connecting to MySQL with an empty password
 //	- Your MySQL server is located on the same machine as the script ( i.e.: 'localhost', if it were on another machine, you might use 'other-machines-hostname.com', or '192.168.1.5', or ... etc. )
 //	- Your MySQL database name containing the QuickBooks tables is named 'quickbooks' (if the tables don't exist, they'll be created for you) 
-$dsn = 'mysql://root:root@localhost/quickbooks_import';
+$dsn = 'mysql://root:@localhost/quickbooks_import';
 //$dsn = 'mysql://testuser:testpassword@localhost/testdatabase';
 
 /**
  * Constant for the connection string (because we'll use it in other places in the script)
  */
 define('QB_QUICKBOOKS_DSN', $dsn);
+
+// Initialize the queue
+QuickBooks_Queue_Singleton::initialize($dsn);
 
 // If we haven't done our one-time initialization yet, do it now!
 if (!QuickBooks_Utilities::initialized($dsn))
@@ -189,9 +192,6 @@ if (!QuickBooks_Utilities::initialized($dsn))
 	// Add the default authentication username/password
 	QuickBooks_Utilities::createUser($dsn, $user, $pass);
 }
-
-// Initialize the queue
-QuickBooks_Queue_Singleton::initialize($dsn);
 
 // Create a new server and tell it to handle the requests
 // __construct($dsn_or_conn, $map, $errmap = array(), $hooks = array(), $log_level = QUICKBOOKS_LOG_NORMAL, $soap = QUICKBOOKS_SOAPSERVER_PHP, $wsdl = QUICKBOOKS_WSDL, $soap_options = array(), $handler_options = array(), $driver_options = array(), $callback_options = array()
@@ -245,10 +245,10 @@ function _quickbooks_hook_loginsuccess($requestID, $user, $hook, &$err, $hook_da
 	}
 	
 	// Make sure the requests get queued up
-	//$Queue->enqueue(QUICKBOOKS_IMPORT_SALESORDER, 1, QB_PRIORITY_SALESORDER);
-	//$Queue->enqueue(QUICKBOOKS_IMPORT_INVOICE, 1, QB_PRIORITY_INVOICE);
-	$Queue->enqueue(QUICKBOOKS_IMPORT_CUSTOMER, 1, QB_PRIORITY_CUSTOMER);
-	//$Queue->enqueue(QUICKBOOKS_IMPORT_ITEM, 1, QB_PRIORITY_ITEM);
+	$Queue->enqueue(QUICKBOOKS_IMPORT_SALESORDER, 1);
+	$Queue->enqueue(QUICKBOOKS_IMPORT_INVOICE, 1);
+	$Queue->enqueue(QUICKBOOKS_IMPORT_CUSTOMER, 1);
+	$Queue->enqueue(QUICKBOOKS_IMPORT_ITEM, 1);
 }
 
 /**
@@ -567,36 +567,6 @@ function _quickbooks_customer_import_response($requestID, $user, $action, $ID, $
 				) VALUES (
 					'" . implode("', '", array_values($arr)) . "'
 				)") or die(trigger_error(mysql_error()));
-			
-			// Stuff some information in WHMCS
-			$WHMCS = new _QuickBooks_Custom_WHMCS(
-				'http://www.prolificcommunications.com/Shop/includes/api.php', 
-				'keith', 
-				'keith');
-				
-			$whmcs = array(
-				'firstname' => $Customer->getChildDataAt('CustomerRet FirstName'), 
-				'lastname' => $Customer->getChildDataAt('CustomerRet LastName'), 
-				'companyname' => $Customer->getChildDataAt('CustomerRet CompanyName'), 
-				'email' => $Customer->getChildDataAt('CustomerRet Email'), 
-				'address1' => $Customer->getChildDataAt('CustomerRet BillAddress Addr1'), 
-				'address2' => $Customer->getChildDataAt('CustomerRet BillAddress Addr2'), 
-				'city' => $Customer->getChildDataAt('CustomerRet BillAddress City'), 
-				'state' => $Customer->getChildDataAt('CustomerRet BillAddress State'), 
-				'postcode' => $Customer->getChildDataAt('CustomerRet BillAddress PostalCode'), 
-				'country' => $Customer->getChildDataAt('CustomerRet BillAddress Country'), 
-				'phonenumber' => $Customer->getChildDataAt('CustomerRet Phone'), 
-				'password2' => 'asdg1234',
-				'currency' => '1', 
-				);
-			
-			QuickBooks_Utilities::log(QB_QUICKBOOKS_DSN, 'Adding customer to WHMCS: ' . print_r($whmcs, true));
-				
-			$WHMCS->addCustomer($whmcs);
-			
-			$response = $WHMCS->getLastResponse();
-			
-			QuickBooks_Utilities::log(QB_QUICKBOOKS_DSN, 'Got WHMCS response: ' . $response);	
 		}
 	}
 	
@@ -950,54 +920,4 @@ function _quickbooks_error_catchall($requestID, $user, $action, $ID, $extra, &$e
 	mail(QB_QUICKBOOKS_MAILTO, 
 		'QuickBooks error occured!', 
 		$message);
-}
-
-class _QuickBooks_Custom_WHMCS
-{
-	protected $_url;
-	protected $_user;
-	protected $_pass;
-	
-	protected $_last_request;
-	protected $_last_response;
-	
-	public function __construct($url, $user, $pass)
-	{
-		$this->_url = $url;
-		$this->_user = $user;
-		$this->_pass = $pass;
-	}
-	
-	public function addCustomer($arr)
-	{
-		$arr['action'] = 'addclient'; 
-		
-		return $this->_request($arr);
-	}
-	
-	protected function _request($arr)
-	{
-		$url = $this->_url;
-		
-		$arr['username'] = $this->_user;
-		$arr['password'] = md5($this->_pass);
-
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 100);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $arr);
-		$data = curl_exec($ch);
-		curl_close($ch);
-		
-		$this->_last_response = $data;
-		
-		return true;
-	}
-	
-	public function getLastResponse()
-	{
-		return $this->_last_response;
-	}
 }

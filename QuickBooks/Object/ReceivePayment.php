@@ -11,14 +11,19 @@
  */
 
 /**
+ * QuickBooks base declarations
+ */
+require_once 'QuickBooks.php';
+
+/**
  * Base object class
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * Dependency class (applied payment)
  */
-QuickBooks_Loader::load('/QuickBooks/Object/ReceivePayment/AppliedToTxn.php');
+require_once 'QuickBooks/Object/ReceivePayment/AppliedToTxn.php';
 
 /**
  * QuickBooks ReceivePayment object 
@@ -93,22 +98,19 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 	{
 		return $this->set('CustomerRef ' . QUICKBOOKS_API_APPLICATIONID, $this->encodeApplicationID(QUICKBOOKS_OBJECT_CUSTOMER, QUICKBOOKS_LISTID, $value));
 	}
-	
-	
-	public function getCustomerApplicationID()
-	{
+
+  public function getCustomerApplicationID()
+  {
 		return $this->get('CustomerRef ' . QUICKBOOKS_API_APPLICATIONID);
-	}
+  }
 	
 	/**
-	 * @deprecated
+	 * Set the customer name
+	 * 
+	 * @param string $name
+	 * @return boolean
 	 */
 	public function setCustomerName($name)
-	{
-		return $this->set('CustomerRef FullName', $name);
-	}
-	
-	public function setCustomerFullName($name)
 	{
 		return $this->set('CustomerRef FullName', $name);
 	}
@@ -124,19 +126,16 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 	}
 	
 	/**
-	 * @deprecated
+	 * Get the customer name
+	 * 
+	 * @return string
 	 */
 	public function getCustomerName()
 	{
 		return $this->get('CustomerRef FullName');
 	}
 	
-	public function getCustomerFullName()
-	{
-		return $this->get('CustomerRef FullName');
-	}
-	
-	/**
+		/**
 	 * Set the transaction date
 	 * 
 	 * @param string $date
@@ -202,7 +201,6 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 	 */
 	public function addAppliedToTxn($obj)
 	{
-		/*
 		$lines = $this->get('AppliedToTxn');
 		
 		if (!is_array($lines))
@@ -213,9 +211,7 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 		//
 		$lines[] = $obj;
 		
-		return $this->set('AppliedToTxn', $lines);*/
-		
-		return $this->addListItem('AppliedToTxn', $obj);
+		return $this->set('AppliedToTxn', $lines);
 	}
 	
 	/**
@@ -234,7 +230,7 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 	 */
 	public function setTotalAmount($amount)
 	{
-		return $this->setAmountType('TotalAmount', $amount);
+		return $this->set('TotalAmount', sprintf('%01.2f', (float) $amount));
 	}
 	
 	/**
@@ -244,7 +240,7 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 	 */
 	public function getTotalAmount()
 	{
-		return $this->getAmountType('TotalAmount');
+		return (float) $this->get('TotalAmount');
 	}
 	
 	public function setARAccountListID($ListID)
@@ -252,15 +248,7 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 		return $this->set('ARAccountRef ListID', $ListID);
 	}
 	
-	/**
-	 * @deprecated
-	 */
 	public function setARAccountName($name)
-	{
-		return $this->set('ARAccountRef FullName', $name);
-	}
-
-	public function setARAccountFullName($name)
 	{
 		return $this->set('ARAccountRef FullName', $name);
 	}
@@ -280,15 +268,7 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 		return $this->get('ARAccountRef ListID');
 	}
 	
-	/**
-	 * @deprecated
-	 */
 	public function getARAccountName()
-	{
-		return $this->get('ARAccountRef FullName');
-	}
-
-	public function getARAccountFullName()
 	{
 		return $this->get('ARAccountRef FullName');
 	}
@@ -298,15 +278,7 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 		return $this->set('PaymentMethodRef ListID', $ListID);
 	}
 	
-	/**
-	 * @deprecated
-	 */
 	public function setPaymentMethodName($name)
-	{
-		return $this->set('PaymentMethodRef FullName', $name);
-	}
-	
-	public function setPaymentMethodFullName($name)
 	{
 		return $this->set('PaymentMethodRef FullName', $name);
 	}
@@ -326,15 +298,7 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 		return $this->get('PaymentMethodRef ListID');
 	}
 	
-	/**
-	 * @deprecated
-	 */
 	public function getPaymentMethodName()
-	{
-		return $this->get('PaymentMethodRef FullName');
-	}
-	
-	public function getPaymentMethodFullName()
 	{
 		return $this->get('PaymentMethodRef FullName');
 	}
@@ -344,15 +308,7 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 		return $this->set('DepositToAccountRef ListID', $ListID);
 	}
 	
-	/**
-	 * @deprecated
-	 */
 	public function setDepositToAccountName($name)
-	{
-		return $this->set('DepositToAccountRef FullName', $name);
-	}
-	
-	public function setDepositToAccountFullName()
 	{
 		return $this->set('DepositToAccountRef FullName', $name);
 	}
@@ -372,15 +328,7 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 		return $this->get('DepositToAccountRef ListID');
 	}
 	
-	/**
-	 * @deprecated
-	 */
 	public function getDepositToAccountName()
-	{
-		return $this->get('DepositToAccountRef FullName');
-	}
-	
-	public function getDepositToAccountFullName()
 	{
 		return $this->get('DepositToAccountRef FullName');
 	}
@@ -440,12 +388,12 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 	 * @param boolean $nest
 	 * @return array
 	 */
-	/*public function asArray($request, $nest = true)
+	public function asArray($request, $nest = true)
 	{
 		$this->_cleanup();
 		
 		return parent::asArray($request, $nest);
-	}*/
+	}
 	
 	public function asList($request)
 	{
@@ -472,13 +420,8 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 		return parent::asList($request);
 	}
 	
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
-		if (is_null($object))
-		{
-			$object = $this->_object;
-		}
-				
 		switch ($root)
 		{
 			case QUICKBOOKS_ADD_RECEIVEPAYMENT:
@@ -492,21 +435,21 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 				
 				if ($this->exists('AppliedToTxnAdd'))
 				{
-					foreach ($object['AppliedToTxnAdd'] as $key => $obj)
+					foreach ($this->_object['AppliedToTxnAdd'] as $key => $obj)
 					{
 						$obj->setOverride('AppliedToTxnAdd');
 					}
 				}
 				
 				break;
-			case QUICKBOOKS_MOD_RECEIVEPAYMENT:
+			case QUICKBOOKS_MOD_INVOICE:
 				
 				// finish me!
 				
 				break;
 		}
 		
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root, $parent);
 	}
 	
 	/**
@@ -518,14 +461,12 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 	 * @param string $root
 	 * @return string
 	 */
-	/*
 	public function asQBXML($request, $todo_for_empty_elements = QUICKBOOKS_OBJECT_XML_DROP, $indent = "\t", $root = null)
 	{
 		$this->_cleanup();
 		
 		return parent::asQBXML($request, $todo_for_empty_elements, $indent, $root);
 	}
-	*/
 	
 	/**
 	 * Tell what type of object this is 
@@ -537,3 +478,5 @@ class QuickBooks_Object_ReceivePayment extends QuickBooks_Object
 		return QUICKBOOKS_OBJECT_RECEIVEPAYMENT;
 	}
 }
+
+?>

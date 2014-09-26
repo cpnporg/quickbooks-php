@@ -18,6 +18,11 @@
  */
 
 /**
+ * Require the base QuickBooks files
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks server adapter interface
  */
 interface QuickBooks_Adapter_Server
@@ -62,3 +67,5 @@ interface QuickBooks_Adapter_Server
 	 */
 	public function setClass($class, $dsn_or_conn, $map, $onerror, $hooks, $log_level, $raw_http_input, $handler_options, $driver_options, $callback_options);
 }
+
+?>

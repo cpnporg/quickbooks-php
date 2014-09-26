@@ -35,14 +35,19 @@
  */
 
 /**
+ * QuickBooks base class
+ */
+require_once 'QuickBooks.php';
+
+/**
  * Various QuickBooks-related utilities
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks/Utilities.php';
 
 /**
  * Helper singleton class
  */
-QuickBooks_Loader::load('/QuickBooks/Queue/Singleton.php');
+require_once 'Queue/Singleton.php';
 
 /**
  * QuickBooks queueing class - Queue up actions to be performed in QuickBooks
@@ -73,22 +78,6 @@ class QuickBooks_Queue
 		
 		// Set the default username
 		$this->_user = $user;
-	}
-	
-	/**
-	 * Get or set the username the queue is operating on/for
-	 * 
-	 * @param string $user
-	 * @return string
-	 */
-	public function user($user = null)
-	{
-		if ($user)
-		{
-			$this->_user = $user;
-		}
-		
-		return $this->_user;
 	}
 	
 	/**
@@ -242,6 +231,13 @@ class QuickBooks_Queue
 	{
 		if ($this->_driver)
 		{
+			/*
+			if (!$user)
+			{
+				$user = $this->_driver->authDefault();
+			}
+			*/
+			
 			// Use the default user (provided in __construct) if none is given
 			if (!$user)
 			{
@@ -249,55 +245,6 @@ class QuickBooks_Queue
 			}			
 			
 			return $this->_driver->queueExists($user, $action, $ident);
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * Tell the number of items currently in the queue
-	 * 
-	 * @param string $user		The username of the user to check the queue size for
-	 * @return integer			The number of items in the queue
-	 */
-	public function size($user = null)
-	{
-		if ($this->_driver)
-		{
-			// Use the default user (provided in __construct) if none is given
-			if (!$user)
-			{
-				$user = $this->_user;
-			}
-			
-			$queued = true;
-			return $this->_driver->queueLeft($user, $queued);
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * Forcibly remove an item from the queue
-	 * 
-	 * @param string $action
-	 * @param string $ident
-	 * @param string $user
-	 * @return boolean
-	 */
-	public function remove($action, $ident, $user = null)
-	{
-		if ($this->_driver)
-		{
-			// Use the default user (provided in __construct) if none is given
-			if (!$user)
-			{
-				$user = $this->_user;
-			}
-			
-			$ticket = null;
-			$new_status = QUICKBOOKS_STATUS_CANCELLED;
-			return $this->_driver->queueRemove($user, $action, $ident);
 		}
 		
 		return null;

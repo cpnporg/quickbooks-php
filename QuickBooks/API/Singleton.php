@@ -12,7 +12,12 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/API.php');
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/API.php';
 
 /**
  * 
@@ -37,3 +42,5 @@ class QuickBooks_API_Singleton
 		return $instance;
 	}
 }
+
+?>

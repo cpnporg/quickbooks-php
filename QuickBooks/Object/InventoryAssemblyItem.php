@@ -16,7 +16,12 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Object.php';
 
 /**
  * 
@@ -48,16 +53,6 @@ class QuickBooks_Object_InventoryAssemblyItem extends QuickBooks_Object
 	{
 		return $this->get('ListID');
 	}
-	
-	public function setFullName($fullname)
-	{
-		return $this->setFullNameType('FullName', 'Name', 'ParentRef FullName', $fullname);
-	}
-	
-	public function getFullName()
-	{
-		return $this->getFullNameType('FullName', 'Name', 'ParentRef FullName');
-	}	
 	
 	/**
 	 * Set the name for this item
@@ -320,3 +315,5 @@ class QuickBooks_Object_InventoryAssemblyItem extends QuickBooks_Object
 		return QUICKBOOKS_OBJECT_INVENTORYASSEMBLYITEM;
 	}
 }
+
+?>

@@ -1,8 +1,8 @@
 <?php
 
-QuickBooks_Loader::load('/QuickBooks/Frontend/Module.php');
+require_once 'QuickBooks/Frontend/Module.php';
 
-QuickBooks_Loader::load('/QuickBooks/Test/Driver.php');
+require_once 'QuickBooks/Test/Driver.php';
 
 class QuickBooks_Frontend_Module_Tests extends QuickBooks_Frontend_Module
 {

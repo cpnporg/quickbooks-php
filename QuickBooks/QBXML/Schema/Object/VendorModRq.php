@@ -13,7 +13,12 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/QBXML/Schema/Object.php');
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/QBXML/Schema/Object.php';
 
 /**
  * 

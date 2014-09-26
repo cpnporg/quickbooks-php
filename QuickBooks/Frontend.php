@@ -13,7 +13,7 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Frontend/Menu.php');
+require_once 'QuickBooks/Frontend/Menu.php';
 
 /**
  * 
@@ -110,9 +110,8 @@ class QuickBooks_Frontend
 	protected function _skinFactory($skin, $menu, $opts = array())
 	{
 		$class = 'QuickBooks_Frontend_Skin_' . ucfirst(strtolower($skin));
-		$file = '/QuickBooks/Frontend/Skin/' . ucfirst(strtolower($skin)) . '.php';
 		
-		QuickBooks_Loader::load($file);
+		require_once str_replace('_', '/', $class) . '.php';
 		
 		if (class_exists($class))
 		{

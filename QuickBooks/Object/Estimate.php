@@ -13,17 +13,22 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object/Generic.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object/Estimate/EstimateLine.php');
+require_once 'QuickBooks/Object/Generic.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Object/Estimate/EstimateLine.php';
 
 /**
  * 
@@ -606,32 +611,27 @@ class QuickBooks_Object_Estimate extends QuickBooks_Object
 		return parent::asList($request);
 	}
 	
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
-		if (is_null($object))
-		{
-			$object = $this->_object;
-		}
-		
 		switch ($root)
 		{
 			case QUICKBOOKS_ADD_ESTIMATE:
 				
-				foreach ($object['EstimateLineAdd'] as $key => $obj)
+				foreach ($this->_object['EstimateLineAdd'] as $key => $obj)
 				{
 					$obj->setOverride('EstimateLineAdd');
 				}
 				
 				break;
 			case QUICKBOOKS_MOD_ESTIMATE:
-				if (isset($object['EstimateLine']))
+				if (isset($this->_object['EstimateLine']))
 				{
-					$object['EstimateLineMod'] = $object['EstimateLine'];
+					$this->_object['EstimateLineMod'] = $this->_object['EstimateLine'];
 				}
 				break;
 		}
 		
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root, $parent);
 	}
 	
 	/**

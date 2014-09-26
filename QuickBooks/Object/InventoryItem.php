@@ -16,7 +16,12 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Object.php';
 
 /**
  * 
@@ -70,16 +75,6 @@ class QuickBooks_Object_InventoryItem extends QuickBooks_Object
 		return $this->get('Name');
 	}
 	
-	public function setFullName($fullname)
-	{
-		return $this->setFullNameType('FullName', 'Name', 'ParentRef FullName', $fullname);
-	}
-	
-	public function getFullName()
-	{
-		return $this->getFullNameType('FullName', 'Name', 'ParentRef FullName');
-	}	
-	
 	/**
 	 * Set the description of this item
 	 * 
@@ -128,16 +123,10 @@ class QuickBooks_Object_InventoryItem extends QuickBooks_Object
 	
 	/**
 	 * (Sales OR Purchase)
-	 * @deprecated
 	 */
 	public function setIncomeAccountName($name)
 	{
 		return $this->set('IncomeAccountRef FullName', $name);
-	}
-	
-	public function setIncomeAccountFullName($FullName)
-	{
-		return $this->setFullNameType('IncomeAccountRef FullName', null, null, $FullName);
 	}
 	
 	/**
@@ -162,32 +151,19 @@ class QuickBooks_Object_InventoryItem extends QuickBooks_Object
 	}
 	
 	/**
-	 * @deprecated
+	 * 
 	 */
 	public function getIncomeAccountName()
 	{
 		return $this->get('IncomeAccountRef FullName');
 	}
-
-	public function getIncomeAccountFullName()
-	{
-		return $this->get('IncomeAccountRef FullName');
-	}	
-
+	
 	public function setAssetAccountName($name)
 	{
 		return $this->set('AssetAccountRef FullName', $name);
 	}
 	
-	/**
-	 * @deprecated
-	 */
 	public function getAssetAccountName()
-	{
-		return $this->get('AssetAccountRef FullName');
-	}
-	
-	public function getAssetAccountFullName()
 	{
 		return $this->get('AssetAccountRef FullName');
 	}
@@ -237,17 +213,9 @@ class QuickBooks_Object_InventoryItem extends QuickBooks_Object
 		return $this->set('COGSAccountRef ListID', $ListID);
 	}
 	
-	/**
-	 * @deprecated
-	 */
 	public function setCOGSAccountName($name)
 	{
 		return $this->set('COGSAccountRef FullName', $name);
-	}
-	
-	public function setCOGSAccountFullName($FullName)
-	{
-		return $this->setFullNameType('COGSAccountRef FullName', null, null, $FullName);
 	}
 	
 	public function setCOGSAccountApplicationID($value)
@@ -265,15 +233,7 @@ class QuickBooks_Object_InventoryItem extends QuickBooks_Object
 		return $this->get('COGSAccountRef ListID');
 	}
 	
-	/**
-	 * @deprecated
-	 */
 	public function getCOGSAccountName()
-	{
-		return $this->get('COGSAccountRef FullName');
-	}
-
-	public function getCOGSAccountFullName()
 	{
 		return $this->get('COGSAccountRef FullName');
 	}
@@ -306,16 +266,6 @@ class QuickBooks_Object_InventoryItem extends QuickBooks_Object
 	public function getPreferredVendorName()
 	{
 		return $this->get('PrefVendorRef FullName');
-	}
-	
-	public function getUnitOfMeasureSetListID()
-	{
-		return $this->get('UnitOfMeasureSetRef ListID');
-	}
-	
-	public function getUnitOfMeasureSetFullName()
-	{
-		return $this->get('UnitOfMeasureSetRef FullName');
 	}
 	
 	/**

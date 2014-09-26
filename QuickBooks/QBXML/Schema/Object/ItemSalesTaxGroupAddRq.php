@@ -27,7 +27,7 @@ class QuickBooks_QBXML_Schema_Object_ItemSalesTaxGroupAddRq extends QuickBooks_Q
 {
 	protected function &_qbxmlWrapper()
 	{
-		static $wrapper = 'ItemSalesTaxGroup';
+		static $wrapper = '';
 		
 		return $wrapper;
 	}
@@ -35,11 +35,11 @@ class QuickBooks_QBXML_Schema_Object_ItemSalesTaxGroupAddRq extends QuickBooks_Q
 	protected function &_dataTypePaths()
 	{
 		static $paths = array (
-  'Name' => 'STRTYPE',
-  'IsActive' => 'BOOLTYPE',
-  'ItemDesc' => 'STRTYPE',
-  'ItemSalesTaxRef ListID' => 'IDTYPE',
-  'ItemSalesTaxRef FullName' => 'STRTYPE',
+  'ItemSalesTaxGroupAdd Name' => 'STRTYPE',
+  'ItemSalesTaxGroupAdd IsActive' => 'BOOLTYPE',
+  'ItemSalesTaxGroupAdd ItemDesc' => 'STRTYPE',
+  'ItemSalesTaxGroupAdd ItemSalesTaxRef ListID' => 'IDTYPE',
+  'ItemSalesTaxGroupAdd ItemSalesTaxRef FullName' => 'STRTYPE',
   'IncludeRetElement' => 'STRTYPE',
 );
 		
@@ -49,11 +49,11 @@ class QuickBooks_QBXML_Schema_Object_ItemSalesTaxGroupAddRq extends QuickBooks_Q
 	protected function &_maxLengthPaths()
 	{
 		static $paths = array (
-  'Name' => 31,
-  'IsActive' => 0,
-  'ItemDesc' => 4095,
-  'ItemSalesTaxRef ListID' => 0,
-  'ItemSalesTaxRef FullName' => 31,
+  'ItemSalesTaxGroupAdd Name' => 31,
+  'ItemSalesTaxGroupAdd IsActive' => 0,
+  'ItemSalesTaxGroupAdd ItemDesc' => 4095,
+  'ItemSalesTaxGroupAdd ItemSalesTaxRef ListID' => 0,
+  'ItemSalesTaxGroupAdd ItemSalesTaxRef FullName' => 31,
   'IncludeRetElement' => 50,
 );
 		
@@ -63,11 +63,11 @@ class QuickBooks_QBXML_Schema_Object_ItemSalesTaxGroupAddRq extends QuickBooks_Q
 	protected function &_isOptionalPaths()
 	{
 		static $paths = array (
-  'Name' => false,
-  'IsActive' => true,
-  'ItemDesc' => true,
-  'ItemSalesTaxRef ListID' => true,
-  'ItemSalesTaxRef FullName' => true,
+  'ItemSalesTaxGroupAdd Name' => false,
+  'ItemSalesTaxGroupAdd IsActive' => true,
+  'ItemSalesTaxGroupAdd ItemDesc' => true,
+  'ItemSalesTaxGroupAdd ItemSalesTaxRef ListID' => true,
+  'ItemSalesTaxGroupAdd ItemSalesTaxRef FullName' => true,
   'IncludeRetElement' => true,
 );
 	}
@@ -75,11 +75,11 @@ class QuickBooks_QBXML_Schema_Object_ItemSalesTaxGroupAddRq extends QuickBooks_Q
 	protected function &_sinceVersionPaths()
 	{
 		static $paths = array (
-  'Name' => 999.99,
-  'IsActive' => 999.99,
-  'ItemDesc' => 999.99,
-  'ItemSalesTaxRef ListID' => 999.99,
-  'ItemSalesTaxRef FullName' => 999.99,
+  'ItemSalesTaxGroupAdd Name' => 999.99,
+  'ItemSalesTaxGroupAdd IsActive' => 999.99,
+  'ItemSalesTaxGroupAdd ItemDesc' => 999.99,
+  'ItemSalesTaxGroupAdd ItemSalesTaxRef ListID' => 999.99,
+  'ItemSalesTaxGroupAdd ItemSalesTaxRef FullName' => 999.99,
   'IncludeRetElement' => 4,
 );
 		
@@ -89,11 +89,11 @@ class QuickBooks_QBXML_Schema_Object_ItemSalesTaxGroupAddRq extends QuickBooks_Q
 	protected function &_isRepeatablePaths()
 	{
 		static $paths = array (
-  'Name' => false,
-  'IsActive' => false,
-  'ItemDesc' => false,
-  'ItemSalesTaxRef ListID' => false,
-  'ItemSalesTaxRef FullName' => false,
+  'ItemSalesTaxGroupAdd Name' => false,
+  'ItemSalesTaxGroupAdd IsActive' => false,
+  'ItemSalesTaxGroupAdd ItemDesc' => false,
+  'ItemSalesTaxGroupAdd ItemSalesTaxRef ListID' => false,
+  'ItemSalesTaxGroupAdd ItemSalesTaxRef FullName' => false,
   'IncludeRetElement' => true,
 );
 			
@@ -115,13 +115,12 @@ class QuickBooks_QBXML_Schema_Object_ItemSalesTaxGroupAddRq extends QuickBooks_Q
 	protected function &_reorderPathsPaths()
 	{
 		static $paths = array (
-  0 => 'Name',
-  1 => 'IsActive',
-  2 => 'ItemDesc',
-  3 => 'ItemSalesTaxRef', 
-  4 => 'ItemSalesTaxRef ListID',
-  5 => 'ItemSalesTaxRef FullName',
-  6 => 'IncludeRetElement',
+  0 => 'ItemSalesTaxGroupAdd Name',
+  1 => 'ItemSalesTaxGroupAdd IsActive',
+  2 => 'ItemSalesTaxGroupAdd ItemDesc',
+  3 => 'ItemSalesTaxGroupAdd ItemSalesTaxRef ListID',
+  4 => 'ItemSalesTaxGroupAdd ItemSalesTaxRef FullName',
+  5 => 'IncludeRetElement',
 );
 			
 		return $paths;

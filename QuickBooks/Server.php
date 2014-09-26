@@ -58,9 +58,14 @@ define('QUICKBOOKS_SERVER_HOOK_PREHANDLE', 'QuickBooks_Server::handle (pre)');
 define('QUICKBOOKS_SERVER_HOOK_POSTHANDLE', 'QuickBooks_Server::handle (post)');
 
 /**
+ * QuickBooks base classes and constants
+ */
+require_once 'QuickBooks.php';
+
+/**
  * Base handlers for each of the methods required by the QuickBooks Web Connector
  */
-QuickBooks_Loader::load('/QuickBooks/Handlers.php');
+require_once 'QuickBooks/Handlers.php';
 
 /**
  * QuickBooks SOAP Server
@@ -179,7 +184,6 @@ class QuickBooks_Server
 		
 		// Assign callback configuration info
 		$this->_callback_config = $callback_options;
-		
 		// Base handlers
 		// $dsn_or_conn, $map, $onerror, $hooks, $log_level, $input, $handler_config = array(), $driver_config = array()
 		$this->_server->setClass('QuickBooks_Handlers', $dsn_or_conn, $map, $onerror, $hooks, $log_level, file_get_contents('php://input'), $handler_options, $driver_options, $callback_options);
@@ -198,10 +202,10 @@ class QuickBooks_Server
 	{
 		$adapter = ucfirst(strtolower($adapter));
 		
-		$file = '/QuickBooks/Adapter/Server/' . $adapter . '.php';
+		$file = 'QuickBooks/Adapter/Server/' . $adapter . '.php';
 		$class = 'QuickBooks_Adapter_Server_' . $adapter;
 		
-		QuickBooks_Loader::load($file);
+		require_once $file;
 		
 		if (class_exists($class))
 		{
@@ -225,7 +229,6 @@ class QuickBooks_Server
 			'time_limit' => 0, 
 			'log_to_file' => null, 
 			'log_to_syslog' => null, 
-			'masking' => true, 
 			);
 		
 		$arr = array_merge($defaults, $arr);
@@ -312,28 +315,6 @@ class QuickBooks_Server
 	}
 	
 	/**
-	 * Log a message to the error/debug log
-	 *
-	 * @param string $msg
-	 * @param string $ticket
-	 * @param integer $level
-	 * @return boolean
-	 */
-	protected function _log($msg, $ticket, $level = QUICKBOOKS_LOG_NORMAL)
-	{
-		$Driver = $this->_driver;
-		
-		$msg = QuickBooks_Utilities::mask($msg);
-		
-		if ($Driver)
-		{
-			return $Driver->log($msg, $ticket, $level);
-		}
-		
-		return false;
-	}
-	
-	/**
 	 * Handle the SOAP request
 	 * 
 	 * @param boolean $return
@@ -386,12 +367,10 @@ class QuickBooks_Server
 						$headers .= $header . ': ' . $value . "\n"; 
 					}
 					
-					//$this->_driver->log('Incoming HTTP Headers: ' . $headers, null, QUICKBOOKS_LOG_DEVELOP);
-					$this->_log('Incoming HTTP Headers: ' . $headers, null, QUICKBOOKS_LOG_DEVELOP);
+					$this->_driver->log('Incoming HTTP Headers: ' . $headers, null, QUICKBOOKS_LOG_DEVELOP);
 				}
 				
-				//$this->_driver->log('Incoming SOAP Request: ' . $input, null, QUICKBOOKS_LOG_DEVELOP);
-				$this->_log('Incoming SOAP Request: ' . $input, null, QUICKBOOKS_LOG_DEVELOP);
+				$this->_driver->log('Incoming SOAP Request: ' . $input, null, QUICKBOOKS_LOG_DEVELOP);
 			}
 			
 			if ($return or isset($this->_hooks[QUICKBOOKS_SERVER_HOOK_POSTHANDLE]))
@@ -434,8 +413,7 @@ class QuickBooks_Server
 				
 				if ($this->_loglevel >= QUICKBOOKS_LOG_DEVELOP)
 				{
-					//$this->_driver->log('Outgoing SOAP Response: ' . $output, null, QUICKBOOKS_LOG_DEVELOP);
-					$this->_log('Outgoing SOAP Response: ' . $output, null, QUICKBOOKS_LOG_DEVELOP);
+					$this->_driver->log('Outgoing SOAP Response: ' . $output, null, QUICKBOOKS_LOG_DEVELOP);
 				}
 				
 				if ($return)
@@ -497,30 +475,12 @@ class QuickBooks_Server
 				
 				print("\n");
 				print('Registered hooks: ' . "\n");
-				//print_r($this->_hooks);		// This is bad because it prints passwords
-				foreach ($this->_hooks as $hook => $arr)
-				{
-					if (!is_array($arr))
-					{
-						continue;
-					}
-					
-					print(' - ' . $hook . QUICKBOOKS_CRLF);
-					foreach ($arr as $x)
-					{
-						$y = current(explode("\n", print_r($x, true)));
-						
-						print('    ' . $y . QUICKBOOKS_CRLF);
-					}
-				}
+				print_r($this->_hooks);
 				
 				print("\n");
 				print('Detected input: ' . "\n");
 				print(file_get_contents('php://input'));
 				print("\n");
-				print("\n");
-				print('Timestamp: ' . "\n");
-				print(' - ' . date('Y-m-d H:i:s') . ' -- process ' . round(microtime(true) - QUICKBOOKS_TIMESTAMP, 5) . "\n");
 			}
 			
 			return;

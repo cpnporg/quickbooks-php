@@ -460,14 +460,17 @@ class QuickBooks_QBXML_Schema_Object_CustomerAddRq extends QuickBooks_QBXML_Sche
 		return $paths;
 	}
 	
-	protected function &_inLocalePaths()
+	/*
+	abstract protected function &_inLocalePaths()
 	{
 		static $paths = array(
-			'CustomerTypeRef FullName' => array( 'QBOE' ), 
+			'FirstName' => array( 'QBD', 'QBCA', 'QBUK', 'QBAU' ), 
+			'LastName' => array( 'QBD', 'QBCA', 'QBUK', 'QBAU' ),
 			);
 		
 		return $paths;
 	}
+	*/
 	
 	protected function &_reorderPathsPaths()
 	{
@@ -556,3 +559,4 @@ class QuickBooks_QBXML_Schema_Object_CustomerAddRq extends QuickBooks_QBXML_Sche
 	}
 }
 
+?>

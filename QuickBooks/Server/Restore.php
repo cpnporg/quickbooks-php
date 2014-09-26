@@ -10,14 +10,10 @@
  * @subpackage Server
  */
 
-/**
- * 
- */
-QuickBooks_Loader::load('/QuickBooks/Server.php');
+require_once 'QuickBooks.php';
 
-/**
- * 
- */
+require_once 'QuickBooks/Server.php';
+
 class QuickBooks_Server_Restore extends QuickBooks_Server
 {
 	

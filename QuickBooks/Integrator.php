@@ -94,15 +94,10 @@ define('QUICKBOOKS_INTEGRATOR_NULL', 'quickbooks-integrator-null');
 
 // @Todo Change these to use constants
 define('QUICKBOOKS_INTEGRATOR_TABLE_ACCOUNT', 'qb_integrator_account');
-define('QUICKBOOKS_INTEGRATOR_TABLE_CLASS', 'qb_integrator_class');
 define('QUICKBOOKS_INTEGRATOR_TABLE_CUSTOMERTYPE', 'qb_integrator_customertype');
 define('QUICKBOOKS_INTEGRATOR_TABLE_PAYMENTMETHOD', 'qb_integrator_paymentmethod');
 define('QUICKBOOKS_INTEGRATOR_TABLE_SHIPMETHOD', 'qb_integrator_shipmethod');
 define('QUICKBOOKS_INTEGRATOR_TABLE_ITEM', 'qb_integrator_item');
-define('QUICKBOOKS_INTEGRATOR_TABLE_SALESTAXITEM', 'qb_integrator_itemsalestax');
-define('QUICKBOOKS_INTEGRATOR_TABLE_SALESTAXGROUPITEM', 'qb_integrator_itemsalestaxgroup');
-define('QUICKBOOKS_INTEGRATOR_TABLE_SALESTAXCODE', 'qb_integrator_salestaxcode');
-define('QUICKBOOKS_INTEGRATOR_TABLE_UNITOFMEASURESET', 'qb_integrator_unitofmeasureset');
 
 define('QUICKBOOKS_INTEGRATOR_HOOK_SAVEOBJECT', 'QuickBooks_Integrator save-object');
 
@@ -174,23 +169,6 @@ abstract class QuickBooks_Integrator
 		return $this->_api->log($msg, $lvl);
 	}
 	
-	protected function _pushOrdersAs($type = null)
-	{
-		$current = $this->_config['push_orders_as'];
-		
-		if (strlen($type))
-		{
-			$this->_config['push_orders_as'] = $type;
-		}
-		
-		return $current;
-	}
-	
-	protected function _pushItemsAs($type = null)
-	{
-		
-	}
-	
 	/**
 	 * Integrator configuration
 	 * 
@@ -258,7 +236,7 @@ abstract class QuickBooks_Integrator
 			'shipmethod_name_for_query_format' => '$Name', 
 			'paymentmethod_name_for_query_format' => '$Name', 
 			'order_refnumber_for_query_format' => '$RefNumber', 
-			'product_name_for_query_format' => '$FullName', 
+			'product_name_for_query_format' => '$Name', 
 			'class_name_for_query_format' => '$Name', 
 			'account_name_for_query_format' => '$Name', 
 			'default_listneworderssince_query' => null, 
@@ -318,191 +296,6 @@ abstract class QuickBooks_Integrator
 		
 		
 		return $html;
-	}
-	
-	/**
-	 * 
-	 * 
-	 * 
-	 */
-	protected function _guessQuickBooksSalesTaxItem($cart_salestax, $cart_total, $cart_salestaxamount, $cart_salestaxrate, $arr_qb_salestaxitem_objects, $arr_lineitems)
-	{
-		$this->_log('Trying to guess sales tax (cart tax name: ' . $cart_salestax . ', cart total: ' . $cart_total . ', cart tax amount: ' . $cart_salestaxamount . ', cart tax rate: ' . $cart_salestaxrate . ' from list: ' . print_r($arr_qb_salestaxitem_objects, true), QUICKBOOKS_LOG_DEVELOP);
-		
-		// First, check for an exact match
-		foreach ($arr_qb_salestaxitem_objects as $key => $object)
-		{
-			if (strtolower($object->get('Name')) == strtolower($cart_salestax))
-			{
-				$this->_log('Found an exact sales tax match: [' . $cart_salestax . ']', QUICKBOOKS_LOG_DEBUG);
-				return $cart_salestax;
-			}
-		}
-		
-		// OK, no exact match, let's see if we can use the salestaxamount and totalamount to calculate a percentage, and match by percentage
-		if ($cart_salestaxamount > 0.0 and $cart_total > 0.0)
-		{
-			$percentage = round($cart_salestaxamount / ($cart_total - $cart_salestaxamount) * 100.0, 2);
-			
-			foreach ($arr_qb_salestaxitem_objects as $key => $object)
-			{
-				if ($object->get('TaxRate') == $percentage)
-				{
-					$this->_log('Found a sales tax match based on amount: [' . $object->get('Name') . ', ' . $percentage . '%]', QUICKBOOKS_LOG_DEBUG);
-					return $object->get('Name');
-				}
-			}
-		}
-		
-		// @todo Check if we can match by rate
-		if ($cart_salestaxrate)
-		{
-			
-		}
-		
-		// @todo Add some other guess methods here
-		// @todo Check with items, maybe only some of the lineitems are taxable?
-		
-		// We don't know what the heck the sales tax item is...
-		return null;
-	}
-	
-	/**
-	 *
-	 * 
-	 * 
-	 */
-	protected function _guessQuickBooksShipMethod($cart_shipmethod, $arr_qb_shipmethod_names, $max_distance = 10)
-	{
-		static $special_cases = array(
-			'UPS: Ground' => 'UPS', 
-			);
-			
-		$min_distance = 999999;
-		$min_choice = null;
-		
-		foreach ($arr_qb_shipmethod_names as $key => $qb_shipmethod)
-		{
-			// First, see if there are any exact matches			
-			if ($cart_shipmethod == $qb_shipmethod)
-			{
-				return $qb_shipmethod;
-			}
-			
-			// If there are no exact matches, we'll see if there's one that's very similar
-			$distance = levenshtein(metaphone($cart_shipmethod), metaphone($qb_shipmethod));
-			if ($distance < $min_distance)
-			{
-				$min_distance = $distance;
-				$min_choice = $qb_shipmethod;
-			}
-		}
-		
-		// So whatever we got was a guess based on the string, let's check special cases just in case
-		foreach ($special_cases as $special_case_cart_shipmethod => $special_case_qb_shipmethod)
-		{
-			if ($cart_shipmethod == $special_case_cart_shipmethod and 
-				in_array($special_case_qb_shipmethod, $arr_qb_shipmethod_names))
-			{
-				return $special_case_qb_shipmethod;
-			}
-		}
-		
-		if ($min_distance >= $max_distance)
-		{
-			return '';
-		}		
-		
-		return $min_choice;
-	}	
-	
-	/**
-	 * 
-	 * 
-	 * @note This only supports @cart_weight right now
-	 * 
-	 * @param string $cart_unitofmeasure
-	 * @param float $cart_weight
-	 * @param array $arr_qb_unitofmeasure_map
-	 */
-	protected function _guessQuickBooksUnitOfMeasure($cart_unitofmeasure, $cart_weight, $cart_quantity, $arr_qb_unitofmeasure_map)
-	{
-		$this->_log('Trying to guess unit of measure (cart unit of measure: ' . $cart_unitofmeasure . ', cart weight: ' . $cart_weight . ', cart quantity: ' . $cart_quantity . ' from map: ' . print_r($arr_qb_unitofmeasure_map, true), QUICKBOOKS_LOG_DEVELOP);
-		
-		$per_weight = $cart_weight;
-		if ($cart_quantity)
-		{
-			$per_weight = $cart_weight / $cart_quantity;
-		}
-		
-		foreach ($arr_qb_unitofmeasure_map as $unit => $conversion)
-		{
-			if ($per_weight == $conversion)
-			{
-				$this->_log('Found a unit of measure match based on conversion: [' . $unit . ' => conversion ' . $conversion . ']', QUICKBOOKS_LOG_DEBUG);
-				return $unit;
-			}
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * Guess the payment method within QuickBooks based on the cart payment method
-	 * 
-	 * @param string $cart_paymentmethod
-	 * @param array $arr_qb_paymentmethod_names
-	 * @param integer $max_distance
-	 * @return string
-	 */
-	protected function _guessQuickBooksPaymentMethod($cart_paymentmethod, $arr_qb_paymentmethod_names, $max_distance = 10)
-	{
-		static $special_cases = array(
-			'Amex' => 'American Express', 
-			'Visa' => 'Visa/Mastercard', 
-			'Mastercard' => 'Visa/Mastercard', 
-			'paypal_express' => 'PayPal', 
-			);
-			
-		$min_distance = 999999;
-		$min_choice = null;
-		
-		foreach ($arr_qb_paymentmethod_names as $key => $qb_paymentmethod)
-		{
-			// First, see if there are any exact matches			
-			if ($cart_paymentmethod == $qb_paymentmethod)
-			{
-				return $qb_paymentmethod;
-			}
-			
-			// If there are no exact matches, we'll see if there's one that's very similar
-			$distance = levenshtein(metaphone($cart_paymentmethod), metaphone($qb_paymentmethod));
-			if ($distance < $min_distance)
-			{
-				$min_distance = $distance;
-				$min_choice = $qb_paymentmethod;
-			}
-		}
-		
-		//print('min distance: ' . $min_distance . "\n");
-		//print('min choice: ' . $min_choice . "\n");
-		
-		// So whatever we got was a guess based on the string, let's check special cases just in case
-		foreach ($special_cases as $special_case_cart_paymentmethod => $special_case_qb_paymentmethod)
-		{
-			if ($cart_paymentmethod == $special_case_cart_paymentmethod and 
-				in_array($special_case_qb_paymentmethod, $arr_qb_paymentmethod_names))
-			{
-				return $special_case_qb_paymentmethod;
-			}
-		}
-		
-		if ($min_distance >= $max_distance)
-		{
-			return '';
-		}		
-		
-		return $min_choice;
 	}
 	
 	abstract protected function _defaultGetOrderQuery();
@@ -705,92 +498,12 @@ abstract class QuickBooks_Integrator
 		return $this->_applyFormat($sql, array( 'datetime' => $datetime ));
 	}
 	
-	public function getOrderItems($OrderID)
+	public function getOrderItemsForOrder($OrderID)
 	{
-		$list = $this->_getOrderItems($OrderID);
-		
-		$orderitem_unitofmeasure = null;
-		
-		$unitofmeasureset_ListID = null;
-		$unitofmeasureset_Name = null;
-		$unitofmeasure_ConversionRatio = 1;
-		
-		$sets = $this->_listUnitOfMeasureSets();
-		
-		foreach ($list as $key => $OrderItem)
-		{
-			// If it uses a UnitOfMeasure, then we need to make sure that the item it depends on *supports* the unit of measure before we can send it
-			if ($orderitem_unitofmeasure = $OrderItem->get('UnitOfMeasure'))
-			{
-				$this->_log('Running unit of measure checks for item: ' . print_r($OrderItem, true), QUICKBOOKS_LOG_DEVELOP);
-				
-				$found = false;
-				
-				// Find the unit of measure set for a given unit of measure by looking through the RelatedUnits for each unit of measure set
-				foreach ($sets as $setkey => $setobject)
-				{
-					for ($i = 1; $i <= 5; $i++)
-					{
-						if ($setobject->get('RelatedUnit_Name_' . $i) == $orderitem_unitofmeasure or 
-							$setobject->get('RelatedUnit_Abbreviation_' . $i) == $orderitem_unitofmeasure)
-						{
-							$found = true;
-							$unitofmeasureset_ListID = $setobject->get('ListID');
-							$unitofmeasureset_Name = $setobject->get('Name');
-							$unitofmeasure_ConversionRatio = $setobject->get('RelatedUnit_ConversionRatio_' . $i);
-							break;
-						}
-					}
-					
-					if ($found)
-					{
-						break;
-					}
-				}
-				
-				if ($found)
-				{
-					// Now, get the item, and make sure the item UnitOfMeasureSet matches 
-					//	the one we found and are trying to use
-					$appid = $OrderItem->getItemApplicationID();
-					
-					// Unmap it back to an actual item 
-					$Product = $this->getProduct($appid);
-					
-					// Fetch the item for that product... 
-					if ($Item = $this->getItem(null, $Product->getFullName()) and 
-						($Item->get('UnitOfMeasureSet_ListID') == $unitofmeasureset_ListID or $Item->get('UnitOfMeasureSet_FullName') == $unitofmeasureset_Name))
-					{
-						; // Yeeeahhh!
-						
-						// QuickBooks does weird things here, we need to make sure we do the conversion for it
-						$list[$key]->set('Quantity', $list[$key]->get('Quantity') * $unitofmeasure_ConversionRatio);
-						$list[$key]->set('Rate', $list[$key]->get('Rate') / $unitofmeasure_ConversionRatio);
-					}
-					else
-					{
-						// Oh no, that type of product *doesn't use* that unit of measure!
-						$list[$key]->set('UnitOfMeasure', '');
-						$this->_log('Tried to use UnitOfMeasure [' . $orderitem_unitofmeasure . ' (' . $unitofmeasureset_ListID . '/' . $unitofmeasureset_Name . ')] for product [' . $Product->getFullName() . '], but that item does not support this UnitOfMeasure...?', QUICKBOOKS_LOG_DEBUG);
-					}
-				}
-				else
-				{
-					// Oh no, we *couldn't find* a matching unit of measure set!
-					$list[$key]->set('UnitOfMeasure', '');
-					$this->_log('Could not find a matching UnitOfMeasure [' . $orderitem_unitofmeasure . ']', QUICKBOOKS_LOG_DEBUG);
-				}
-			}
-			else
-			{
-				; // It's not using a UoM, so we don't care
-			}
-		}
-		
-		return $list;
+		return $this->_getOrderItemsForOrder($OrderID);
 	}
 	
-	//abstract protected function _getOrderItemsForOrder($OrderID);
+	abstract protected function _getOrderItemsForOrder($OrderID);
 	
 	public function getEstimateItemsForEstimate($EstimateID)
 	{
@@ -963,15 +676,10 @@ abstract class QuickBooks_Integrator
 		}
 
 		// Use the lookback value... 
-		//  	LOOKBACKS ARE BAD! YOU CANNOT COUNT ON ALL OF THE INTEGRATORS PLAYING NICELY WITH LOOKBACKS!
-		/*
 		$max = max(strtotime($datetime) - QUICKBOOKS_INTEGRATOR_LOOKBACK, strtotime($first_datetime));
 		
 		$datetime = date('Y-m-d H:i:s', $max);
 		$this->_api->log('New orders from (with lookback time) ' . $datetime . ' to ' . date('Y-m-d H:i:s'), QUICKBOOKS_LOG_DEVELOP);
-		*/
-		
-		$this->_api->log('New orders from (no lookback) ' . $datetime . ' to ' . date('Y-m-d H:i:s'), QUICKBOOKS_LOG_DEVELOP);
 		
 		$list = $this->_listNewOrdersSince($datetime);
 		
@@ -981,12 +689,9 @@ abstract class QuickBooks_Integrator
 		
 		foreach ($list as $key => $value)
 		{
-			// Fetch the order
-			$Order = $this->getOrder($value);
-			
-			if ($this->_api->hasQuickBooksID($Order->object(), $value))
+			if ($this->_api->hasQuickBooksID($this->_config['push_orders_as'], $value))
 			{
-				$this->_api->log('Order #' . $value . ' has already been pushed to QuickBooks (as ' . $Order->object() . ' #' . $value . ')! Skipping!', QUICKBOOKS_LOG_DEBUG);
+				$this->_api->log('Order #' . $value . ' has already been pushed to QuickBooks! Skipping!', QUICKBOOKS_LOG_DEBUG);
 				
 				unset($list[$key]);
 			}
@@ -1032,14 +737,11 @@ abstract class QuickBooks_Integrator
 		//print('first: ' . $first_datetime . "\n");
 		//print('date: ' . $datetime . "\n");
 		
-		/*
 		// Use the lookback value... 
 		$max = max(strtotime($datetime) - QUICKBOOKS_INTEGRATOR_LOOKBACK, strtotime($first_datetime));
 		
 		$datetime = date('Y-m-d H:i:s', $max);
-		*/
-		
-		$this->_api->log('New estimates from (no lookback) ' . $datetime . ' to ' . date('Y-m-d H:i:s'), QUICKBOOKS_LOG_DEVELOP);
+		$this->_api->log('New estimates from (with lookback time) ' . $datetime . ' to ' . date('Y-m-d H:i:s'), QUICKBOOKS_LOG_DEVELOP);
 		
 		$list = $this->_listNewEstimatesSince($datetime);
 		
@@ -1142,14 +844,11 @@ abstract class QuickBooks_Integrator
 	
 	abstract protected function _getOrderItems($ID);
 	
-	/**
-	 * Alias of ->getOrderItemsForOrder($OrderID)
-	 */
-	/*public function getOrderItems($OrderID)
+	public function getOrderItems($ID)
 	{
 		// @todo Can we cheat here and just pull the order items directly from the order...?
-		return $this->getOrderItemsForOrder($OrderID);
-	}*/
+		return $this->_getOrderItems($ID);
+	}
 	
 	abstract protected function _getPayment($ID);	
 	
@@ -1186,16 +885,6 @@ abstract class QuickBooks_Integrator
 		return $this->_getSalesTax($ID);
 	}
 	
-	final public function saveSalesTaxItem($SalesTaxItem)
-	{
-		return $this->_saveObject($SalesTaxItem);
-	}
-	
-	final public function saveSalesTaxGroupItem($SalesTaxGroupItem)
-	{
-		return $this->_saveObject($SalesTaxGroupItem);
-	}
-	
 	final public function saveAccount($Account)
 	{
 		return $this->_saveObject($Account);
@@ -1206,205 +895,14 @@ abstract class QuickBooks_Integrator
 		return $this->_saveObject($PaymentMethod);
 	}
 	
-	final public function saveClass($Class)
-	{
-		return $this->_saveObject($Class);
-	}
-	
-	final public function saveItem($Item)
-	{
-		return $this->_saveObject($Item);
-	}
-	
 	final public function saveCustomerType($CustomerType)
 	{
 		return $this->_saveObject($CustomerType);		
 	}
 	
-	final public function saveSalesTaxCode($SalesTaxCode)
-	{
-		return $this->_saveObject($SalesTaxCode);
-	}
-	
-	final public function saveUnitOfMeasureSet($UnitOfMeasureSet)
-	{
-		return $this->_saveObject($UnitOfMeasureSet);
-	}
-	
 	final public function saveShipMethod($ShipMethod)
 	{
 		return $this->_saveObject($ShipMethod);
-	}
-	
-	final protected function _listPaymentMethodNames()
-	{
-		return $this->_listObjectsField(QUICKBOOKS_OBJECT_PAYMENTMETHOD, 'Name');
-	}
-	
-	final protected function _listUnitOfMeasureMap()
-	{
-		$retr = array();
-		$list = $this->_listObjects(QUICKBOOKS_OBJECT_UNITOFMEASURESET);
-		
-		foreach ($list as $obj)
-		{
-			$retr[$obj->get('BaseUnit_Name')] = 1;
-			$retr[$obj->get('BaseUnit_Abbreviation')] = 1;
-			
-			for ($i = 1; $i <= 5; $i++)
-			{
-				$name = $obj->get('RelatedUnit_Name_' . $i);
-				$abbrev = $obj->get('RelatedUnit_Abbreviation_' . $i);
-				$convert = $obj->get('RelatedUnit_ConversionRatio_' . $i);
-				
-				if ($name)
-				{
-					$retr[$name] = $convert;
-				}
-				
-				if ($abbrev)
-				{
-					// We need to go by name, so the abbreviations really don't help us here...
-					//$retr[$abbrev] = $convert;
-				}
-			}
-		}
-		
-		//print_r($list);
-		
-		return $retr;
-	}
-	
-	final protected function _listShipMethodNames()
-	{
-		return $this->_listObjectsField(QUICKBOOKS_OBJECT_SHIPMETHOD, 'Name');
-	}
-	
-	final protected function _listSalesTaxItemNames()
-	{
-		return $this->_listObjectsField(QUICKBOOKS_OBJECT_SALESTAXITEM, 'Name');
-	}
-	
-	final protected function _listSalesTaxItems()
-	{
-		return $this->_listObjects(QUICKBOOKS_OBJECT_SALESTAXITEM);
-	}
-	
-	final protected function _listUnitOfMeasureSets()
-	{
-		return $this->_listObjects(QUICKBOOKS_OBJECT_UNITOFMEASURESET);
-	}
-	
-	final protected function _listSalesTaxGroupItems()
-	{
-		return $this->_listObjects(QUICKBOOKS_OBJECT_SALESTAXGROUPITEM);
-	}
-	
-	/**
-	 * List 
-	 * 
-	 */
-	final protected function _listObjectsField($type, $field)
-	{
-		$list = array();
-		$tmp = $this->_listObjects($type);
-		
-		foreach ($tmp as $Object)
-		{
-			$list[] = $Object->get($field);
-		}
-		
-		return $list;
-	}
-	
-	final protected function _listObjects($type)
-	{
-		$API = $this->_api;
-		$Driver = $this->_driver;
-		
-		switch ($type)
-		{
-			case QUICKBOOKS_OBJECT_ACCOUNT:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_ACCOUNT;
-				break;
-			case QUICKBOOKS_OBJECT_SHIPMETHOD:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_SHIPMETHOD;
-				break;
-			case QUICKBOOKS_OBJECT_SALESTAXITEM:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_SALESTAXITEM;
-				break;
-			case QUICKBOOKS_OBJECT_SALESTAXGROUPITEM:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_SALESTAXGROUPITEM;
-				break;
-			case QUICKBOOKS_OBJECT_PAYMENTMETHOD:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_PAYMENTMETHOD;
-				break;
-			case QUICKBOOKS_OBJECT_UNITOFMEASURESET:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_UNITOFMEASURESET;
-				break;
-			case QUICKBOOKS_OBJECT_ITEM:
-			case QUICKBOOKS_OBJECT_SERVICEITEM:
-			case QUICKBOOKS_OBJECT_INVENTORYITEM:
-			case QUICKBOOKS_OBJECT_NONINVENTORYITEM:	
-			case QUICKBOOKS_OBJECT_OTHERCHARGEITEM:
-			case QUICKBOOKS_OBJECT_INVENTORYASSEMBLYITEM:
-			case QUICKBOOKS_OBJECT_GROUPITEM:
-			case QUICKBOOKS_OBJECT_INVENTORYASSEMBLYITEM:
-			case QUICKBOOKS_OBJECT_FIXEDASSETITEM:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_ITEM;
-				break;
-			default:
-				return array();
-		}
-		
-		$where = array( 
-			'qb_username' => $API->user(), 
-			);
-		
-		$list = array();
-		
-		// Get a list of arrays from the driver... 
-		$tmp = $Driver->select($table, $where);
-		foreach ($tmp as $arr)
-		{
-			switch ($type)
-			{
-				case QUICKBOOKS_OBJECT_SALESTAXGROUPITEM:
-					// Calculate some totals
-					
-					$sum = 0.0;
-					for ($i = 1; $i <= 5; $i++)
-					{
-						if (empty($arr['ItemSalesTax_ListID_' . $i]))
-						{
-							continue;
-						}
-						
-						$restrict = array(
-							'qb_username' => $API->user(), 
-							'ListID' => $arr['ItemSalesTax_ListID_' . $i],
-							);
-						
-						if ($record = $Driver->get(QUICKBOOKS_INTEGRATOR_TABLE_SALESTAXITEM, $restrict))
-						{
-							$sum += $record['TaxRate'];
-						}
-					}
-					
-					// Set the sum tax rate
-					$arr['TaxRate'] = $sum;
-					
-					break;
-				default:
-					// Do nothing special 
-					break;
-			}
-			
-			// @todo Should I really be using this class...?
-			$list[] = new QuickBooks_SQL_Object($table, null, $arr);
-		}
-		
-		return $list;
 	}
 	
 	protected function _callHooks(&$hooks, $hook, $requestID, $user, &$err, $hook_data, $callback_config = array())
@@ -1415,58 +913,10 @@ abstract class QuickBooks_Integrator
 		return QuickBooks_Callbacks::callHook($Driver, $hooks, $hook, $requestID, $user, null, $err, $hook_data, $callback_config, __FILE__, __LINE__);	
 	}
 	
-	final protected function _getObject($type, $ListID, $FullName = null)
-	{
-		$list = $this->_listObjects($type);
-		
-		foreach ($list as $object)
-		{
-			if ($ListID and 
-				$object->get('ListID') == $ListID)
-			{
-				return $object;
-			}
-			else if ($FullName and 
-				strlen($object->get('FullName')) and 
-				$object->get('FullName') == $FullName)
-			{
-				return $object;
-			}
-			else if ($FullName and 
-				strlen($object->get('Name')) and 
-				$object->get('Name') == $FullName and 
-				false === strpos($FullName, ':'))
-			{
-				return $object;
-			}
-		}
-		
-		return null;
-	}
-	
-	final public function getItem($ListID, $FullName = null)
-	{
-		return $this->_getObject(QUICKBOOKS_OBJECT_ITEM, $ListID, $FullName);
-	}
-	
-	/**
-	 * Save an object returned by the QuickBooks API to the database
-	 * 
-	 * Many of the operations the integrators do depend on other records within 
-	 * QuickBooks. We try to pull in certain types of records (accounts, ship
-	 * methods, customer types, etc.) for the integrators so that these can be 
-	 * used by the integrator when sending new orders to QuickBooks. This 
-	 * method is used to save records from QuickBooks to our storage tables so 
-	 * they can be used later.
-	 * 
-	 * @param object $Object		An object returned by the API-> whatever method
-	 * @return boolean
-	 */
 	final protected function _saveObject($Object)
 	{
 		$API = $this->_api;
-		//$Driver = $this->_driver;
-		$Driver = $API->driver();		// @TODO The database driver should instead be passed to the integrator, not gotten from the driver
+		$Driver = $this->_driver;
 		
 		// @TODO Will this still work if the integrator is not extended from the database....?
 		
@@ -1494,152 +944,6 @@ abstract class QuickBooks_Integrator
 				$where = array( 
 					'qb_username' => $API->user(), 
 					'FullName' => $Object->getFullName(),
-					);
-				
-				break;
-			case QUICKBOOKS_OBJECT_CLASS:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_CLASS;
-				
-				$fetch = array(
-					'ListID' => 'getListID', 
-					'TimeCreated' => 'getTimeCreated', 
-					'TimeModified' => 'getTimeModified', 
-					'EditSequence' => 'getEditSequence', 
-					'Name' => 'getName', 
-					'FullName' => 'getFullName',
-					'IsActive' => 'getIsActive', 
-					'Parent_ListID' => 'getParentListID', 
-					'Parent_FullName' => 'getParentFullName', 
-					);
-				
-				$where = array( 
-					'qb_username' => $API->user(), 
-					'FullName' => $Object->getFullName(),
-					);
-				
-				break;
-			case QUICKBOOKS_OBJECT_ITEM:
-			case QUICKBOOKS_OBJECT_SERVICEITEM:
-			case QUICKBOOKS_OBJECT_INVENTORYITEM:
-			case QUICKBOOKS_OBJECT_NONINVENTORYITEM:	
-			case QUICKBOOKS_OBJECT_OTHERCHARGEITEM:
-			case QUICKBOOKS_OBJECT_INVENTORYASSEMBLYITEM:
-			case QUICKBOOKS_OBJECT_GROUPITEM:
-			case QUICKBOOKS_OBJECT_INVENTORYASSEMBLYITEM:
-			case QUICKBOOKS_OBJECT_FIXEDASSETITEM:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_ITEM;
-				
-				$fetch = array(
-					'ListID' => 'getListID', 
-					'TimeCreated' => 'getTimeCreated', 
-					'TimeModified' => 'getTimeModified', 
-					'EditSequence' => 'getEditSequence', 
-					'Name' => 'getName', 
-					'FullName' => 'getFullName', 
-					'IsActive' => 'getIsActive', 
-					'Parent_ListID' => 'getParentListID', 
-					'Parent_FullName' => 'getParentFullName', 
-					'ManufacturerPartNumber' => 'getManufacturerPartNumber', 
-					'UnitOfMeasureSet_ListID' => 'getUnitOfMeasureSetListID', 
-					'UnitOfMeasureSet_FullName' => 'getUnitOfMeasureSetFullName', 
-					'Account_ListID' => 'getAccountListID', 
-					'Account_FullName' => 'getAccountFullName', 
-					'IncomeAccount_ListID' => 'getIncomeAccountListID', 
-					'IncomeAccount_FullName' => 'getIncomeAccountFullName', 
-					'COGSAccount_ListID' => 'getCOGSAccountListID', 
-					'COGSAccount_FullName' => 'getCOGSAccountFullName', 
-					'AssetAccount_ListID' => 'getAssetAccountListID', 
-					'AssetAccount_FullName' => 'getAssetAccountFullName', 
-					'ExpenseAccount_ListID' => 'getExpenseAccountListID', 
-					'ExpenseAccount_FullName' => 'getExpenseAccountFullName', 
-					'PrefVendor_ListID' => 'getPrefVendorListID', 
-					'PrefVendor_FullName' => 'getPrefVendorFullName', 
-					);
-					
-				$where = array(
-					'qb_username' => $API->user(), 
-					'FullName' => $Object->getName(), 
-					);				
-				
-				break;
-			case QUICKBOOKS_OBJECT_SALESTAXITEM:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_SALESTAXITEM;
-				
-				$fetch = array(
-					'ListID' => 'getListID', 
-					'TimeCreated' => 'getTimeCreated', 
-					'TimeModified' => 'getTimeModified', 
-					'EditSequence' => 'getEditSequence', 
-					'Name' => 'getName', 
-					'IsActive' => 'getIsActive', 
-					'ItemDesc' => 'getDescription', 
-					'TaxRate' => 'getTaxRate', 
-					'TaxVendor_ListID' => 'getTaxVendorListID', 
-					'TaxVendor_FullName' => 'getTaxVendorFullName', 
-					);				
-				
-				$where = array(
-					'qb_username' => $API->user(), 
-					'Name' => $Object->getName(), 
-					);
-				
-				break;
-			case QUICKBOOKS_OBJECT_SALESTAXGROUPITEM:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_SALESTAXGROUPITEM;
-				
-				$fetch = array(
-					'ListID' => 'getListID', 
-					'TimeCreated' => 'getTimeCreated', 
-					'TimeModified' => 'getTimeModified', 
-					'EditSequence' => 'getEditSequence', 
-					'Name' => 'getName', 
-					'IsActive' => 'getIsActive', 
-					'ItemDesc' => 'getDescription', 
-					);
-				
-				$where = array(
-					'qb_username' => $API->user(), 
-					'Name' => $Object->getName(), 
-					);
-				
-				break;
-			case QUICKBOOKS_OBJECT_SALESTAXCODE:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_SALESTAXCODE;
-				
-				$fetch = array(
-					'ListID' => 'getListID', 
-					'TimeCreated' => 'getTimeCreated', 
-					'TimeModified' => 'getTimeModified', 
-					'EditSequence' => 'getEditSequence', 
-					'Name' => 'getName', 
-					'IsActive' => 'getIsActive', 
-					'IsTaxable' => 'getIsTaxable', 					
-					);
-				
-				$where = array(
-					'qb_username' => $API->user(), 
-					'Name' => $Object->getName(), 
-					);
-					
-				break;
-			case QUICKBOOKS_OBJECT_UNITOFMEASURESET:
-				$table = QUICKBOOKS_INTEGRATOR_TABLE_UNITOFMEASURESET;
-				
-				$fetch = array(
-					'ListID' => 'getListID', 
-					'TimeCreated' => 'getTimeCreated', 
-					'TimeModified' => 'getTimeModified', 
-					'EditSequence' => 'getEditSequence', 
-					'Name' => 'getName', 
-					'IsActive' => 'getIsActive', 
-					'UnitOfMeasureSetType' => 'getUnitOfMeasureType', 
-					'BaseUnit_Name' => 'getBaseUnitName', 
-					'BaseUnit_Abbreviation' => 'getBaseUnitAbbreviation', 
-					);
-				
-				$where = array(
-					'qb_username' => $API->user(), 
-					'Name' => $Object->getName(), 
 					);
 				
 				break;
@@ -1705,84 +1009,12 @@ abstract class QuickBooks_Integrator
 				return false;
 		}
 		
-		$itemtypes = array(
-			QUICKBOOKS_OBJECT_ITEM,
-			QUICKBOOKS_OBJECT_SERVICEITEM,
-			QUICKBOOKS_OBJECT_INVENTORYITEM,
-			QUICKBOOKS_OBJECT_NONINVENTORYITEM,	
-			QUICKBOOKS_OBJECT_OTHERCHARGEITEM,
-			QUICKBOOKS_OBJECT_INVENTORYASSEMBLYITEM,
-			QUICKBOOKS_OBJECT_GROUPITEM,
-			QUICKBOOKS_OBJECT_INVENTORYASSEMBLYITEM,
-			QUICKBOOKS_OBJECT_FIXEDASSETITEM,
-			);
-		
 		$data = array(
 			'qb_username' => $API->user(), 
 			);
 		foreach ($fetch as $field => $method)
 		{
-			$data[$field] = null;
-			if (method_exists($Object, $method))
-			{
-				$data[$field] = $Object->$method();
-			}
-		}
-		
-		// Have to get some extra stuff for sales tax groups... 
-		if ($Object->object() == QUICKBOOKS_OBJECT_SALESTAXGROUPITEM)
-		{
-			$counter = 0;
-			foreach ($Object->listItemSalesTaxRefs() as $key => $ItemSalesTaxRef)
-			{
-				$counter++;
-				
-				// 
-				$data['ItemSalesTax_ListID_' . $counter] = $ItemSalesTaxRef->getListID();
-				$data['ItemSalesTax_FullName_' . $counter] = $ItemSalesTaxRef->getFullName();
-				
-				if ($counter >= 5)
-				{
-					break;
-				}
-			}
-		}
-		else if (in_array($Object->object(), $itemtypes))
-		{
-			$data['qb_itemtype'] = $Object->object();
-		}
-		else if ($Object->object() == QUICKBOOKS_OBJECT_UNITOFMEASURESET)
-		{
-			$counter = 0;
-			foreach ($Object->listRelatedUnits() as $key => $RelatedUnit)
-			{
-				$counter++;
-				
-				// 
-				$data['RelatedUnit_Name_' . $counter] = $RelatedUnit->getName();
-				$data['RelatedUnit_Abbreviation_' . $counter] = $RelatedUnit->getAbbreviation();
-				$data['RelatedUnit_ConversionRatio_' . $counter] = $RelatedUnit->getConversionRatio();
-				
-				if ($counter >= 5)
-				{
-					break;
-				}
-			}
-			
-			$counter = 0;
-			foreach ($Object->listDefaultUnits() as $key => $DefaultUnit)
-			{
-				$counter++;
-							
-				// 
-				$data['DefaultUnit_Unit_' . $counter] = $DefaultUnit->getUnit();
-				$data['DefaultUnit_UnitUsedFor_' . $counter] = $DefaultUnit->getUnitUsedFor();
-				
-				if ($counter >= 5)
-				{
-					break;
-				}
-			}
+			$data[$field] = $Object->$method();
 		}
 		
 		// Call any integrator hooks
@@ -1954,10 +1186,8 @@ abstract class QuickBooks_Integrator
 	{
 		$Customer = $this->getCustomer($ID, __FILE__, __LINE__);
 		
-		//$list = $Customer->asList(QUICKBOOKS_ADD_CUSTOMER);
-		//$name = $this->_applyFormat($this->_config['customer_name_for_query_format'], $list);
-		
-		$name = $Customer->getFullName();
+		$list = $Customer->asList(QUICKBOOKS_ADD_CUSTOMER);
+		$name = $this->_applyFormat($this->_config['customer_name_for_query_format'], $list);
 		
 		return $name;
 	}
@@ -1977,7 +1207,6 @@ abstract class QuickBooks_Integrator
 		//print_r($Product);
 		//print('}}');
 		
-		/*
 		switch ($Product->object())
 		{
 			case QUICKBOOKS_OBJECT_SERVICEITEM:
@@ -1997,9 +1226,6 @@ abstract class QuickBooks_Integrator
 		}
 		
 		$name = $this->_applyFormat($this->_config['product_name_for_query_format'], $list);
-		*/
-		
-		$name = $Product->getFullName();
 		
 		return $name;
 	}
@@ -2063,66 +1289,32 @@ abstract class QuickBooks_Integrator
 	 */
 	protected function _applyFormat($format, $arr, $wrap_and_escape = false)
 	{
-		$arr_formats = array();
-		
-		// Break apart the formats
-		if (false === strpos($format, '|'))
-		{
-			// A single format
-			$arr_formats = array( $format );
-		}
-		else
-		{
-			// There are multiple formats separated by "|", we will fall back to the later formats if the prev are not met
-			$arr_formats = explode('|', $format);
-		}
-		
-		// Create our sorting function
-		static $func = null;
-		if (is_null($func))
-		{
-			$func = create_function('$a, $b', '
-				if (is_string($a) and is_string($b)) 
+		$func = create_function('$a, $b', '
+			if (is_string($a) and is_string($b)) 
+			{ 
+				if (strlen($a) > strlen($b)) 
 				{ 
-					if (strlen($a) > strlen($b)) 
-					{ 
-						return -1; 
-					} 
-					else 
-					{ 
-						return 1; 
-					} 
-				}
-				return 0;');
-		}
+					return -1; 
+				} 
+				else 
+				{ 
+					return 1; 
+				} 
+			}
+			return 0;');
 		
-		// Sort the input array
 		uasort($arr, $func);
 		
-		// For each format, do the replacements
-		foreach ($arr_formats as $format)
+		foreach ($arr as $key => $value)
 		{
-			// Try to replace each variable
-			foreach ($arr as $key => $value)
+			if (is_string($value))
 			{
-				$value = trim($value);
-				
-				if (is_string($value) and 
-					strlen($value))
+				if ($wrap_and_escape)
 				{
-					if ($wrap_and_escape)
-					{
-						$value = $this->_wrapAndEscape($value);
-					}
-					
-					$format = str_replace('{$' . $key . '}', $value, $format);
-					$format = str_replace('$' . $key, $value, $format);					
+					$value = $this->_wrapAndEscape($value);
 				}
-			}
-			
-			if (false === strpos($format, '{$'))
-			{
-				break;
+				
+				$format = str_replace('$' . $key, $value, $format);
 			}
 		}
 		
@@ -2215,9 +1407,8 @@ abstract class QuickBooks_Integrator
 					
 				if ($qbfield and !strlen($resolve))
 				{
-					// XXX - Cast $value
-					// Casting is now done by the QuickBooks_Object_* instances themselves
-					//$value = QuickBooks_Cast::cast($type, $path . $qbfield, $value);
+					// Cast $value
+					$value = QuickBooks_Cast::cast($type, $path . $qbfield, $value);
 				}
 				else if ($qbfield and strlen($resolve) and
 					(
@@ -2463,20 +1654,6 @@ abstract class QuickBooks_Integrator
 		
 		$ReceivePayment = $this->_applyBaseMap($arr, $map, $ReceivePayment, QUICKBOOKS_OBJECT_RECEIVEPAYMENT);
 		
-		if (!empty($arr['AppliedToTxn_ID']))
-		{
-			$AppliedToTxn = new QuickBooks_Object_ReceivePayment_AppliedToTxn();
-			
-			$AppliedToTxn->setTxnApplicationID($arr['AppliedToTxn_ID']);
-			
-			if (!empty($arr['AppliedToTxn_PaymentAmount']))
-			{
-				$AppliedToTxn->setPaymentAmount($arr['AppliedToTxn_PaymentAmount']);
-			}
-			
-			$ReceivePayment->addAppliedToTxn($AppliedToTxn);
-		}
-		
 		return $ReceivePayment;
 	}
 	
@@ -2530,100 +1707,12 @@ abstract class QuickBooks_Integrator
 	 * @param array $items
 	 * @return QuickBooks_Object_*
 	 */
-	protected function _orderFromArray($arr, $items, $shipping = null, $handling = null, $discount = null, $as = null, $apply_defaults = true)
+	protected function _orderFromArray($arr, $items, $shipping = null, $handling = null, $discount = null)
 	{
-		// Format
-		if (!$as)
-		{
-			$as = $this->_config['push_orders_as'];
-		}
-		
 		// Apply default values 
-		if ($apply_defaults)
-		{
-			$arr = $this->_applyDefaults($arr, $this->_config['order_defaults']);
-		}
+		$arr = $this->_applyDefaults($arr, $this->_config['order_defaults']);
 		
-		// Special handling for things that need to be mapped over from the integrator lookup tables
-		if (!empty($arr['ShipMethodName']))
-		{
-			$arr_qb_shipmethod_names = $this->_listShipMethodNames();
-			
-			if (count($arr_qb_shipmethod_names))
-			{
-				// Try to map the ship method name to a method within QuickBooks
-				$arr['ShipMethodName'] = $this->_guessQuickBooksShipMethod($arr['ShipMethodName'], $arr_qb_shipmethod_names);
-			}
-		}
-		
-		// @todo Payment method guessing
-		if (!empty($arr['PaymentMethodName']))
-		{
-			$arr_qb_paymentmethod_names = $this->_listPaymentMethodNames();
-			
-			if (count($arr_qb_paymentmethod_names))
-			{
-				// Try to map the payment method name to a method within QuickBooks
-				$arr['PaymentMethodName'] = $this->_guessQuickBooksPaymentMethod($arr['PaymentMethodName'], $arr_qb_paymentmethod_names);
-			}
-		}
-		
-		// Sales tax item guessing
-		if (!empty($arr['ItemSalesTaxName']) or !empty($arr['SalesTaxLineAmount']) or !empty($arr['SalesTaxLineRatePercent']))
-		{
-			$cart_total = null;
-			$cart_salestax_name = null;
-			$cart_salestax_amount = null;
-			$cart_salestax_rate = null;
-			
-			if (isset($arr['TotalAmount']))
-			{
-				$cart_total = (float) $arr['TotalAmount'];
-			}
-			
-			// 
-			if (isset($arr['ItemSalesTaxName']))
-			{
-				$cart_salestax_name = $arr['ItemSalesTaxName'];
-			}
-			
-			// 
-			if (isset($arr['SalesTaxLineAmount']))
-			{
-				$cart_salestax_amount = (float) $arr['SalesTaxLineAmount'];
-			}
-			
-			// 
-			if (isset($arr['SalesTaxLineRatePercent']))
-			{
-				$cart_salestax_rate = (float) $arr['SalesTaxLineRatePercent'];
-			}
-			
-			$arr_qb_salestaxitem_objects = $this->_listSalesTaxItems();
-			$arr_qb_salestaxgroupitem_objects = $this->_listSalesTaxGroupItems();
-			
-			$arr_qb_salestaxcombineditem_objects = array_merge($arr_qb_salestaxitem_objects, $arr_qb_salestaxgroupitem_objects);
-			
-			if (count($arr_qb_salestaxcombineditem_objects) and 
-				($cart_salestax_name or $cart_salestax_amount > 0.0 or $cart_salestax_rate > 0.0))
-			{
-				// Try to map the sales tax to the QuickBooks sales tax item
-				$arr['ItemSalesTaxName'] = $this->_guessQuickBooksSalesTaxItem(
-					$cart_salestax_name, 
-					$cart_total, 
-					$cart_salestax_amount, 
-					$cart_salestax_rate, 
-					$arr_qb_salestaxcombineditem_objects, 
-					$items);
-			}
-			else
-			{
-				$arr['ItemSalesTaxName'] = null;
-			}
-		}
-		
-		// Now, map the order to a QuickBooks_Object_* class
-		switch ($as)
+		switch ($this->_config['push_orders_as'])
 		{
 			case QUICKBOOKS_OBJECT_SALESRECEIPT:
 				
@@ -2649,10 +1738,8 @@ abstract class QuickBooks_Integrator
 					'ShipDate' => 		array( 'setShipDate', 'ShipDate' ), 
 					'ShipMethodID' => 	array( 'setShipMethodApplicationID', 'ShipMethodRef ' . QUICKBOOKS_API_APPLICATIONID, 'setShipMethodListID' ), 
 					'ShipMethodName' => array( 'setShipMethodName', 'ShipMethodRef FullName' ), 
-					'PaymentMethodID' => 	array( 'setPaymentMethodApplicationID', 'PaymentMethodRef ' . QUICKBOOKS_API_APPLICATIONID, 'setPaymentMethodListID' ), 
-					'PaymentMethodName' => array( 'setPaymentMethodName', 'PaymentMethodRef FullName' ), 
 					'ItemSalesTaxID' => array( 'setSalesTaxItemApplicationID', 'SalesTaxItemRef ' . QUICKBOOKS_API_APPLICATIONID, 'setSalesTaxItemListID' ), 
-					'ItemSalesTaxName' => array( 'setSalesTaxItemFullName', 'ItemSalesTaxRef FullName' ), 
+					'ItemSalesTaxName' => array( 'setSalesTaxItemName', 'ItemSalesTaxRef FullName' ), 
 					'CustomerMsgID' => 	array( 'setCustomerMsgApplicationID', 'CustomerMsgRef ' . QUICKBOOKS_API_APPLICATIONID, 'setCustomerMsgListID' ), 
 					'Memo' => 			array( 'setMemo', 'Memo' ), 
 					'IsPending' => 		array( 'setIsPending', 'IsPending' ), 
@@ -2716,21 +1803,6 @@ abstract class QuickBooks_Integrator
 					$SalesReceipt->addSalesReceiptLine($discount);
 				}
 				
-				if (!empty($arr['SalesTaxLineAmount']))
-				{
-					$SalesTaxLine = new QuickBooks_Object_SalesReceipt_SalesTaxLine();
-					$SalesTaxLine->setAmount($arr['SalesTaxLineAmount']);
-					
-					$SalesReceipt->addSalesTaxLine($SalesTaxLine);
-				}
-				else if (!empty($arr['SalesTaxLineRatePercent']))
-				{
-					$SalesTaxLine = new QuickBooks_Object_SalesReceipt_SalesTaxLine();
-					$SalesTaxLine->setRatePercent($arr['SalesTaxLineRatePercent']);
-					
-					$SalesReceipt->addSalesTaxLine($SalesTaxLine);
-				}
-				
 				/*
 				header('Content-Type: text/plain');
 				print_r($arr);
@@ -2753,7 +1825,6 @@ abstract class QuickBooks_Integrator
 				$map = array(
 					//'OrderID' => 		array( 'setReferenceNumber', 'RefNumber' ), 
 					'CustomerID' => 	array( 'setCustomerApplicationID', 'CustomerRef ' . QUICKBOOKS_API_APPLICATIONID, 'setCustomerListID' ), 
-					'ClassName' => 		array( 'setClassName', 'ClassRef FullName' ), 
 					'ClassID' => 		array( 'setClassApplicationID', 'ClassRef ' . QUICKBOOKS_API_APPLICATIONID, 'setClassListID' ), 
 					'ARAccountID' => 	array( 'setARAccountApplicationID', 'ARAccountRef ' . QUICKBOOKS_API_APPLICATIONID, 'setARAccountListID' ), 
 					'TemplateID' => 	array( 'setTemplateApplicationID', 'TemplateRef ' . QUICKBOOKS_API_APPLICATIONID, 'setTemplateListID' ), 
@@ -2764,14 +1835,9 @@ abstract class QuickBooks_Integrator
 					'TermsID' => 		array( 'setTermsApplicationID', 'TermsRef ' . QUICKBOOKS_API_APPLICATIONID, 'setTermsListID' ), 
 					'SalesRepID' => 	array( 'setSalesRepApplicationID', 'SalesRepRef ' . QUICKBOOKS_API_APPLICATIONID, 'setSalesRepListID' ), 
 					'FOB' => 			array( 'setFOB', 'FOB' ), 
-					'DueDate' => 		array( 'setDueDate', 'DueDate' ), 
 					'ShipDate' => 		array( 'setShipDate', 'ShipDate' ), 
-					'ItemSalesTaxID' => array( 'setSalesTaxItemApplicationID', 'SalesTaxItemRef ' . QUICKBOOKS_API_APPLICATIONID, 'setSalesTaxItemListID' ), 
-					'ItemSalesTaxName' => array( 'setSalesTaxItemFullName', 'ItemSalesTaxRef FullName' ), 
 					'ShipMethodID' => 	array( 'setShipMethodApplicationID', 'ShipMethodRef ' . QUICKBOOKS_API_APPLICATIONID, 'setShipMethodListID' ), 
-					'ShipMethodName' => array( 'setShipMethodName', 'ShipMethodRef FullName' ), 
-					'PaymentMethodID' => 	array( 'setPaymentMethodApplicationID', 'PaymentMethodRef ' . QUICKBOOKS_API_APPLICATIONID, 'setPaymentMethodListID' ), 
-					'PaymentMethodName' => array( 'setPaymentMethodName', 'PaymentMethodRef FullName' ), 
+					'ItemSalesTaxID' => array( 'setSalesTaxItemApplicationID', 'SalesTaxItemRef ' . QUICKBOOKS_API_APPLICATIONID, 'setSalesTaxItemListID' ), 
 					'CustomerMsgID' => 	array( 'setCustomerMsgApplicationID', 'CustomerMsgRef ' . QUICKBOOKS_API_APPLICATIONID, 'setCustomerMsgListID' ), 
 					'Memo' => 			array( 'setMemo', 'Memo' ), 
 					'IsToBePrinted' => 	array( 'setIsToBePrinted', 'IsToBePrinted' ), 
@@ -2799,8 +1865,7 @@ abstract class QuickBooks_Integrator
 					'IsToBePrinted' => 	array( $this->_config['send_orders_as_to_be_printed'], 'setIsToBePrinted' ), 
 					);
 				
-				// This doesn't work for some reason... 
-				//$this->_forceNullBooleans($arr, $force_boolean_if_empty, $Invoice);
+				$this->_forceNullBooleans($arr, $force_boolean_if_empty, $Invoice);
 				
 				
 				// Shipping and billing information
@@ -2833,21 +1898,6 @@ abstract class QuickBooks_Integrator
 				{
 					$Invoice->addInvoiceLine($discount);
 				}
-
-				if (!empty($arr['SalesTaxLineAmount']))
-				{
-					$SalesTaxLine = new QuickBooks_Object_Invoice_SalesTaxLine();
-					$SalesTaxLine->setAmount($arr['SalesTaxLineAmount']);
-					
-					$Invoice->addSalesTaxLine($SalesTaxLine);
-				}
-				else if (!empty($arr['SalesTaxLineRatePercent']))
-				{
-					$SalesTaxLine = new QuickBooks_Object_Invoice_SalesTaxLine();
-					$SalesTaxLine->setRatePercent($arr['SalesTaxLineRatePercent']);
-					
-					$Invoice->addSalesTaxLine($SalesTaxLine);
-				}
 				
 				return $Invoice;
 		}
@@ -2859,14 +1909,9 @@ abstract class QuickBooks_Integrator
 	 * @param array $arr
 	 * @return QuickBooks_Object_*
 	 */
-	protected function _orderItemFromArray($arr, $as = null)
+	protected function _orderItemFromArray($arr)
 	{
-		if (!$as)
-		{
-			$as = QUICKBOOKS_OBJECT_SALESRECEIPT;
-		}
-		
-		switch ($as)
+		switch ($this->_config['push_orders_as'])
 		{
 			case QUICKBOOKS_OBJECT_SALESRECEIPT:
 				
@@ -2882,8 +1927,6 @@ abstract class QuickBooks_Integrator
 					'Quantity' => 			array( 'setQuantity', 'Quantity' ),  
 					'Rate' => 				array( 'setRate', 'Rate' ),
 					'Amount' => 			array( 'setAmount', 'Amount' ), 
-					
-					'UnitOfMeasure' => 		array( 'setUnitOfMeasure', 'UnitOfMeasure' ), 
 					
 					'ClassID' => 			array( 'setClassApplicationID', 'ClassRef ' . QUICKBOOKS_API_APPLICATIONID, 'setClassListID' ),
 					'ClassName' => 			array( 'setClassName', 'ClassRef FullName' ), 
@@ -2915,8 +1958,6 @@ abstract class QuickBooks_Integrator
 					'Quantity' => 			array( 'setQuantity', 'Quantity' ),  
 					'Rate' => 				array( 'setRate', 'Rate' ),
 					'Amount' => 			array( 'setAmount', 'Amount' ), 
-					
-					'UnitOfMeasure' => 		array( 'setUnitOfMeasure', 'UnitOfMeasure' ), 
 					
 					'ClassID' => 			array( 'setClassApplicationID', 'ClassRef ' . QUICKBOOKS_API_APPLICATIONID, 'setClassListID' ), 
 					'ClassName' => 			array( 'setClassName', 'ClassRef FullName' ), 
@@ -3111,7 +2152,6 @@ abstract class QuickBooks_Integrator
 				
 				$map = array(
 					'Name' => 					array( 'setName', 'Name' ),
-					'FullName' => 				array( 'setFullName', 'FullName' ),
 					'IsActive' => 				array( 'setIsActive', 'IsActive' ), 
 					'ParentID' => 				array( 'setParentApplicationID', 'ParentRef ' . QUICKBOOKS_API_APPLICATIONID, 'setParentListID' ),
 					'ParentListID' => 			array( 'setParentListID', 'ParentRef ListID' ),
@@ -3150,7 +2190,6 @@ abstract class QuickBooks_Integrator
 
 				$map = array(
 					'Name' => 					array( 'setName', 'Name' ),
-					'FullName' => 				array( 'setFullName', 'FullName' ),
 					'IsActive' => 				array( 'setIsActive', 'IsActive' ), 
 					'ParentID' => 				array( 'setParentApplicationID', 'ParentRef ' . QUICKBOOKS_API_APPLICATIONID, 'setParentListID' ),
 					'ParentListID' => 			array( 'setParentListID', 'ParentRef ListID' ),
@@ -3328,7 +2367,7 @@ abstract class QuickBooks_Integrator
 	 * @param array $arr
 	 * @return QuickBooks_Object
 	 */
-	protected function _discountFromArray($arr, $order_as = null)
+	protected function _discountFromArray($arr)
 	{
 		if (count($arr) == 1 and 
 			strlen(current($arr)) == 0)
@@ -3336,12 +2375,7 @@ abstract class QuickBooks_Integrator
 			return null;
 		}
 		
-		if (!$order_as)
-		{
-			$order_as = QUICKBOOKS_OBJECT_SALESRECEIPT;
-		}
-		
-		switch ($order_as)
+		switch ($this->_config['push_orders_as'])
 		{
 			case QUICKBOOKS_OBJECT_SALESRECEIPT:
 				
@@ -3436,7 +2470,7 @@ abstract class QuickBooks_Integrator
 	 * @param array $arr
 	 * @return QuickBooks_Object
 	 */
-	protected function _shippingFromArray($arr, $order_as = null)
+	protected function _shippingFromArray($arr)
 	{
 		if (count($arr) == 1 and 
 			strlen(current($arr)) == 0)
@@ -3444,13 +2478,7 @@ abstract class QuickBooks_Integrator
 			return null;
 		}
 		
-		if (!$order_as)
-		{
-			//$order_as = $this->_config['push_orders_as'];
-			$order_as = QUICKBOOKS_OBJECT_SALESRECEIPT;
-		}
-		
-		switch ($order_as)
+		switch ($this->_config['push_orders_as'])
 		{
 			case QUICKBOOKS_OBJECT_SALESRECEIPT:
 				
@@ -3471,8 +2499,6 @@ abstract class QuickBooks_Integrator
 				}
 				
 				$map = array(
-					'ProductName' => 		array( 'setItemName', 'ItemRef FullName' ),  
-					
 					'Desc' => 				array( 'setDescription', 'Desc' ),
 					'Descrip' => 			array( 'setDescription', 'Desc' ),
 					'Description' => 		array( 'setDescription', 'Desc' ),
@@ -3497,10 +2523,7 @@ abstract class QuickBooks_Integrator
 				
 				$SalesReceiptLine = $this->_applyBaseMap($arr, $map, $SalesReceiptLine, 'SalesReceipt SalesReceiptLine');	
 				
-				if (!$SalesReceiptLine->getItemFullName())
-				{
-					$SalesReceiptLine->setItemApplicationID(QUICKBOOKS_INTEGRATOR_SHIPPING_ID);
-				}
+				$SalesReceiptLine->setItemApplicationID(QUICKBOOKS_INTEGRATOR_SHIPPING_ID);
 				
 				return $SalesReceiptLine;
 								
@@ -3528,25 +2551,13 @@ abstract class QuickBooks_Integrator
 				}
 				
 				$map = array(
-					'ProductName' => 		array( 'setItemName', 'ItemRef FullName' ),  
-					
-					'Desc' => 				array( 'setDescription', 'Invoice InvoiceLine Desc' ),
-					'Descrip' => 			array( 'setDescription', 'Desc' ),
-					'Description' => 		array( 'setDescription', 'Desc' ),					
-					'ClassName' => 			array( 'setClassName', 'ClassRef FullName' ), 
-					'ClassListID' => 		array( 'setClassListID', 'ClassRef ListID' ), 
-					'ClassID' => 			array( 'setClassApplicationID', 'ClassRef ' . QUICKBOOKS_API_APPLICATIONID, 'setClassListID' ), 
-					'SalesTaxCodeName' => 	array( 'setSalesTaxCodeName', 'SalesTaxCodeRef FullName'), 
-					'SalesTaxCodeListID' => array( 'setSalesTaxCodeListID', 'SalesTaxCodeRef ListID'), 
-					'SalesTaxCodeID' => 	array( 'setSalesTaxCodeApplicationID', 'SalesTaxCodeRef ' . QUICKBOOKS_API_APPLICATIONID, 'setSalesTaxCodeListID' ), 					
+					'Desc' => 		array( 'setDescription', 'Invoice InvoiceLine Desc' ),
+					'ClassID' => 	array( 'setClassApplicationID', 'ClassRef ' . QUICKBOOKS_API_APPLICATIONID, 'setClassListID' ), 
 					);
 				
 				$InvoiceLine = $this->_applyBaseMap($arr, $map, $InvoiceLine, 'Invoice InvoiceLine');	
 				
-				if (!$InvoiceLine->getItemFullName())
-				{
-					$InvoiceLine->setItemApplicationID(QUICKBOOKS_INTEGRATOR_SHIPPING_ID);
-				}
+				$InvoiceLine->setItemApplicationID(QUICKBOOKS_INTEGRATOR_SHIPPING_ID);
 				
 				return $InvoiceLine;
 		}
@@ -3569,8 +2580,7 @@ abstract class QuickBooks_Integrator
 		$map = array(
 			'ID' => 				array( 'setApplicationID', QUICKBOOKS_API_APPLICATIONID ),
 			'CustomerID' => 		array( 'setApplicationID', QUICKBOOKS_API_APPLICATIONID ), 
-			//'Name' => 				array( 'setName', 'Name' ), 
-			'Name' => 			array( 'setFullName', 'FullName' ), 
+			'Name' => 				array( 'setName', 'Name' ), 
 			'FirstName' => 			array( 'setFirstName', 'FirstName' ),
 			'MiddleName' => 		array( 'setMiddleName', 'MiddleName' ),
 			'LastName' => 			array( 'setLastName', 'LastName' ), 

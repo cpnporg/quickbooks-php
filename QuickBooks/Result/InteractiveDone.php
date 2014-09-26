@@ -13,7 +13,7 @@
 /**
  * QuickBooks result base class
  */
-QuickBooks_Loader::load('/QuickBooks/Result.php');
+require_once 'QuickBooks/Result.php';
 
 /**
  * QuickBooks response object for responses to the ->interactiveDone() SOAP method call

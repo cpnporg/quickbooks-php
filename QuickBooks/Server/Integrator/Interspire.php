@@ -13,17 +13,22 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Server/Integrator.php');
+require_once 'QuickBooks.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Integrator.php');
+require_once 'QuickBooks/Server/Integrator.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Integrator/Interspire.php');
+require_once 'QuickBooks/Integrator.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Integrator/Interspire.php';
 
 /**
  * 

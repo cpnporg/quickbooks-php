@@ -12,8 +12,14 @@
  
 /**
  * 
+ *
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Utilities.php';
  
 /**
  * 
@@ -44,8 +50,7 @@ class QuickBooks_Driver_Factory
 			$hooks = array();
 		}
 			
-		// Do not serialize the $hooks because they might contain non-serializeable objects
-		$key = (string) $dsn_or_conn . serialize($config) . count($hooks) . $log_level;
+		$key = (string) $dsn_or_conn . serialize($config) . serialize($hooks) . $log_level;
 			
 		if (!isset($instances[$key]))
 		{
@@ -60,21 +65,14 @@ class QuickBooks_Driver_Factory
 				
 			if (false !== strpos($scheme, 'sql'))		// SQL drivers are subclassed... change class/scheme name
 			{
-				$scheme = 'Sql_' . ucfirst(strtolower($scheme));
-			}
-			else
-			{
-				$scheme = ucfirst(strtolower($scheme));
+				$scheme = 'SQL_' . $scheme;
 			}
 				
-			$class = 'QuickBooks_Driver_' . $scheme;
-			$file = '/QuickBooks/Driver/' . str_replace(' ', '/', ucwords(str_replace('_', ' ', strtolower($scheme)))) . '.php';
-			
-			//print('class: ' . $class . "\n");
-			//print('file: ' . $file . "\n");
-			
-			QuickBooks_Loader::load($file);
-			
+			$class = 'QuickBooks_Driver_' . ucfirst(strtolower($scheme));
+			$file = 'QuickBooks/Driver/' . str_replace(' ', '/', ucwords(str_replace('_', ' ', strtolower($scheme)))) . '.php';
+				
+			require_once $file;
+				
 			if (class_exists($class))
 			{
 				$Driver = new $class($dsn_or_conn, $config);

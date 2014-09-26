@@ -13,7 +13,7 @@
 /**
  * Result base class
  */
-QuickBooks_Loader::load('/QuickBooks/Result.php');
+require_once 'QuickBooks/Result.php';
 
 /**
  * Result container object for the SOAP ->getLastError() method call

@@ -10,19 +10,24 @@
  */ 
 
 /**
+ * QuickBooks base includes
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks object base class
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  *
  */
-QuickBooks_Loader::load('/QuickBooks/Object/JournalEntry/JournalCreditLine.php');
+require_once 'QuickBooks/Object/JournalEntry/JournalCreditLine.php';
 
 /**
  *
  */
-QuickBooks_Loader::load('/QuickBooks/Object/JournalEntry/JournalDebitLine.php');
+require_once 'QuickBooks/Object/JournalEntry/JournalDebitLine.php';
 
 /**
  * 

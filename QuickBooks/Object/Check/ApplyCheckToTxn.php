@@ -11,14 +11,19 @@
  */ 
 
 /**
+ * QuickBooks base includes
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks object base class
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * Check base class
  */
-QuickBooks_Loader::load('/QuickBooks/Object/Check.php');
+require_once 'QuickBooks/Object/Check.php';
 
 /**
  * 

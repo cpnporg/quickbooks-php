@@ -11,9 +11,14 @@
  */ 
 
 /**
+ * QuickBooks base includes
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks object base class
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * 
@@ -198,7 +203,7 @@ class QuickBooks_Object_Check_ExpenseLine extends QuickBooks_Object
 	 * @param string $FullName		The FullName of the record to reference
 	 * @return boolean
 	 */
-	public function setCustomerFullName($FullName)
+	public function setCustomerName($FullName)
 	{
 		return $this->set('CustomerRef FullName', $FullName);
 	}
@@ -208,7 +213,7 @@ class QuickBooks_Object_Check_ExpenseLine extends QuickBooks_Object
 	 * 
 	 * @return string
 	 */
-	public function getCustomerFullName()
+	public function getCustomerName()
 	{
 		return $this->get('CustomerRef FullName');
 	}

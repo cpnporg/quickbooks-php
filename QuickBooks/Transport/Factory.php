@@ -11,9 +11,14 @@
  */
 
 /**
+ *
+ */
+require_once 'QuickBooks.php';
+
+/**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks/Utilities.php';
 
 /**
  * 
@@ -45,9 +50,9 @@ class QuickBooks_Transport_Factory
 			}
 				
 			$class = 'QuickBooks_Transport_' . ucfirst(strtolower($scheme));
-			$file = '/QuickBooks/Transport/' . str_replace(' ', '/', ucwords(str_replace('_', ' ', strtolower($scheme)))) . '.php';
+			$file = 'QuickBooks/Transport/' . str_replace(' ', '/', ucwords(str_replace('_', ' ', strtolower($scheme)))) . '.php';
 				
-			QuickBooks_Loader::load($file);
+			require_once $file;
 				
 			if (class_exists($class))
 			{

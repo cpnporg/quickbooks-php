@@ -13,12 +13,17 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object/SalesReceipt.php');
+require_once 'QuickBooks/Object.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Object/SalesReceipt.php';
 
 /**
  * 
@@ -77,21 +82,19 @@ class QuickBooks_Object_Invoice_SalesTaxLine extends QuickBooks_Object
 		return parent::asArray($request, $nest);
 	}
 	
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
 		switch ($parent)
 		{
 			case QUICKBOOKS_ADD_INVOICE:
 				$root = 'SalesTaxLineAdd';
-				$parent = null;
 				break;
 			case QUICKBOOKS_MOD_INVOICE:
 				$root = 'SalesTaxLineMod';
-				$parent = null;
 				break;
 		}
 		
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root);
 	}
 	
 	/**
@@ -121,3 +124,5 @@ class QuickBooks_Object_Invoice_SalesTaxLine extends QuickBooks_Object
 		return 'SalesTaxLine';
 	}
 }
+
+?>

@@ -13,22 +13,22 @@
 /**
  *
  */
-QuickBooks_Loader::load('/QuickBooks/Transport.php');
+require_once 'QuickBooks/Transport.php';
 
 /**
  *
  */
-QuickBooks_Loader::load('/QuickBooks/Transport/Factory.php');
+require_once 'QuickBooks/Transport/Factory.php';
 
 /** 
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Server/Bridge/Callbacks.php');
+require_once 'QuickBooks/Server/Bridge/Callbacks.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Server/Bridge/Errors.php');
+require_once 'QuickBooks/Server/Bridge/Errors.php';
 
 /**
  * 

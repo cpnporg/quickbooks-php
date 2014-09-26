@@ -13,6 +13,11 @@
 /**
  * 
  */
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
 interface QuickBooks_Adapter_Client
 {
 	public function __construct($endpoint, $wsdl = QUICKBOOKS_WSDL, $trace = true);
@@ -28,3 +33,5 @@ interface QuickBooks_Adapter_Client
 	public function getLastResponse();
 	
 }
+
+?>

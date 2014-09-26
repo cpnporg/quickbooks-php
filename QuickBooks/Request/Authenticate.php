@@ -13,6 +13,11 @@
 /**
  * 
  */
+require_once 'QuickBooks/Request.php';
+
+/**
+ * 
+ */
 class QuickBooks_Request_Authenticate extends QuickBooks_Request
 {
 	public $strUserName;

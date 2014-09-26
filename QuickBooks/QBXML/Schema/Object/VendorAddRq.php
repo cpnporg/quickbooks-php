@@ -13,7 +13,12 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/QBXML/Schema/Object.php');
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/QBXML/Schema/Object.php';
 
 /**
  * 
@@ -332,3 +337,4 @@ class QuickBooks_QBXML_Schema_Object_VendorAddRq extends QuickBooks_QBXML_Schema
 	}
 }
 
+?>

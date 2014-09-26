@@ -32,6 +32,41 @@ if (!defined('QUICKBOOKS_SERVER_SQL_ON_ERROR'))
 	define('QUICKBOOKS_SERVER_SQL_ON_ERROR', 'continueOnError');
 }
 
+/**
+ * Read from the QuickBooks database, and write to the SQL database
+ */
+define('QUICKBOOKS_SERVER_SQL_MODE_READONLY', 'r');
+
+/**
+ * Read from the SQL database, and write to the QuickBooks database
+ */
+define('QUICKBOOKS_SERVER_SQL_MODE_WRITEONLY', 'w');
+
+/**
+ * Read and write from both sources, keeping both sources in sync
+ */
+define('QUICKBOOKS_SERVER_SQL_MODE_READWRITE', '+');
+
+define('QUICKBOOKS_SERVER_SQL_CONFLICT_LOG', 2);
+define('QUICKBOOKS_SERVER_SQL_CONFLICT_NEWER', 4);
+define('QUICKBOOKS_SERVER_SQL_CONFLICT_QUICKBOOKS', 8);
+define('QUICKBOOKS_SERVER_SQL_CONFLICT_SQL', 16);
+define('QUICKBOOKS_SERVER_SQL_CONFLICT_CALLBACK', 32);
+
+
+/**
+ * Delete Modes. Decides whether an item actually gets deleted, or just remains marked deleted.
+ *
+ */
+define('QUICKBOOKS_SERVER_SQL_DELETE_REMOVE', 2);
+define('QUICKBOOKS_SERVER_SQL_ON_DELETE_REMOVE', QUICKBOOKS_SERVER_SQL_DELETE_REMOVE);
+
+define('QUICKBOOKS_SERVER_SQL_DELETE_FLAG', 4);
+define('QUICKBOOKS_SERVER_SQL_ON_DELETE_FLAG', QUICKBOOKS_SERVER_SQL_DELETE_FLAG);
+
+
+
+
 if (!defined('QUICKBOOKS_SERVER_SQL_ITERATOR_PRIORITY'))
 {
 	/**
@@ -69,39 +104,39 @@ if (!defined('QUICKBOOKS_SERVER_SQL_ITERATOR_MAXRETURNED'))
 }*/
 
 /**
+ * QuickBooks base constants
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks driver classes
  */
-QuickBooks_Loader::load('/QuickBooks/Driver/Singleton.php');
+require_once 'QuickBooks/Driver/Singleton.php';
 
 /**
  * Server base class
  */
-QuickBooks_Loader::load('/QuickBooks/Server.php');
+require_once 'QuickBooks/Server.php';
 
 /**
  * SQL schema generation
  */
-QuickBooks_Loader::load('/QuickBooks/SQL/Schema.php');
+require_once 'QuickBooks/SQL/Schema.php';
 
 /**
  * SQL objects (convert qbXML to objects to schema)
  */
-QuickBooks_Loader::load('/QuickBooks/SQL/Object.php');
+require_once 'QuickBooks/SQL/Object.php';
 
 /**
  * SQL callbacks (request and response handlers)
  */
-QuickBooks_Loader::load('/QuickBooks/Callbacks/SQL/Callbacks.php');
+require_once 'QuickBooks/Server/SQL/Callbacks.php';
 
 /**
  * SQL error handlers
  */
-QuickBooks_Loader::load('/QuickBooks/Callbacks/SQL/Errors.php');
-
-/**
- * Handlers file (we need this for soem constant declarations)
- */
-QuickBooks_Loader::load('/QuickBooks/Handlers.php', false);
+require_once 'QuickBooks/Server/SQL/Errors.php';
 
 /**
  * 
@@ -109,37 +144,6 @@ QuickBooks_Loader::load('/QuickBooks/Handlers.php', false);
  */
 class QuickBooks_Server_SQL extends QuickBooks_Server
 {
-	/**
-	 * Read from the QuickBooks database, and write to the SQL database
-	 */
-	const MODE_READONLY = 'r';
-	
-	/**
-	 * Read from the SQL database, and write to the QuickBooks database
-	 */
-	const MODE_WRITEONLY = 'w';
-	
-	/**
-	 * Read and write from both sources, keeping both sources in sync
-	 */
-	const MODE_READWRITE = '+';
-	
-	const CONFLICT_LOG = 2;
-	const CONFLICT_NEWER = 4;
-	const CONFLICT_QUICKBOOKS = 8;
-	const CONFLICT_SQL = 16;
-	const CONFLICT_CALLBACK = 32;
-	
-	/**
-	 * Delete Modes. Decides whether an item actually gets deleted, or just remains marked deleted.
-	 *
-	 */
-	const DELETE_REMOVE = 2;
-	//define('QUICKBOOKS_SERVER_SQL_ON_DELETE_REMOVE', QUICKBOOKS_SERVER_SQL_DELETE_REMOVE);
-	
-	const DELETE_FLAG = 4;
-	//define('QUICKBOOKS_SERVER_SQL::ON_DELETE_FLAG', QUICKBOOKS_SERVER_SQL_DELETE_FLAG);
-			
 	/**
 	 * 
 	 * 
@@ -172,8 +176,8 @@ class QuickBooks_Server_SQL extends QuickBooks_Server
 		$dsn_or_conn, 
 		$how_often, 
 		$mode, 
-		$conflicts, 
 		$delete,
+		$conflicts, 
 		$users = null, 
 		$map = array(), 
 		$onerror = array(), 
@@ -195,26 +199,25 @@ class QuickBooks_Server_SQL extends QuickBooks_Server
 		}
 		
 		// Map of callback handlers 		
-		$sql_map = array();
+//		$sql_map = array();
+// Hack for CPNP
+$sql_map = (array) $map;
 		
-		foreach (get_class_methods('QuickBooks_Callbacks_SQL_Callbacks') as $method)
+		foreach (get_class_methods('QuickBooks_Server_SQL_Callbacks') as $method)
 		{
 			if (strtolower(substr($method, -7)) == 'request')
 			{
 				$action = substr($method, 0, -7);
 				
 				$sql_map[$action] = array( 
-					'QuickBooks_Callbacks_SQL_Callbacks::' . $action . 'Request', 
-					'QuickBooks_Callbacks_SQL_Callbacks::' . $action . 'Response' );
+					'QuickBooks_Server_SQL_Callbacks::' . $action . 'Request', 
+					'QuickBooks_Server_SQL_Callbacks::' . $action . 'Response' );
 			}
 		}
 		
-		//print_r($sql_map);
-		//exit;
-		
 		// Default error handlers
 		$sql_onerror = array(
-			'*' => 'QuickBooks_Callbacks_SQL_Errors::catchall', 
+			'*' => 'QuickBooks_Server_SQL_Errors::catchall', 
 			);
 		
 		$sql_onerror = $this->_merge($sql_onerror, $onerror, false);
@@ -222,7 +225,7 @@ class QuickBooks_Server_SQL extends QuickBooks_Server
 		// Default hooks
 		$sql_hooks = array(
 			// This hook is neccessary for queueing up the appropriate actions to perform the sync 	(use login success so we know user to sync for)
-			QuickBooks_Handlers::HOOK_LOGINSUCCESS => array( 'QuickBooks_Callbacks_SQL_Callbacks::onAuthenticate' ), 
+			QUICKBOOKS_HANDLERS_HOOK_LOGINSUCCESS => array( 'QuickBooks_Server_SQL_Callbacks::onAuthenticate' ), 
 			);
 		
 		// Merge with user-defined hooks
@@ -243,10 +246,8 @@ class QuickBooks_Server_SQL extends QuickBooks_Server
 		
 		$defaults = $this->_sqlDefaults($sql_options);
 				
-		//$sql_callback_options['_only_query'] = $defaults['only_query'];
-		//$sql_callback_options['_dont_query'] = $defaults['dont_query'];
-		$sql_callback_options['_only_import'] = $defaults['only_import'];
-		$sql_callback_options['_dont_import'] = $defaults['dont_import'];
+		$sql_callback_options['_only_query'] = $defaults['only_query'];
+		$sql_callback_options['_dont_query'] = $defaults['dont_query'];
 		$sql_callback_options['_only_add'] = $defaults['only_add'];
 		$sql_callback_options['_dont_add'] = $defaults['dont_add'];
 		$sql_callback_options['_only_modify'] = $defaults['only_modify'];
@@ -262,17 +263,6 @@ class QuickBooks_Server_SQL extends QuickBooks_Server
 		
 		// $dsn_or_conn, $map, $onerror = array(), $hooks = array(), $log_level = QUICKBOOKS_LOG_NORMAL, $soap = QUICKBOOKS_SOAPSERVER_BUILTIN, $wsdl = QUICKBOOKS_WSDL, $soap_options = array(), $handler_options = array(), $driver_options = array()
 		parent::__construct($dsn_or_conn, $sql_map, $sql_onerror, $sql_hooks, $log_level, $soap, $wsdl, $soap_options, $handler_options, $driver_options, $sql_callback_options);
-		
-		/*
-		// TESTING only
-		$requestID = null;
-		$user = 'quickbooks';
-		$hook = QUICKBOOKS_HANDLERS_HOOK_LOGINSUCCESS;
-		$err = null;
-		$hook_data = array();
-		$callback_config = $sql_callback_options;
-		QuickBooks_Callbacks_SQL_Callbacks::onAuthenticate($requestID, $user, $hook, $err, $hook_data, $callback_config);
-		*/
 	}
 	
 	/**
@@ -284,10 +274,8 @@ class QuickBooks_Server_SQL extends QuickBooks_Server
 	protected function _sqlDefaults($config)
 	{
 		$tmp = array(
-			//'only_query',
-			//'dont_query',
-			'only_import',
-			'dont_import',			
+			'only_query',
+			'dont_query',
 			'only_add',
 			'dont_add',
 			'only_modify',

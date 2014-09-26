@@ -50,7 +50,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryAddRq extends QuickBooks_QBXML_
   'JournalDebitLine ClassRef FullName' => 'STRTYPE',
   'JournalDebitLine ItemSalesTaxRef ListID' => 'IDTYPE',
   'JournalDebitLine ItemSalesTaxRef FullName' => 'STRTYPE',
-  'JournalDebitLine BillableStatus' => 'ENUMTYPE',
+//  'JournalDebitLine BillableStatus' => 'ENUMTYPE',
   'JournalCreditLine TxnLineID' => 'IDTYPE',
   'JournalCreditLine AccountRef ListID' => 'IDTYPE',
   'JournalCreditLine AccountRef FullName' => 'STRTYPE',
@@ -62,7 +62,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryAddRq extends QuickBooks_QBXML_
   'JournalCreditLine ClassRef FullName' => 'STRTYPE',
   'JournalCreditLine ItemSalesTaxRef ListID' => 'IDTYPE',
   'JournalCreditLine ItemSalesTaxRef FullName' => 'STRTYPE',
-  'JournalCreditLine BillableStatus' => 'ENUMTYPE',
+//  'JournalCreditLine BillableStatus' => 'ENUMTYPE',
   'IncludeRetElement' => 'STRTYPE',
 );
 		
@@ -87,7 +87,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryAddRq extends QuickBooks_QBXML_
   'JournalDebitLine ClassRef FullName' => 159,
   'JournalDebitLine ItemSalesTaxRef ListID' => 0,
   'JournalDebitLine ItemSalesTaxRef FullName' => 159,
-  'JournalDebitLine BillableStatus' => 0,
+//  'JournalDebitLine BillableStatus' => 0,
   'JournalCreditLine TxnLineID' => 0,
   'JournalCreditLine AccountRef ListID' => 0,
   'JournalCreditLine AccountRef FullName' => 159,
@@ -99,7 +99,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryAddRq extends QuickBooks_QBXML_
   'JournalCreditLine ClassRef FullName' => 159,
   'JournalCreditLine ItemSalesTaxRef ListID' => 0,
   'JournalCreditLine ItemSalesTaxRef FullName' => 159,
-  'JournalCreditLine BillableStatus' => 0,
+//  'JournalCreditLine BillableStatus' => 0,
   'IncludeRetElement' => 50,
 );
 		
@@ -124,7 +124,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryAddRq extends QuickBooks_QBXML_
   'JournalDebitLine ClassRef FullName' => true,
   'JournalDebitLine ItemSalesTaxRef ListID' => true,
   'JournalDebitLine ItemSalesTaxRef FullName' => true,
-  'JournalDebitLine BillableStatus' => true,
+//  'JournalDebitLine BillableStatus' => true,
   'JournalCreditLine TxnLineID' => true,
   'JournalCreditLine AccountRef ListID' => true,
   'JournalCreditLine AccountRef FullName' => true,
@@ -136,7 +136,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryAddRq extends QuickBooks_QBXML_
   'JournalCreditLine ClassRef FullName' => true,
   'JournalCreditLine ItemSalesTaxRef ListID' => true,
   'JournalCreditLine ItemSalesTaxRef FullName' => true,
-  'JournalCreditLine BillableStatus' => true,
+//  'JournalCreditLine BillableStatus' => true,
   'IncludeRetElement' => true,
 );
 	}
@@ -159,7 +159,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryAddRq extends QuickBooks_QBXML_
   'JournalDebitLine ClassRef FullName' => 999.99,
   'JournalDebitLine ItemSalesTaxRef ListID' => 999.99,
   'JournalDebitLine ItemSalesTaxRef FullName' => 999.99,
-  'JournalDebitLine BillableStatus' => 3,
+//  'JournalDebitLine BillableStatus' => 3,
   'JournalCreditLine TxnLineID' => 999.99,
   'JournalCreditLine AccountRef ListID' => 999.99,
   'JournalCreditLine AccountRef FullName' => 999.99,
@@ -171,7 +171,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryAddRq extends QuickBooks_QBXML_
   'JournalCreditLine ClassRef FullName' => 999.99,
   'JournalCreditLine ItemSalesTaxRef ListID' => 999.99,
   'JournalCreditLine ItemSalesTaxRef FullName' => 999.99,
-  'JournalCreditLine BillableStatus' => 3,
+//  'JournalCreditLine BillableStatus' => 3,
   'IncludeRetElement' => 4,
 );
 		
@@ -196,7 +196,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryAddRq extends QuickBooks_QBXML_
   'JournalDebitLine ClassRef FullName' => false,
   'JournalDebitLine ItemSalesTaxRef ListID' => false,
   'JournalDebitLine ItemSalesTaxRef FullName' => false,
-  'JournalDebitLine BillableStatus' => false,
+//  'JournalDebitLine BillableStatus' => false,
   'JournalCreditLine TxnLineID' => false,
   'JournalCreditLine AccountRef ListID' => false,
   'JournalCreditLine AccountRef FullName' => false,
@@ -208,7 +208,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryAddRq extends QuickBooks_QBXML_
   'JournalCreditLine ClassRef FullName' => false,
   'JournalCreditLine ItemSalesTaxRef ListID' => false,
   'JournalCreditLine ItemSalesTaxRef FullName' => false,
-  'JournalCreditLine BillableStatus' => false,
+//  'JournalCreditLine BillableStatus' => false,
   'IncludeRetElement' => true,
 );
 			
@@ -246,7 +246,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryAddRq extends QuickBooks_QBXML_
   13 => 'JournalDebitLine ClassRef FullName',
   14 => 'JournalDebitLine ItemSalesTaxRef ListID',
   15 => 'JournalDebitLine ItemSalesTaxRef FullName',
-  16 => 'JournalDebitLine BillableStatus',
+//  16 => 'JournalDebitLine BillableStatus',
   17 => 'JournalCreditLine', 
   18 => 'JournalCreditLine TxnLineID',
   19 => 'JournalCreditLine AccountRef ListID',
@@ -259,7 +259,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryAddRq extends QuickBooks_QBXML_
   26 => 'JournalCreditLine ClassRef FullName',
   27 => 'JournalCreditLine ItemSalesTaxRef ListID',
   28 => 'JournalCreditLine ItemSalesTaxRef FullName',
-  29 => 'JournalCreditLine BillableStatus',
+//  29 => 'JournalCreditLine BillableStatus',
   30 => 'IncludeRetElement',
 );
 			

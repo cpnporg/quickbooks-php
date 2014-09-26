@@ -85,10 +85,8 @@ class QuickBooks_SQL_Object
 	 */
 	public function remove($key)
 	{
-		if ($this->exists($key))
-		{
+		if($this->exists($key))
 			unset($this->_arr[$key]);
-		}
 	}
 		
 	/**
@@ -100,6 +98,14 @@ class QuickBooks_SQL_Object
 	public function change($path)
 	{
 		$this->_path = $path;
+	}
+		
+	/**
+	 * Alias of {@see QuickBooks_SQL_Object::change()}
+	 */
+	public function changePath($path)
+	{
+		return $this->change($path);
 	}
 		
 	public function get($key, $default = null)

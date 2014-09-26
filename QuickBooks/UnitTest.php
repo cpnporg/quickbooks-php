@@ -9,7 +9,7 @@
  * @package QuickBooks
  */
 
-QuickBooks_Loader::load('/QuickBooks/UnitTest/Result.php');
+require_once 'QuickBooks/UnitTest/Result.php';
 
 class QuickBooks_UnitTest
 {

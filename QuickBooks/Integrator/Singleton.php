@@ -13,7 +13,12 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Integrator.php');
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Integrator.php';
 
 /**
  * 

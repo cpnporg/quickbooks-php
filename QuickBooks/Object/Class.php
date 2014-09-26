@@ -13,7 +13,12 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Object.php';
 
 /**
  * 
@@ -69,14 +74,6 @@ class QuickBooks_Object_Class extends QuickBooks_Object
 		return $this->set('ParentRef FullName', $name);
 	}
 	
-	public function getParentFullName()
-	{
-		return $this->get('ParentRef FullName');
-	}
-	
-	/**
-	 * @deprecated
-	 */
 	public function getParentName()
 	{
 		return $this->get('ParentRef FullName');

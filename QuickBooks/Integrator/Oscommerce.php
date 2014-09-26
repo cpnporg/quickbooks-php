@@ -11,9 +11,14 @@
  */
 
 /** 
+ * QuickBooks constants
+ */
+require_once 'QuickBooks.php';
+
+/** 
  * QuickBooks Integrator base class
  */
-QuickBooks_Loader::load('/QuickBooks/Integrator.php');
+require_once 'QuickBooks/Integrator.php';
 
 /**
  *

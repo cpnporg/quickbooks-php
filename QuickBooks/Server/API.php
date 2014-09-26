@@ -14,39 +14,34 @@
  */
 
 /**
+ * QuickBooks base file
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks Driver singleton (single point of access to a variable)
  */
-QuickBooks_Loader::load('/QuickBooks/Driver/Singleton.php');
+require_once 'QuickBooks/Driver/Singleton.php';
 
 /**
  * QuickBooks API singleton (single point of access to a variable)
  */
-QuickBooks_Loader::load('/QuickBooks/API/Singleton.php');
+require_once 'QuickBooks/API/Singleton.php';
 
 /**
  * QuickBooks Server base class
  */
-QuickBooks_Loader::load('/QuickBooks/Server.php');
-
-/**
- * API sources (we need this for some default constants)
- */
-QuickBooks_Loader::load('/QuickBooks/API.php');
+require_once 'QuickBooks/Server.php';
 
 /**
  * API callback/handler routines
  */
-QuickBooks_Loader::load('/QuickBooks/Callbacks/API/Callbacks.php');
+require_once 'QuickBooks/Callbacks/API/Callbacks.php';
 
 /**
  * API error handlers
  */
-QuickBooks_Loader::load('/QuickBooks/Callbacks/API/Errors.php');
-
-/**
- * Handler base class (we need this for some hook consants)
- */
-QuickBooks_Loader::load('/QuickBooks/Handlers.php');
+require_once 'QuickBooks/Callbacks/API/Errors.php';
 
 /**
  * QuickBooks API Server class
@@ -134,7 +129,7 @@ class QuickBooks_Server_API extends QuickBooks_Server
 		// Initialize the Driver singleton 
 		$tmp = QuickBooks_Driver_Singleton::getInstance($dsn_or_conn, $driver_options, $hooks, $log_level);
 		
-		$source_type = QuickBooks_API::SOURCE_WEB;
+		$source_type = QUICKBOOKS_API_SOURCE_WEB;
 		$source_dsn = null;
 		
 		// Initialize the API singleton

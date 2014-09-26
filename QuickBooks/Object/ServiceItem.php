@@ -16,9 +16,14 @@
  */
 
 /**
+ * QuickBooks base package
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks object base class
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * QuickBooks ServiceItem object 
@@ -74,7 +79,7 @@ class QuickBooks_Object_ServiceItem extends QuickBooks_Object
 	 */
 	public function setName($name)
 	{
-		return $this->setNameType('Name', $name);
+		return $this->set('Name', $name);
 	}
 	
 	/**
@@ -85,16 +90,6 @@ class QuickBooks_Object_ServiceItem extends QuickBooks_Object
 	public function getName()
 	{
 		return $this->get('Name');
-	}
-	
-	public function setFullName($fullname)
-	{
-		return $this->setFullNameType('FullName', 'Name', 'ParentRef FullName', $fullname);
-	}
-	
-	public function getFullName()
-	{
-		return $this->getFullNameType('FullName', 'Name', 'ParentRef FullName');
 	}
 	
 	public function setIsActive($active)
@@ -174,16 +169,6 @@ class QuickBooks_Object_ServiceItem extends QuickBooks_Object
 	public function getSalesTaxCodeApplicationID()
 	{
 		return $this->extractApplicationID($this->get('SalesTaxCodeRef ' . QUICKBOOKS_API_APPLICATIONID));
-	}
-
-	public function getUnitOfMeasureSetListID()
-	{
-		return $this->get('UnitOfMeasureSetRef ListID');
-	}
-	
-	public function getUnitOfMeasureSetFullName()
-	{
-		return $this->get('UnitOfMeasureSetRef FullName');
 	}
 	
 	/**
@@ -327,19 +312,11 @@ class QuickBooks_Object_ServiceItem extends QuickBooks_Object
 	}
 	
 	/**
-	 * @deprecated
-	 */
-	public function getAccountName()
-	{
-		return $this->get('SalesOrPurchase AccountRef FullName');
-	}
-
-	/**
 	 * Get the account name for this item (Sales OR Purchase)
 	 * 
 	 * @return string 
 	 */
-	public function getAccountFullName()
+	public function getAccountName()
 	{
 		return $this->get('SalesOrPurchase AccountRef FullName');
 	}
@@ -376,22 +353,11 @@ class QuickBooks_Object_ServiceItem extends QuickBooks_Object
 		return $this->get('SalesAndPurchase IncomeAccountRef ListID');
 	}
 	
-	/**
-	 * @deprecated
-	 */
 	public function setIncomeAccountName($name)
 	{
 		return $this->set('SalesAndPurchase IncomeAccountRef FullName', $name);
 	}
-
-	public function getIncomeAccountFullName()
-	{
-		return $this->get('SalesAndPurchase IncomeAccountRef FullName');
-	}
 	
-	/**
-	 * @deprecated
-	 */
 	public function getIncomeAccountName()
 	{
 		return $this->get('SalesAndPurchase IncomeAccountRef FullName');

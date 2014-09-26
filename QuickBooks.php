@@ -20,16 +20,6 @@
  */
 
 /**
- * 
- */
-define('QUICKBOOKS_TIMESTAMP', microtime(true));
-
-/**
- * 
- */
-define('QUICKBOOKS_BASEDIR', dirname(__FILE__));
-
-/**
  * Path separator for file paths/include/require paths
  * @var string
  */
@@ -89,7 +79,13 @@ define('QUICKBOOKS_PACKAGE_NAME', 'QuickBook PHP Connector');
  * The version of this QuickBooks package 
  * @var string
  */
-define('QUICKBOOKS_PACKAGE_VERSION', '1.5.4');
+define('QUICKBOOKS_PACKAGE_VERSION', '1.5.3');
+
+/**
+ * Backwards compat.
+ * @var string
+ */
+define('QUICKBOOKS_VERSION', QUICKBOOKS_PACKAGE_VERSION);
 
 if (!defined('QUICKBOOKS_CRLF'))
 {
@@ -239,12 +235,6 @@ define('QUICKBOOKS_LOCALE_CA', QUICKBOOKS_LOCALE_CANADA);
 define('QUICKBOOKS_LOCALE_UNITED_KINGDOM', 'UK');
 define('QUICKBOOKS_LOCALE_UK', QUICKBOOKS_LOCALE_UNITED_KINGDOM);
 
-define('QUICKBOOKS_LOCALE_AUSTRALIA', 'AU');
-define('QUICKBOOKS_LOCALE_AU', QUICKBOOKS_LOCALE_AUSTRALIA);
-
-define('QUICKBOOKS_LOCALE_ONLINE_EDITION', 'OE');
-define('QUICKBOOKS_LOCALE_OE', QUICKBOOKS_LOCALE_ONLINE_EDITION);
-
 /**
  * Use the PHP SoapServer ext/soap PHP extension
  */
@@ -297,6 +287,11 @@ define('QUICKBOOKS_INTERACTIVE_MODE', 'Interactive mode');
 /**
  * 
  */
+define('QUICKBOOKS_OBJECT_NULL', 'Null');
+
+/**
+ * 
+ */
 define('QUICKBOOKS_NOOP', 'NoOp');
 
 // This is temporary, eventually we should implement an actual in-handler skip method
@@ -306,21 +301,18 @@ define('QUICKBOOKS_ADD', 'Add');
 define('QUICKBOOKS_MOD', 'Mod');
 define('QUICKBOOKS_QUERY', 'Query');
 define('QUICKBOOKS_DELETE', 'Delete');
-define('QUICKBOOKS_IMPORT', 'Import');
 
 define('QUICKBOOKS_OBJECT_ACCOUNT', 'Account');
 define('QUICKBOOKS_ADD_ACCOUNT', 'AccountAdd');
 define('QUICKBOOKS_MOD_ACCOUNT', 'AccountMod');
 define('QUICKBOOKS_QUERY_ACCOUNT', 'AccountQuery');
 define('QUICKBOOKS_IMPORT_ACCOUNT', 'AccountImport');
-define('QUICKBOOKS_DERIVE_ACCOUNT', 'AccountDerive');
 
 define('QUICKBOOKS_OBJECT_BILL', 'Bill');
 define('QUICKBOOKS_ADD_BILL', 'BillAdd');
 define('QUICKBOOKS_MOD_BILL', 'BillMod');
 define('QUICKBOOKS_QUERY_BILL', 'BillQuery');
 define('QUICKBOOKS_IMPORT_BILL', 'BillImport');
-define('QUICKBOOKS_DERIVE_BILL', 'BillDerive');
 
 define('QUICKBOOKS_OBJECT_BILLINGRATE', 'BillingRate');
 define('QUICKBOOKS_ADD_BILLINGRATE', 'BillingRateAdd');
@@ -339,7 +331,7 @@ define('QUICKBOOKS_IMPORT_BILLPAYMENTCHECK', 'BillPaymentCheckImport');
 
 define('QUICKBOOKS_OBJECT_BILLPAYMENTCREDITCARD', 'BillPaymentCreditCard');
 define('QUICKBOOKS_ADD_BILLPAYMENTCREDITCARD', 'BillPaymentCreditCardAdd');
-define('QUICKBOOKS_MOD_BILLPAYMENTCREDITCARD', 'BillPaymentCreditCardMod');	// Not supported by current QuickBooks SDK
+//define('QUICKBOOKS_MOD_BILLPAYMENTCREDITCARD', 'BillPaymentCreditCardMod');	// Not supported by QuickBooks SDK
 define('QUICKBOOKS_QUERY_BILLPAYMENTCREDITCARD', 'BillPaymentCreditCardQuery');
 define('QUICKBOOKS_IMPORT_BILLPAYMENTCREDITCARD', 'BillPaymentCreditCardImport');
 
@@ -348,7 +340,6 @@ define('QUICKBOOKS_ADD_CHARGE', 'ChargeAdd');
 define('QUICKBOOKS_MOD_CHARGE', 'ChargeMod');
 define('QUICKBOOKS_QUERY_CHARGE', 'ChargeQuery');
 define('QUICKBOOKS_IMPORT_CHARGE', 'ChargeImport');
-define('QUICKBOOKS_DERIVE_CHARGE', 'ChargeDerive');
 
 define('QUICKBOOKS_OBJECT_CHECK', 'Check');
 define('QUICKBOOKS_ADD_CHECK', 'CheckAdd');
@@ -363,12 +354,18 @@ define('QUICKBOOKS_IMPORT_CLASS', 'ClassImport');
 
 define('QUICKBOOKS_OBJECT_COMPANY', 'Company');
 
+
+/**
+ * QuickBooks company object (company file meta-data)
+ * @var string
+ */
+define('QUICKBOOKS_OBJECT_CUSTOMER', 'Customer');
+
 /**
  * QuickBooks request to query a company for meta-data
  * @var string
  */
 define('QUICKBOOKS_QUERY_COMPANY', 'CompanyQuery');
-define('QUICKBOOKS_IMPORT_COMPANY', 'CompanyImport');
 
 define('QUICKBOOKS_OBJECT_CREDITCARDCREDIT', 'CreditCardCredit');
 define('QUICKBOOKS_ADD_CREDITCARDCREDIT', 'CreditCardCreditAdd');
@@ -392,13 +389,6 @@ define('QUICKBOOKS_ADD_CREDITMEMO', 'CreditMemoAdd');
 define('QUICKBOOKS_MOD_CREDITMEMO', 'CreditMemoMod');
 define('QUICKBOOKS_QUERY_CREDITMEMO', 'CreditMemoQuery');
 define('QUICKBOOKS_IMPORT_CREDITMEMO', 'CreditMemoImport');
-define('QUICKBOOKS_DERIVE_CREDITMEMO', 'CreditMemoDerive');
-
-/**
- * QuickBooks company object (company file meta-data)
- * @var string
- */
-define('QUICKBOOKS_OBJECT_CUSTOMER', 'Customer');
 
 /**
  * QuickBooks request to add a customer record
@@ -418,7 +408,6 @@ define('QUICKBOOKS_MOD_CUSTOMER', 'CustomerMod');
  */
 define('QUICKBOOKS_QUERY_CUSTOMER', 'CustomerQuery');
 define('QUICKBOOKS_IMPORT_CUSTOMER', 'CustomerImport');
-define('QUICKBOOKS_DERIVE_CUSTOMER', 'CustomerDerive');
 
 define('QUICKBOOKS_OBJECT_CUSTOMERMSG', 'CustomerMsg');
 define('QUICKBOOKS_ADD_CUSTOMERMSG', 'CustomerMsgAdd');
@@ -428,7 +417,6 @@ define('QUICKBOOKS_IMPORT_CUSTOMERMSG', 'CustomerMsgImport');
 define('QUICKBOOKS_OBJECT_CUSTOMERTYPE', 'CustomerType');
 define('QUICKBOOKS_ADD_CUSTOMERTYPE', 'CustomerTypeAdd');
 define('QUICKBOOKS_QUERY_CUSTOMERTYPE', 'CustomerTypeQuery');
-define('QUICKBOOKS_IMPORT_CUSTOMERTYPE', 'CustomerTypeImport');
 
 define('QUICKBOOKS_OBJECT_DATAEXT', 'DataExt');
 define('QUICKBOOKS_ADD_DATAEXT', 'DataExtAdd');
@@ -442,7 +430,6 @@ define('QUICKBOOKS_MOD_DATAEXTDEF', 'DataExtDefMod');
 define('QUICKBOOKS_DEL_DATAEXTDEF', 'DataExtDefDel');
 define('QUICKBOOKS_DELETE_DATAEXTDEF', QUICKBOOKS_DEL_DATAEXTDEF);
 define('QUICKBOOKS_QUERY_DATAEXTDEF', 'DataExtDefQuery');
-define('QUICKBOOKS_IMPORT_DATAEXTDEF', 'DataExtDefImport');
 
 define('QUICKBOOKS_OBJECT_DATEDRIVENTERMS', 'DateDrivenTerms');
 define('QUICKBOOKS_ADD_DATEDRIVENTERMS', 'DateDrivenTermsAdd');
@@ -453,13 +440,16 @@ define('QUICKBOOKS_IMPORT_DATEDRIVENTERMS', 'DateDrivenTermsImport');
  * Query QuickBooks for lists of deleted list items (customers, items, etc.)
  */
 define('QUICKBOOKS_QUERY_DELETEDLISTS', 'ListDeletedQuery');
-define('QUICKBOOKS_IMPORT_DELETEDLISTS', 'ListDeletedImport');
+
+/**
+ * @deprecated
+ */
+define('QUICKBOOKS_QUERY_DELETEDITEMS', QUICKBOOKS_QUERY_DELETEDLISTS);
 
 /**
  * Query QuickBooks for lists of deleted transactions (payments, invoices, estimates, etc.)
  */
 define('QUICKBOOKS_QUERY_DELETEDTXNS', 'TxnDeletedQuery');
-define('QUICKBOOKS_IMPORT_DELETEDTXNS', 'TxnDeletedImport');
 
 /**
  * Alias of QUICKBOOKS_QUERY_DELETEDTXNS
@@ -501,7 +491,6 @@ define('QUICKBOOKS_OBJECT_JOB', 'Job');
 define('QUICKBOOKS_ADD_JOB', 'JobAdd');
 define('QUICKBOOKS_MOD_JOB', 'JobMod');
 define('QUICKBOOKS_QUERY_JOB', 'JobQuery');
-define('QUICKBOOKS_IMPORT_JOB', 'JobImport');
 
 define('QUICKBOOKS_OBJECT_ITEM', 'Item');
 define('QUICKBOOKS_QUERY_ITEM', 'ItemQuery');
@@ -512,7 +501,6 @@ define('QUICKBOOKS_ADD_INVENTORYITEM', 'ItemInventoryAdd');
 define('QUICKBOOKS_MOD_INVENTORYITEM', 'ItemInventoryMod');
 define('QUICKBOOKS_QUERY_INVENTORYITEM', 'ItemInventoryQuery');
 define('QUICKBOOKS_IMPORT_INVENTORYITEM', 'ItemInventoryImport');
-define('QUICKBOOKS_DERIVE_INVENTORYITEM', 'ItemInventoryDerive');
 
 define('QUICKBOOKS_OBJECT_INVENTORYASSEMBLYITEM', 'ItemInventoryAssembly');
 define('QUICKBOOKS_ADD_INVENTORYASSEMBLYITEM', 'ItemInventoryAssemblyAdd');
@@ -542,72 +530,55 @@ define('QUICKBOOKS_OBJECT_FIXEDASSETITEM', 'ItemFixedAsset');
 define('QUICKBOOKS_ADD_FIXEDASSETITEM', 'ItemFixedAssetAdd');
 define('QUICKBOOKS_MOD_FIXEDASSETITEM', 'ItemFixedAssetMod');
 define('QUICKBOOKS_QUERY_FIXEDASSETITEM', 'ItemFixedAssetQuery');
-define('QUICKBOOKS_IMPORT_FIXEDASSETITEM', 'ItemFixedAssetImport');
 
 define('QUICKBOOKS_OBJECT_PAYMENTITEM', 'ItemPayment');
 define('QUICKBOOKS_ADD_PAYMENTITEM', 'ItemPaymentAdd');
 define('QUICKBOOKS_MOD_PAYMENTITEM', 'ItemPaymentMod');
 define('QUICKBOOKS_QUERY_PAYMENTITEM', 'ItemPaymentQuery');
-define('QUICKBOOKS_IMPORT_PAYMENTITEM', 'ItemPaymentImport');
 
 define('QUICKBOOKS_OBJECT_PAYROLLITEMWAGE', 'ItemPayrollWage');
 define('QUICKBOOKS_ADD_PAYROLLITEMWAGE', 'ItemPayrollWageAdd');
 define('QUICKBOOKS_MOD_PAYROLLITEMWAGE', 'ItemPayrollWageMod');
 define('QUICKBOOKS_QUERY_PAYROLLITEMWAGE', 'ItemPayrollWageQuery');
-define('QUICKBOOKS_IMPORT_PAYROLLITEMWAGE', 'ItemPayrollWageImport');
 
 define('QUICKBOOKS_OBJECT_PAYROLLITEMNONWAGE', 'ItemPayrollNonWage');
 define('QUICKBOOKS_ADD_PAYROLLITEMNONWAGE', 'ItemPayrollNonWageAdd');
 define('QUICKBOOKS_MOD_PAYROLLITEMNONWAGE', 'ItemPayrollNonWageMod');
 define('QUICKBOOKS_QUERY_PAYROLLITEMNONWAGE', 'ItemPayrollNonWageQuery');
-define('QUICKBOOKS_IMPORT_PAYROLLITEMNONWAGE', 'ItemPayrollNonWageImport');
 
 define('QUICKBOOKS_OBJECT_SERVICEITEM', 'ItemService');
 define('QUICKBOOKS_ADD_SERVICEITEM', 'ItemServiceAdd');
 define('QUICKBOOKS_MOD_SERVICEITEM', 'ItemServiceMod');
 define('QUICKBOOKS_QUERY_SERVICEITEM', 'ItemServiceQuery');
-define('QUICKBOOKS_IMPORT_SERVICEITEM', 'ItemServiceImport');
 
 define('QUICKBOOKS_OBJECT_SALESTAXITEM', 'ItemSalesTax');
 define('QUICKBOOKS_ADD_SALESTAXITEM', 'ItemSalesTaxAdd');
 define('QUICKBOOKS_MOD_SALESTAXITEM', 'ItemSalesTaxMod');
 define('QUICKBOOKS_QUERY_SALESTAXITEM', 'ItemSalesTaxQuery');
-define('QUICKBOOKS_IMPORT_SALESTAXITEM', 'ItemSalesTaxImport');
-
-define('QUICKBOOKS_OBJECT_SALESTAXGROUPITEM', 'ItemSalesTaxGroup');
-define('QUICKBOOKS_ADD_SALESTAXGROUPITEM', 'ItemSalesTaxGroupAdd');
-define('QUICKBOOKS_MOD_SALESTAXGROUPITEM', 'ItemSalesTaxGroupMod');
-define('QUICKBOOKS_QUERY_SALESTAXGROUPITEM', 'ItemSalesTaxGroupQuery');
-define('QUICKBOOKS_IMPORT_SALESTAXGROUPITEM', 'ItemSalesTaxGroupImport');
 
 define('QUICKBOOKS_OBJECT_OTHERCHARGEITEM', 'ItemOtherCharge');
 define('QUICKBOOKS_ADD_OTHERCHARGEITEM', 'ItemOtherChargeAdd');
 define('QUICKBOOKS_MOD_OTHERCHARGEITEM', 'ItemOtherChargeMod');
 define('QUICKBOOKS_QUERY_OTHERCHARGEITEM', 'ItemOtherChargeQuery');
-define('QUICKBOOKS_IMPORT_OTHERCHARGEITEM', 'ItemOtherChargeImport');
 
-define('QUICKBOOKS_OBJECT_ITEMRECEIPT', 'ItemReceipt');
-define('QUICKBOOKS_ADD_ITEMRECEIPT', 'ItemReceiptAdd');
-define('QUICKBOOKS_MOD_ITEMRECEIPT', 'ItemReceiptMod');
-define('QUICKBOOKS_QUERY_ITEMRECEIPT', 'ItemReceiptQuery');
-define('QUICKBOOKS_IMPORT_ITEMRECEIPT', 'ItemReceiptImport');
+define('QUICKBOOKS_OBJECT_RECEIPTITEM', 'ItemReceipt');
+define('QUICKBOOKS_ADD_RECEIPTITEM', 'ItemReceiptAdd');
+define('QUICKBOOKS_MOD_RECEIPTITEM', 'ItemReceiptMod');
+define('QUICKBOOKS_QUERY_RECEIPTITEM', 'ItemReceiptQuery');
 
 define('QUICKBOOKS_OBJECT_SUBTOTALITEM', 'ItemSubtotal');
 define('QUICKBOOKS_ADD_SUBTOTALITEM', 'ItemSubtotalAdd');
 define('QUICKBOOKS_MOD_SUBTOTALITEM', 'ItemSubtotalMod');
 define('QUICKBOOKS_QUERY_SUBTOTALITEM', 'ItemSubtotalQuery');
-define('QUICKBOOKS_IMPORT_SUBTOTALITEM', 'ItemSubtotalImport');
 
 define('QUICKBOOKS_OBJECT_JOBTYPE', 'JobType');
 define('QUICKBOOKS_ADD_JOBTYPE', 'JobTypeAdd');
 define('QUICKBOOKS_QUERY_JOBTYPE', 'JobTypeQuery');
-define('QUICKBOOKS_IMPORT_JOBTYPE', 'JobTypeImport');
 
 define('QUICKBOOKS_OBJECT_JOURNALENTRY', 'JournalEntry');
 define('QUICKBOOKS_ADD_JOURNALENTRY', 'JournalEntryAdd');
 define('QUICKBOOKS_MOD_JOURNALENTRY', 'JournalEntryMod');
 define('QUICKBOOKS_QUERY_JOURNALENTRY', 'JournalEntryQuery');
-define('QUICKBOOKS_IMPORT_JOURNALENTRY', 'JournalEntryImport');
 
 define('QUICKBOOKS_OBJECT_INVOICE', 'Invoice');
 
@@ -629,7 +600,6 @@ define('QUICKBOOKS_MOD_INVOICE', 'InvoiceMod');
  */
 define('QUICKBOOKS_QUERY_INVOICE', 'InvoiceQuery');
 define('QUICKBOOKS_IMPORT_INVOICE', 'InvoiceImport');
-define('QUICKBOOKS_DERIVE_INVOICE', 'InvoiceDerive');
 
 define('QUICKBOOKS_OBJECT_RECEIVEPAYMENT', 'ReceivePayment');
 
@@ -656,14 +626,12 @@ define('QUICKBOOKS_OBJECT_PRICELEVEL', 'PriceLevel');
 define('QUICKBOOKS_ADD_PRICELEVEL', 'PriceLevelAdd');
 define('QUICKBOOKS_MOD_PRICELEVEL', 'PriceLevelMod');
 define('QUICKBOOKS_QUERY_PRICELEVEL', 'PriceLevelQuery');
-define('QUICKBOOKS_IMPORT_PRICELEVEL', 'PriceLevelImport');
 
 define('QUICKBOOKS_OBJECT_PURCHASEORDER', 'PurchaseOrder');
 define('QUICKBOOKS_ADD_PURCHASEORDER', 'PurchaseOrderAdd');
 define('QUICKBOOKS_MOD_PURCHASEORDER', 'PurchaseOrderMod');
 define('QUICKBOOKS_QUERY_PURCHASEORDER', 'PurchaseOrderQuery');
 define('QUICKBOOKS_IMPORT_PURCHASEORDER', 'PurchaseOrderImport');
-define('QUICKBOOKS_DERIVE_PURCHASEORDER', 'PurchaseOrderDerive');
 
 define('QUICKBOOKS_ADD_PURCHASE_ORDER', QUICKBOOKS_ADD_PURCHASEORDER);
 define('QUICKBOOKS_MOD_PURCHASE_ORDER', QUICKBOOKS_MOD_PURCHASEORDER);
@@ -675,7 +643,6 @@ define('QUICKBOOKS_ADD_SALESORDER', 'SalesOrderAdd');
 define('QUICKBOOKS_MOD_SALESORDER', 'SalesOrderMod');
 define('QUICKBOOKS_QUERY_SALESORDER', 'SalesOrderQuery');
 define('QUICKBOOKS_IMPORT_SALESORDER', 'SalesOrderImport');
-define('QUICKBOOKS_DERIVE_SALESORDER', 'SalesOrderDerive');
 
 define('QUICKBOOKS_OBJECT_SALESRECEIPT', 'SalesReceipt');
 define('QUICKBOOKS_ADD_SALESRECEIPT', 'SalesReceiptAdd');
@@ -687,17 +654,14 @@ define('QUICKBOOKS_OBJECT_SALESREP', 'SalesRep');
 define('QUICKBOOKS_ADD_SALESREP', 'SalesRepAdd');
 define('QUICKBOOKS_MOD_SALESREP', 'SalesRepMod');
 define('QUICKBOOKS_QUERY_SALESREP', 'SalesRepQuery');
-define('QUICKBOOKS_IMPORT_SALESREP', 'SalesRepImport');
 
 define('QUICKBOOKS_OBJECT_SALESTAXCODE', 'SalesTaxCode');
 define('QUICKBOOKS_ADD_SALESTAXCODE', 'SalesTaxCodeAdd');
 define('QUICKBOOKS_QUERY_SALESTAXCODE', 'SalesTaxCodeQuery');
-define('QUICKBOOKS_IMPORT_SALESTAXCODE', 'SalesTaxCodeImport');
 
 define('QUICKBOOKS_OBJECT_SHIPMETHOD', 'ShipMethod');
 define('QUICKBOOKS_ADD_SHIPMETHOD', 'ShipMethodAdd');
 define('QUICKBOOKS_QUERY_SHIPMETHOD', 'ShipMethodQuery');
-define('QUICKBOOKS_IMPORT_SHIPMETHOD', 'ShipMethodImport');
 
 define('QUICKBOOKS_OBJECT_SPECIALACCOUNT', 'SpecialAccount');
 define('QUICKBOOKS_ADD_SPECIALACCOUNT', 'SpecialAccountAdd');
@@ -708,18 +672,19 @@ define('QUICKBOOKS_ADD_SPECIALITEM', 'SpecialItemAdd');
 define('QUICKBOOKS_OBJECT_STANDARDTERMS', 'StandardTerms');
 define('QUICKBOOKS_ADD_STANDARDTERMS', 'StandardTermsAdd');
 define('QUICKBOOKS_QUERY_STANDARDTERMS', 'StandardTermsQuery');
-define('QUICKBOOKS_IMPORT_STANDARDTERMS', 'StandardTermsImport');
 
 define('QUICKBOOKS_OBJECT_TEMPLATE', 'Template');
 define('QUICKBOOKS_QUERY_TEMPLATE', 'TemplateQuery');
-define('QUICKBOOKS_IMPORT_TEMPLATE', 'TemplateImport');
 
 define('QUICKBOOKS_OBJECT_TERMS', 'Terms');
 define('QUICKBOOKS_QUERY_TERMS', 'TermsQuery');
-define('QUICKBOOKS_IMPORT_TERMS', 'TermsImport');
 
-define('QUICKBOOKS_DEL_LIST', 'ListDel');
-define('QUICKBOOKS_DELETE_LIST', QUICKBOOKS_DEL_LIST);
+define('QUICKBOOKS_DELETE_OBJECT', 'ListDel');
+define('QUICKBOOKS_DEL_OBJECT', QUICKBOOKS_DELETE_OBJECT);
+define('QUICKBOOKS_DEL_LIST', QUICKBOOKS_DELETE_OBJECT);
+define('QUICKBOOKS_DELETE_LIST', QUICKBOOKS_DELETE_OBJECT);
+
+define('QUICKBOOKS_OBJECT_OBJECT', 'Object');
 
 /**
  * 
@@ -728,7 +693,6 @@ define('QUICKBOOKS_OBJECT_TIMETRACKING', 'TimeTracking');
 define('QUICKBOOKS_ADD_TIMETRACKING','TimeTrackingAdd');
 define('QUICKBOOKS_MOD_TIMETRACKING','TimeTrackingMod');
 define('QUICKBOOKS_QUERY_TIMETRACKING','TimeTrackingQuery');
-define('QUICKBOOKS_IMPORT_TIMETRACKING', 'TimeTrackingImport');
 
 define('QUICKBOOKS_OBJECT_TRANSACTION', 'Transaction');
 
@@ -750,43 +714,34 @@ define('QUICKBOOKS_OBJECT_VEHICLE', 'Vehicle');
 define('QUICKBOOKS_ADD_VEHICLE','VehicleAdd');
 define('QUICKBOOKS_MOD_VEHICLE','VehicleMod');
 define('QUICKBOOKS_QUERY_VEHICLE','VehicleQuery');
-define('QUICKBOOKS_IMPORT_VEHICLE', 'VehicleImport');
 
 define('QUICKBOOKS_OBJECT_VEHICLEMILEAGE', 'VehicleMileage');
 define('QUICKBOOKS_ADD_VEHICLEMILEAGE','VehicleMileageAdd');
 define('QUICKBOOKS_MOD_VEHICLEMILEAGE','VehicleMileageMod');
 define('QUICKBOOKS_QUERY_VEHICLEMILEAGE','VehicleMileageQuery');
-define('QUICKBOOKS_IMPORT_VEHICLEMILEAGE', 'VehicleMileageImport');
 
 define('QUICKBOOKS_OBJECT_VENDOR', 'Vendor');
 define('QUICKBOOKS_ADD_VENDOR', 'VendorAdd');
 define('QUICKBOOKS_MOD_VENDOR', 'VendorMod');
 define('QUICKBOOKS_QUERY_VENDOR', 'VendorQuery');
-define('QUICKBOOKS_IMPORT_VENDOR', 'VendorImport');
-define('QUICKBOOKS_DERIVE_VENDOR', 'VendorDerive');
 
 define('QUICKBOOKS_OBJECT_VENDORCREDIT', 'VendorCredit');
 define('QUICKBOOKS_ADD_VENDORCREDIT', 'VendorCreditAdd');
 define('QUICKBOOKS_QUERY_VENDORCREDIT', 'VendorCreditQuery');
-define('QUICKBOOKS_IMPORT_VENDORCREDIT', 'VendorCreditImport');
-define('QUICKBOOKS_DERIVE_VENDORCREDIT', 'VendorCreditDerive');
 
 define('QUICKBOOKS_OBJECT_VENDORTYPE', 'VendorType');
 define('QUICKBOOKS_ADD_VENDORTYPE', 'VendorTypeAdd');
 define('QUICKBOOKS_QUERY_VENDORTYPE', 'VendorTypeQuery');
-define('QUICKBOOKS_IMPORT_VENDORTYPE', 'VendorTypeImport');
 
 define('QUICKBOOKS_OBJECT_WORKERSCOMPCODE', 'WorkersCompCode');
 define('QUICKBOOKS_ADD_WORKERSCOMPCODE', 'WorkersCompCodeAdd');
 define('QUICKBOOKS_MOD_WORKERSCOMPCODE', 'WorkersCompCodeMod');
 define('QUICKBOOKS_QUERY_WORKERSCOMPCODE', 'WorkersCompCodeQuery');
-define('QUICKBOOKS_IMPORT_WORKERSCOMPCODE', 'WorkersCompCodeImport');
 
 define('QUICKBOOKS_OBJECT_UNITOFMEASURESET', 'UnitOfMeasureSet');
 define('QUICKBOOKS_ADD_UNITOFMEASURESET', 'UnitOfMeasureSetAdd');
 //define('QUICKBOOKS_MOD_UNITOFMEASURESET', 'UnitOfMeasureSetMod');
 define('QUICKBOOKS_QUERY_UNITOFMEASURESET', 'UnitOfMeasureSetQuery');
-define('QUICKBOOKS_IMPORT_UNITOFMEASURESET', 'UnitOfMeasureSetImport');
 
 /**
  * An always-present QuickBooks constant for "TAXABLE" items to embed in "SalesTaxCodeRef FullName" qbXML values 
@@ -846,22 +801,6 @@ define('QUICKBOOKS_CUSTOMER_DELIVERYMETHOD_PRINT', 'Print');
 define('QUICKBOOKS_CUSTOMER_DELIVERYMETHOD_FAX', 'Fax');
 define('QUICKBOOKS_CUSTOMER_DELIVERYMETHOD_EMAIL', 'Email');
 
-define('QUICKBOOKS_ACTIVESTATUS_ALL', 'All');
-define('QUICKBOOKS_ACTIVESTATUS_ACTIVEONLY', 'ActiveOnly');
-define('QUICKBOOKS_ACTIVESTATUS_INACTIVEONLY', 'InactiveOnly');
-
-define('QUICKBOOKS_UNITOFMEASURESET_UNITOFMEASURETYPE_AREA', 'Area');
-define('QUICKBOOKS_UNITOFMEASURESET_UNITOFMEASTURETYPE_COUNT', 'Count');
-define('QUICKBOOKS_UNITOFMEASURESET_UNITOFMEASTURETYPE_LENGTH', 'Length'); 
-define('QUICKBOOKS_UNITOFMEASURESET_UNITOFMEASTURETYPE_OTHER', 'Other'); 
-define('QUICKBOOKS_UNITOFMEASURESET_UNITOFMEASTURETYPE_TIME', 'Time');
-define('QUICKBOOKS_UNITOFMEASURESET_UNITOFMEASTURETYPE_VOLUME', 'Volume'); 
-define('QUICKBOOKS_UNITOFMEASURESET_UNITOFMEASTURETYPE_WEIGHT', 'Weight');
-
-define('QUICKBOOKS_REPORT_GENERAL_SUMMARY', 'GeneralSummaryReportQuery');
-define('QUICKBOOKS_REPORT_AGING', 'AgingReportQuery');
-define('QUICKBOOKS_REPORT_BUDGET_SUMMARY', 'BudgetSummaryReportQuery');
-
 /**
  * Queuing status for queued QuickBooks transactions - QUEUED
  * @var char
@@ -897,12 +836,6 @@ define('QUICKBOOKS_STATUS_HANDLED', 'h');
  * @var char
  */
 define('QUICKBOOKS_STATUS_CANCELLED', 'c');
-
-/**
- * QuickBooks status for items that were forcibly removed from the queue
- * @var char
- */
-define('QUICKBOOKS_STATUS_REMOVED', 'r');
 
 /**
  * QuickBooks status for items that were NoOp
@@ -953,19 +886,9 @@ define('QUICKBOOKS_USER_ENABLED', 'e');
 define('QUICKBOOKS_USER_DISABLED', 'd');
 
 /**
- * 
- */
-require_once QUICKBOOKS_BASEDIR . '/QuickBooks/Loader.php';
-
-/**
  * Frameworks declarations
  */
-require_once QUICKBOOKS_BASEDIR . '/QuickBooks/Frameworks.php';
-
-/**
- * Compatibility functions
- */
-QuickBooks_Loader::load('/QuickBooks/Compat.php');
+require_once 'QuickBooks/Frameworks.php';
 
 // If this constant isn't defined, then include *everything*
 if (!defined('QUICKBOOKS_FRAMEWORKS'))
@@ -994,7 +917,7 @@ if (QUICKBOOKS_FRAMEWORKS & QUICKBOOKS_FRAMEWORK_QUEUE or
 	/**
 	 * Queue class for QuickBooks queueing 
 	 */
-	QuickBooks_Loader::load('/QuickBooks/Queue.php');
+	require_once 'QuickBooks/Queue.php';
 }
 
 if (QUICKBOOKS_FRAMEWORKS & QUICKBOOKS_FRAMEWORK_WEBCONNECTOR)
@@ -1002,25 +925,17 @@ if (QUICKBOOKS_FRAMEWORKS & QUICKBOOKS_FRAMEWORK_WEBCONNECTOR)
 	/**
 	 * SOAP server for QuickBooks web services
 	 */
-	QuickBooks_Loader::load('/QuickBooks/Server.php');
+	require_once 'QuickBooks/Server.php';
 	
 	/**
 	 * Web Connector generation
 	 */
-	QuickBooks_Loader::load('/QuickBooks/QWC.php');
+	require_once 'QuickBooks/QWC.php';
 	
 	/**
 	 * Various QuickBooks utility classes
 	 */
-	QuickBooks_Loader::load('/QuickBooks/Utilities.php');
-}
-
-if (QUICKBOOKS_FRAMEWORKS & QUICKBOOKS_FRAMEWORK_IPP)
-{
-	/**
-	 * 
-	 */
-	QuickBooks_Loader::load('/QuickBooks/IPP.php');
+	require_once 'QuickBooks/Utilities.php';
 }
 
 if (QUICKBOOKS_FRAMEWORK_MISCELLANEOUS & QUICKBOOKS_FRAMEWORKS)
@@ -1028,7 +943,7 @@ if (QUICKBOOKS_FRAMEWORK_MISCELLANEOUS & QUICKBOOKS_FRAMEWORKS)
 	/**
 	 * SOAP client for QuickBooks testing
 	 */
-	QuickBooks_Loader::load('/QuickBooks/Client.php');
+	require_once 'QuickBooks/Client.php';
 }
 
 if (QUICKBOOKS_FRAMEWORK_MISCELLANEOUS & QUICKBOOKS_FRAMEWORKS or 
@@ -1038,7 +953,7 @@ if (QUICKBOOKS_FRAMEWORK_MISCELLANEOUS & QUICKBOOKS_FRAMEWORKS or
 	/**
 	 * Encryption/decryption classes
 	 */
-	QuickBooks_Loader::load('/QuickBooks/Encryption/Factory.php');
+	require_once 'QuickBooks/Encryption/Factory.php';
 }
 
 if (QUICKBOOKS_FRAMEWORK_CONSTANTS != QUICKBOOKS_FRAMEWORKS)
@@ -1046,7 +961,7 @@ if (QUICKBOOKS_FRAMEWORK_CONSTANTS != QUICKBOOKS_FRAMEWORKS)
 	/**
 	 * Functions for calling callback functions 
 	 */
-	QuickBooks_Loader::load('/QuickBooks/Callbacks.php');
+	require_once 'QuickBooks/Callbacks.php';
 }
 
 if (QUICKBOOKS_FRAMEWORK_MISCELLANEOUS & QUICKBOOKS_FRAMEWORKS)
@@ -1054,12 +969,12 @@ if (QUICKBOOKS_FRAMEWORK_MISCELLANEOUS & QUICKBOOKS_FRAMEWORKS)
 	/**
 	 * Utilities for ensuring values fit into qbXML fields 
 	 */
-	QuickBooks_Loader::load('/QuickBooks/Cast.php');
+	require_once 'QuickBooks/Cast.php';
 	
 	/**
 	 * Pre-defined hooks to use with QuickBooks components
 	 */
-	QuickBooks_Loader::load('/QuickBooks/Hook/Factory.php');
+	require_once 'QuickBooks/Hook/Factory.php';
 }
 
 if (QUICKBOOKS_FRAMEWORK_CONSTANTS != QUICKBOOKS_FRAMEWORKS)
@@ -1067,7 +982,7 @@ if (QUICKBOOKS_FRAMEWORK_CONSTANTS != QUICKBOOKS_FRAMEWORKS)
 	/**
 	 * QuickBooks PHP error handler
 	 */
-	QuickBooks_Loader::load('/QuickBooks/ErrorHandler.php');
+	require_once 'QuickBooks/ErrorHandler.php';
 }
 
 if (QUICKBOOKS_FRAMEWORK_ONLINEEDITION & QUICKBOOKS_FRAMEWORKS or 
@@ -1076,7 +991,7 @@ if (QUICKBOOKS_FRAMEWORK_ONLINEEDITION & QUICKBOOKS_FRAMEWORKS or
 	/**
 	 * API class
 	 */
-	QuickBooks_Loader::load('/QuickBooks/API.php');
+	require_once 'QuickBooks/API.php';
 }
 
 if (QUICKBOOKS_FRAMEWORK_MERCHANTSERVICE & QUICKBOOKS_FRAMEWORKS)
@@ -1084,7 +999,7 @@ if (QUICKBOOKS_FRAMEWORK_MERCHANTSERVICE & QUICKBOOKS_FRAMEWORKS)
 	/**
 	 * QuickBooks Merchant Service support
 	 */
-	QuickBooks_Loader::load('/QuickBooks/MerchantService.php');
+	require_once 'QuickBooks/MerchantService.php';
 }
 
 if (QUICKBOOKS_FRAMEWORK_FRONTEND & QUICKBOOKS_FRAMEWORKS)
@@ -1092,30 +1007,27 @@ if (QUICKBOOKS_FRAMEWORK_FRONTEND & QUICKBOOKS_FRAMEWORKS)
 	/**
 	 * Front-end GUI class
 	 */
-	QuickBooks_Loader::load('/QuickBooks/Frontend.php');
+	require_once 'QuickBooks/Frontend.php';
 }
 
 if (QUICKBOOKS_FRAMEWORK_WEBCONNECTOR & QUICKBOOKS_FRAMEWORKS)
 {
 	// Other servers
-	QuickBooks_Loader::import('/QuickBooks/Server');
+	QuickBooks_Utilities::import(dirname(__FILE__) . '/QuickBooks/Server');
 }
 
 if (QUICKBOOKS_FRAMEWORK_OBJECTS & QUICKBOOKS_FRAMEWORKS)
 {
 	// Objects for the API
-	QuickBooks_Loader::import('/QuickBooks/Object');
+	QuickBooks_Utilities::import(dirname(__FILE__) . '/QuickBooks/Object');
 }
 
 if (QUICKBOOKS_FRAMEWORK_INTEGRATORS & QUICKBOOKS_FRAMEWORKS)
 {
 	// Integrator server classes
-	QuickBooks_Loader::import('/QuickBooks/Server/Integrator');
+	QuickBooks_Utilities::import(dirname(__FILE__) . '/QuickBooks/Server/Integrator');
 	
 	// Integrator drivers
-	QuickBooks_Loader::import('/QuickBooks/Integrator');
-	
-	// Integrator runnable classes
-	QuickBooks_Loader::import('/QuickBooks/Runnable/Integrator');
+	QuickBooks_Utilities::import(dirname(__FILE__) . '/QuickBooks/Integrator');
 }
 

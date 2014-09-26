@@ -21,7 +21,12 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Object.php';
 
 /**
  * 
@@ -82,16 +87,6 @@ class QuickBooks_Object_NonInventoryItem extends QuickBooks_Object
 	public function getName()
 	{
 		return $this->get('Name');
-	}
-
-	public function getUnitOfMeasureSetListID()
-	{
-		return $this->get('UnitOfMeasureSetRef ListID');
-	}
-	
-	public function getUnitOfMeasureSetFullName()
-	{
-		return $this->get('UnitOfMeasureSetRef FullName');
 	}
 	
 	/**

@@ -13,12 +13,17 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Driver.php');
+require_once 'QuickBooks.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks/Driver.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Utilities.php';
 
 /**
  * 

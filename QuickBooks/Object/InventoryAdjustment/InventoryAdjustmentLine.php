@@ -13,9 +13,14 @@
  */
 
 /**
+ * QuickBooks base
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks object base class
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * Quickbooks InventoryAdjustmentLine definition
@@ -111,18 +116,12 @@ class QuickBooks_Object_InventoryAdjustment_InventoryAdjustmentLine extends Quic
 		return parent::asArray($request, $nest);
 	}
 
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
-		if (is_null($object))
-		{
-			$object = $this->_object;
-		}
-		
 		switch ($parent)
 		{
 			case QUICKBOOKS_ADD_INVENTORYADJUSTMENT:
 				$root = 'InventoryAdjustmentLineAdd';
-				$parent = null;
 				break;
 // Currently unimplemented
 /*
@@ -132,7 +131,7 @@ class QuickBooks_Object_InventoryAdjustment_InventoryAdjustmentLine extends Quic
 */
 		}
 
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root);
 	}
 
 	/**
@@ -161,3 +160,5 @@ class QuickBooks_Object_InventoryAdjustment_InventoryAdjustmentLine extends Quic
 		return "InventoryAdjustmentLine";
 	}
 }
+
+?>

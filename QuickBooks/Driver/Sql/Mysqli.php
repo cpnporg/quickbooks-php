@@ -445,28 +445,6 @@ class QuickBooks_Driver_SQL_Mysqli extends QuickBooks_Driver_Sql
 	{
 		return $this->_count($res);
 	}
-	
-	/**
-	 * 
-	 * 
-	 * 
-	 */
-	protected function _fields($table)
-	{
-		$sql = "SHOW FIELDS FROM " . $table;
-		
-		$list = array();
-		
-		$errnum = 0;
-		$errmsg = '';
-		$res = $this->_query($sql, $errnum, $errmsg);
-		while ($arr = $this->_fetch($res))
-		{
-			$list[] = current($arr);
-		}
-		
-		return $list;
-	}	
 
 	/**
 	 * Override for the default SQL generation functions, MySQL-specific field generation function

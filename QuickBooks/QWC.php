@@ -213,6 +213,8 @@ class QuickBooks_QWC
 			
 		if ((int) $run_every_n_seconds > 0 and (int) $run_every_n_seconds < 60)
 		{
+			print('run every is: ' . $run_every_n_seconds . "\n");
+			
 			$xml .= "\t" . '<Scheduler>' . QUICKBOOKS_CRLF;
 			$xml .= "\t" . "\t" . '<RunEveryNSeconds>' . (int) $run_every_n_seconds . '</RunEveryNSeconds>' . QUICKBOOKS_CRLF;
 			$xml .= "\t" . '</Scheduler>' . QUICKBOOKS_CRLF;
@@ -236,14 +238,6 @@ class QuickBooks_QWC
 		$xml .= '</QBWCXML>';
 			
 		return trim($xml);				
-	}
-	
-	/**
-	 * Alias of QuickBooks_QWC::generate()
-	 */
-	public function __toString()
-	{
-		return $this->generate();
 	}
 		
 	/**
@@ -272,8 +266,6 @@ class QuickBooks_QWC
 	
 	/**
 	 * Generate a GUID
-	 * 
-	 * Note: This is used for tickets too, so it *must* be a RANDOM GUID!
 	 * 
 	 * @param boolean $surround
 	 * @return string

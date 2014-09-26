@@ -73,7 +73,61 @@ class QuickBooks_Callbacks
 			return false;
 		}
 		
-		$ret = call_user_func_array($function,$vars);
+		// Oooh boy there's gotta be a better way to do this... can call_user_func() handle the references?
+		switch (count($vars))
+		{
+			case 0:
+				$ret = $function();
+				break;
+			case 1:
+				$ret = $function($vars[0]);
+				break;
+			case 2:
+				$ret = $function($vars[0], $vars[1]);
+				break;
+			case 3:
+				$ret = $function($vars[0], $vars[1], $vars[2]);
+				break;
+			case 4:
+				$ret = $function($vars[0], $vars[1], $vars[2], $vars[3]);
+				break;
+			case 5:
+				$ret = $function($vars[0], $vars[1], $vars[2], $vars[3], $vars[4]);
+				break;
+			case 6:
+				$ret = $function($vars[0], $vars[1], $vars[2], $vars[3], $vars[4], $vars[5]);
+				break;
+			case 7:
+				$ret = $function($vars[0], $vars[1], $vars[2], $vars[3], $vars[4], $vars[5], $vars[6]);
+				break;
+			case 8:
+				$ret = $function($vars[0], $vars[1], $vars[2], $vars[3], $vars[4], $vars[5], $vars[6], $vars[7]);
+				break;
+			case 9:
+				$ret = $function($vars[0], $vars[1], $vars[2], $vars[3], $vars[4], $vars[5], $vars[6], $vars[7], $vars[8]);
+				break;
+			case 10:
+				$ret = $function($vars[0], $vars[1], $vars[2], $vars[3], $vars[4], $vars[5], $vars[6], $vars[7], $vars[8], $vars[9]);
+				break;
+			case 11:
+				$ret = $function($vars[0], $vars[1], $vars[2], $vars[3], $vars[4], $vars[5], $vars[6], $vars[7], $vars[8], $vars[9], $vars[10]);
+				break;
+			case 12:
+				$ret = $function($vars[0], $vars[1], $vars[2], $vars[3], $vars[4], $vars[5], $vars[6], $vars[7], $vars[8], $vars[9], $vars[10], $vars[11]);
+				break;
+			case 13:
+				$ret = $function($vars[0], $vars[1], $vars[2], $vars[3], $vars[4], $vars[5], $vars[6], $vars[7], $vars[8], $vars[9], $vars[10], $vars[11], $vars[12]);
+				break;
+			case 14:
+				$ret = $function($vars[0], $vars[1], $vars[2], $vars[3], $vars[4], $vars[5], $vars[6], $vars[7], $vars[8], $vars[9], $vars[10], $vars[11], $vars[12], $vars[13]);
+				break;
+			case 15:
+				$ret = $function($vars[0], $vars[1], $vars[2], $vars[3], $vars[4], $vars[5], $vars[6], $vars[7], $vars[8], $vars[9], $vars[10], $vars[11], $vars[12], $vars[13], $vars[14]);
+				break;
+			default:
+				$err = 'Could not call function with more than 15 parameters!';
+				return false;
+		}
 		
 		if (!is_null($which))
 		{
@@ -97,7 +151,7 @@ class QuickBooks_Callbacks
 		$object = current($object_and_method);
 		$method = next($object_and_method);
 		
-		if (is_callable(array( $object, $method)))
+		if (true)
 		{
 			$ret = call_user_func_array( array( $object, $method ), $vars);
 			
@@ -128,7 +182,8 @@ class QuickBooks_Callbacks
 		$class = current($tmp);
 		$method = next($tmp);
 		
-		if (is_callable(array( $class, $method)))
+		//if (method_exists($class, $method))
+		if (true)
 		{
 			$ret = call_user_func_array(array( $class, $method ), $vars);
 			
@@ -515,13 +570,13 @@ class QuickBooks_Callbacks
 			else
 			{
 				// There was no function registered for that action and request/response
-				$err = 'No function handlers for action: ' . $action;
+				$err = 'No function handlers for action (a): ' . $action . json_encode($which);
 			}
 		}
 		else
 		{
 			// There are *no* functions registered for that action
-			$err = 'No registered functions for action: ' . $action;
+			$err = 'No registered functions for action (b): ' . $action . json_encode($which) . json_encode($map);
 		}
 		
 		return '';		
@@ -573,16 +628,9 @@ class QuickBooks_Callbacks
 		$errerr = '';
 		if ($type == QUICKBOOKS_CALLBACKS_TYPE_OBJECT_METHOD)			// Object instance method hook
 		{
-			$Driver->log('Object method error handler: ' . get_class($callback[0]) . '->' . $callback[1], null, QUICKBOOKS_LOG_VERBOSE);
+			// @todo Finish this! 
 			
-			$errerr = '';
-			$continue = QuickBooks_Callbacks::_callObjectMethod($callback, $vars, $errerr, 5);
-			
-			if ($errerr)
-			{
-				$Driver->log('Error handler returned an error: ' . $errerr, null, QUICKBOOKS_LOG_NORMAL);
-				return false;
-			}
+			return false;
 		}
 		else if ($type == QUICKBOOKS_CALLBACKS_TYPE_FUNCTION)		// Function hook
 		{

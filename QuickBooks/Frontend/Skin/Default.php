@@ -1,6 +1,6 @@
 <?php
 
-QuickBooks_Loader::load('/QuickBooks/Frontend/Skin.php');
+require_once 'QuickBooks/Frontend/Skin.php';
 
 define('QUICKBOOKS_FRONTEND_SKIN_DEFAULT_NAME', 'Default Skin');
 

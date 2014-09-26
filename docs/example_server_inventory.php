@@ -61,7 +61,7 @@ $pass = 'password';
 /**
  * Maximum number of customers/invoices returned at a time when doing the import
  */
-define('QB_QUICKBOOKS_MAX_RETURNED', 3);
+define('QB_QUICKBOOKS_MAX_RETURNED', 5);
 
 /**
  * Send error notices to this e-mail address
@@ -86,7 +86,7 @@ $errmap = array(
 
 // An array of callback hooks
 $hooks = array(
-	QuickBooks_Handlers::HOOK_LOGINSUCCESS => '_quickbooks_hook_loginsuccess', 	// call this whenever a successful login occurs
+	QUICKBOOKS_HANDLERS_HOOK_LOGINSUCCESS => '_quickbooks_hook_loginsuccess', 	// call this whenever a successful login occurs
 	);
 
 // Logging level

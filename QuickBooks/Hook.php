@@ -1,5 +1,7 @@
 <?php
 
+require_once 'QuickBooks.php';
+
 abstract class QuickBooks_Hook
 {
 	protected $_argc;

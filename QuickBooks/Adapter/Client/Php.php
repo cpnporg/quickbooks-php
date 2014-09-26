@@ -13,7 +13,7 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Adapter/Client.php');
+require_once 'QuickBooks/Adapter/Client.php';
 
 /**
  * 
@@ -86,3 +86,4 @@ class QuickBooks_Adapter_Client_Php extends SoapClient implements QuickBooks_Ada
 	}
 }
 
+?>

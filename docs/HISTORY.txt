@@ -48,13 +48,13 @@ Future Plans: --
 	X Microsoft SQL Server and PEAR MDB2 support
 	X Bug fix - Iterators are only used for the SQL mirror if supported by the version of qbXML in use
 
-Release v1.5.4: 2010-??-??
+Release v1.5.4: 2008-??-??
 	Changes:
 		X Support for RC4 and Blowfish encryption for using with session and connection tickets
-		- Support for the quickbooks_connection table for QuickBooks Online Edition credentials
-		X Support for the quickbooks_connection table for QuickBooks Merchant Services credentials
+		X QuickBooks_Receiver classes for QBOE and QBMS tickets
 		X SQL mirror dependency mapping moved to QuickBooks_SQL_Schema
-		- Re-structuring of SQL mirror functionality
+		X Re-structuring of SQL mirror functionality
+		X SQL mirror support for QuickBooks Online Editions
 		X QuickBooks POP3 and SMTP bridges (fetch qbXML requests from POP3 mail, send qbXML responses via SMTP)
 		X Hooks library and factory methods for pre-defined hooks
 		X Integrators can now load default options from the 'quickbooks_config' table 
@@ -62,31 +62,12 @@ Release v1.5.4: 2010-??-??
 		X Added support for locking a session/account if an unrecoverable error occurs
 		X ALPHA support for running background processes/callback handlers
 		X Added indexes to many of the QuickBooks SQL mirror fields 
-		- Proper boolean TRUE/FALSE handler for SQL mirroring
+		X Proper boolean TRUE/FALSE handler for SQL mirroring
 		X Sending blank/incorrect credit card information to QBMS no longer results in cURL #58 errors
 		X SQL mirror iterator priorities are now based on the original priority of the first queued request
 		X Bug fix - Defined the method QuickBooks_XML_Node::_asArrayNoAttributesHelper()
-		- Added a QuickBooks_Queue::size() method
-		- Added a QuickBooks_Queue::remove() method
-		X Added a QuickBooks_Queue::summary() method
-		X Added a QuickBooks_SQL_Status class for SQL mirror status information
-		X Added a QuickBooks_Reporting class for handling QuickBooks reports 
-		X Added support for some reports to the SQL mirror code
-		- Bug fix - Fixed a problem with very slow InnoDB performance 
-		X Added a hook which runs when there is nothing to do (a 'none' response)
-		- General clean-up, restructuring, and removal of deprecated methods
-		- Bug fix - Fixed QuickBooks_API problems with items trying to create non-existant class instances
-		- Locale support for converting QuickBooks_Object_* classes to qbXML requests
-		- Foxycart + QuickBooks Online Edition support
-		X Updated PostgreSQL, MS SQL Server, and MySQLi support
-		- Added SQLite support
 		X Added support for QuickBooks_Receiver classes (connection ticket handlers for QBMS and QBOE)
 		X BETA support for QuickBase and IPP
-		X QuickBooks_User class replaces the QuickBooks_Utilities::*user* methods
-		- QuickBooks_QWC class replaces the QuickBooks_Utilities::*QWC* methods
-		- Added a huge number of updates and changes to make the SQL mirror functionality more reliable and accurate
-		- Improved error handling and reporting for protocol errors and errors which occur before the QuickBooks business logic runs
-		- Improved QuickBooks_API support for QuickBooks Online Edition
 		X Bug fix - You can now add items to the queue with the front-end
 		X Bug fix - MySQL in STRICT mode didn't like some of the timestamps returned by QuickBooks 
 		X Bug fix - Very long integer values caused integer overflow with the SQL mirror functionality 

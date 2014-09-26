@@ -13,12 +13,12 @@
 /**
  * Server adapter base-class
  */
-QuickBooks_Loader::load('/QuickBooks/Adapter/Server.php');
+require_once 'QuickBooks/Adapter/Server.php';
 
 /**
  * SOAP server base class
  */
-QuickBooks_Loader::load('/QuickBooks/SOAP/Server.php');
+require_once 'QuickBooks/SOAP/Server.php';
 
 /**
  * 
@@ -72,3 +72,5 @@ class QuickBooks_Adapter_Server_Builtin implements QuickBooks_Adapter_Server
 		return $this->_server->getFunctions();
 	}
 }
+
+?>

@@ -27,3 +27,4 @@ class QuickBooks_API_Queue
 	}
 }
 
+?>

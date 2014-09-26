@@ -49,11 +49,6 @@ error_reporting(E_ALL | E_STRICT);
 //define('QUICKBOOKS_DRIVER_SQL_MYSQL_PREFIX', 'myqb_');
 //define('QUICKBOOKS_DRIVER_SQL_MYSQLI_PREFIX', 'myqb_');
 
-// If you're having trouble with performance or memory usage, you can tell the 
-//	framework to only include certain chunks of itself:
-//require_once 'QuickBooks/Frameworks.php';
-//define('QUICKBOOKS_FRAMEWORKS', QUICKBOOKS_FRAMEWORK_WEBCONNECTOR);
-
 // Require the framework
 require_once 'QuickBooks.php';
 
@@ -237,8 +232,7 @@ $dsn = 'mysql://root:root@localhost/quickbooks_server';
 //$dsn = 'mssql://kpalmer:password@192.168.18.128/your_database';		// Connect to MS SQL Server database
 //$dsn = 'pgsql://pgsql:password@localhost/your_database';				// Connect to a PostgreSQL database 
 //$dsn = 'pearmdb2.mysql://root:password@localhost/your_database';		// Connect to MySQL using the PEAR MDB2 database abstraction library
-//$dsn = 'sqlite://example.sqlite';										// Connect to an SQLite database
-//$dsn = 'sqlite:///Users/keithpalmerjr/Projects/QuickBooks/docs/example.sqlite';	// Connect to an SQLite database
+//$dsn = 'sqlite://filename';											// Connect to an SQLite database
 
 if (!QuickBooks_Utilities::initialized($dsn))
 {
@@ -278,8 +272,7 @@ if (!QuickBooks_Utilities::initialized($dsn))
 	//	return $qbxml;
 	// 
 	// We're going to queue up a request to add a customer, just as a demo...
-	// 	NOTE: You would *never* want to do this in this file *unless* it's for 
-	// 	testing. See example_integration.php for more details!
+	// 	NOTE: You would *never* want to do this in this file *unless* it's for testing. See example_integration.php for more details!
 	
 	$primary_key_of_your_customer = 5;
 
@@ -492,7 +485,7 @@ function _quickbooks_salesreceipt_add_request($requestID, $user, $action, $ID, $
 							<State>CT</State>
 							<PostalCode>06268</PostalCode>
 							<Country>United States</Country>
-						</BillAddres>
+						</BillAddress>
 						<SalesReceiptLineAdd>
 							<ItemRef>
 								<FullName>Gift Certificate</FullName>

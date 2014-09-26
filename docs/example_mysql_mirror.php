@@ -3,35 +3,35 @@
 /**
  * An example of how to mirror parts (or all of) the QuickBooks database to a MySQL database
  * 
- * The SQL mirror functionality makes it easy to extract information from 
- * QuickBooks into an SQL database, and, if so desired, write changes to the 
- * SQL records back to QuickBooks automatically. 
- * 
- * You should look at my wiki for more information about mirroring QuickBooks 
- * data into SQL databases:
- * 	http://wiki.consolibyte.com/wiki/doku.php/quickbooks_integration_php_consolibyte_sqlmirror
+ * This code is *very rough still*, somewhat untested, and is still under heavy 
+ * development! Do not use this code in a production environment without 
+ * testing lots and lots first! 
  * 
  * @package QuickBooks
  * @subpackage Documentation
  */
 
-// I always program in E_STRICT error mode with error reporting turned on... 
-error_reporting(E_ALL | E_STRICT);
-ini_set('display_errors', 1);
-
 // Set the include path
-ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . '/Users/keithpalmerjr/Projects/QuickBooks');
-require_once 'QuickBooks.php';
+//ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . '/Users/kpalmer/Projects/QuickBooks');
+require_once dirname(__FILE__) . '/../QuickBooks.php';
 
-// You should make sure this matches the time-zone QuickBooks is running in
+/**
+ * QuickBooks base classes
+ */
+//require_once 'QuickBooks.php';
+
+// 
 if (function_exists('date_default_timezone_set'))
 {
 	date_default_timezone_set('America/New_York');
 }
 
-// The username and password the Web Connector will use to connect with
 $username = 'quickbooks';
 $password = 'password';
+
+// I always program in E_STRICT error mode with error reporting turned on... 
+error_reporting(E_ALL | E_STRICT);
+ini_set('display_errors', 1);
 
 // Database connection string
 //
@@ -39,7 +39,7 @@ $password = 'password';
 //	quickbooks_* or qb_* related tables in it, then the schema *WILL NOT* build 
 //	correctly! 
 // 	
-// 	Currently, only MySQL is supported/tested. 
+// 	
 $dsn = 'mysql://root:root@localhost/quickbooks_sql';
 
 // If the database has not been initialized, we need to initialize it (create 
@@ -65,21 +65,17 @@ if (!QuickBooks_Utilities::initialized($dsn))
 }
 
 // What mode do we want to run the mirror in? 
-//$mode = QuickBooks_Server_SQL::MODE_READONLY;		// Read from QuickBooks only (no data will be pushed back to QuickBooks)
-//$mode = QuickBooks_Server_SQL::MODE_WRITEONLY;		// Write to QuickBooks only (no data will be copied into the SQL database)
-$mode = QuickBooks_Server_SQL::MODE_READWRITE;		// Keep both QuickBooks and the database in sync, reading and writing changes back and forth)
+$mode = QUICKBOOKS_SERVER_SQL_MODE_READONLY;		// Read from QuickBooks only (no data will be pushed back to QuickBooks)
+//$mode = QUICKBOOKS_SERVER_SQL_MODE_WRITEONLY;		// Write to QuickBooks only (no data will be copied into the SQL database)
+//$mode = QUICKBOOKS_SERVER_SQL_MODE_READWRITE;		// Keep both QuickBooks and the database in sync, reading and writing changes back and forth)
 
 // What should we do if a conflict is found? (a record has been changed by another user or process that we're trying to update)
-$conflicts = QuickBooks_Server_SQL::CONFLICT_LOG;
+$conflicts = QUICKBOOKS_SERVER_SQL_CONFLICT_LOG;
 
 // What should we do with records deleted from QuickBooks? 
-//$delete = QuickBooks_Server_SQL::DELETE_REMOVE;		// Delete the record from the database too
-$delete = QuickBooks_Server_SQL::DELETE_FLAG; 		// Just flag it as deleted
+$delete = QUICKBOOKS_SERVER_SQL_DELETE_REMOVE;		// Delete the record from the database too
+//$delete = QUICKBOOKS_SERVER_SQL_DELETE_FLAG; 		// Just flag it as deleted
 
-// Hooks (optional stuff)
-$hooks = array();
-
-/*
 // Hooks (optional stuff)
 $hook_obj = new MyHookClass2('Keith Palmer');
 
@@ -93,17 +89,23 @@ $hooks = array(
 	// QUICKBOOKS_SQL_HOOK_SQL_UPDATE => 'my_function_name_for_updates',
 
 	// Example of registering multiple hooks for one hook type 
-	//QUICKBOOKS_SERVER_HOOK_PREHANDLE => array(
-	//	'my_prehandle_function',
-	//	array( $hook_obj, 'myMethod' ),
-	//	),
+	/*
+	QUICKBOOKS_SERVER_HOOK_PREHANDLE => array(
+		'my_prehandle_function',
+		array( $hook_obj, 'myMethod' ),
+		),
+	*/
 	
 	// Example of using the hook factory to use a pre-defined hook
 	//QUICKBOOKS_SQL_HOOK_SQL_INSERT => QuickBooks_Hook_Factory::create(
 	//	'Relay_POST', 								// Relay the hook data to a remote URL via a HTTP POST
 	//	'http://localhost:8888/your_script.php'),
-	
+		
 	QUICKBOOKS_SQL_HOOK_SQL_INSERT => array(
+		QuickBooks_Hook_Factory::create(
+			'Relay_POST', 	
+			'http://artisan.windfarmstudios.com/quickbooks/import.php', 
+			array( '_secret' => 'J03lsN3at@pplication' ) ), 
 		QuickBooks_Hook_Factory::create(
 			'Relay_POST', 
 			'http://localhost:8888/your_script.php', 
@@ -141,7 +143,6 @@ class MyHookClass2
 		return true;
 	}
 }
-*/
 
 // 
 $soap_options = array();
@@ -152,31 +153,16 @@ $handler_options = array();
 // 
 $driver_options = array();
 
-$ops = array( 
-	QUICKBOOKS_OBJECT_ACCOUNT, 
-	//QUICKBOOKS_OBJECT_JOURNALENTRY, 
-	//QUICKBOOKS_OBJECT_ESTIMATE, 
-	QUICKBOOKS_OBJECT_INVOICE, 
-	QUICKBOOKS_OBJECT_CUSTOMER, 
-	//QUICKBOOKS_OBJECT_VENDOR, 
-	//QUICKBOOKS_OBJECT_ITEM, 
-	//QUICKBOOKS_OBJECT_BILL, 
-	//QUICKBOOKS_OBJECT_BILLPAYMENTCREDITCARD, 
-	//QUICKBOOKS_OBJECT_BILLPAYMENTCHECK, 
-	//QUICKBOOKS_OBJECT_PURCHASEORDER, 
-	QUICKBOOKS_OBJECT_SHIPMETHOD, 
-	QUICKBOOKS_OBJECT_EMPLOYEE, 
-	QUICKBOOKS_OBJECT_SALESREP, 
-	//QUICKBOOKS_OBJECT_RECEIVEPAYMENT,
-	//QUICKBOOKS_OBJECT_SALESORDER, 
-	QUICKBOOKS_OBJECT_VENDOR, 
-	);
-
 // 
 $sql_options = array(
-	'only_import' => $ops,
-	'only_add' => $ops, 
-	'only_modify' => $ops, 
+	'only_query' => array( 
+		QUICKBOOKS_OBJECT_INVOICE, 
+		QUICKBOOKS_OBJECT_CUSTOMER, 
+		QUICKBOOKS_OBJECT_VENDOR, 
+		QUICKBOOKS_OBJECT_ITEM 
+	),
+	//'only_add' => array( QUICKBOOKS_OBJECT_BILL ),
+	//'only_modify' => array( QUICKBOOKS_OBJECT_BILL ), 
 	);
 
 // 
@@ -184,7 +170,7 @@ $callback_options = array();
 
 // $dsn_or_conn, $how_often, $mode, $conflicts, $users = null, 
 //	$map = array(), $onerror = array(), $hooks = array(), $log_level, $soap = QUICKBOOKS_SOAPSERVER_BUILTIN, $wsdl = QUICKBOOKS_WSDL, $soap_options = array(), $handler_options = array(), $driver_options = array()
-$Server = new QuickBooks_Server_SQL(
+$server = new QuickBooks_Server_SQL(
 	$dsn, 
 	'1 minute', 
 	$mode, 
@@ -202,5 +188,7 @@ $Server = new QuickBooks_Server_SQL(
 	$driver_options,
 	$sql_options, 
 	$callback_options);
-$Server->handle(true, true);
+$server->handle(true, true);
 
+
+?>

@@ -142,15 +142,6 @@ class QuickBooks_QBXML_Schema_Object_ItemQueryRq extends QuickBooks_QBXML_Schema
 	}
 	*/
 	
-	protected function &_inLocalePaths()
-	{
-		static $paths = array(
-			'ActiveStatus' => array( 'QBOE' ), 
-			);
-		
-		return $paths;
-	}	
-	
 	protected function &_reorderPathsPaths()
 	{
 		static $paths = array (

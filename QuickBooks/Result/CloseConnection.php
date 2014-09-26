@@ -13,7 +13,7 @@
 /**
  * Result interface
  */
-QuickBooks_Loader::load('/QuickBooks/Result.php');
+require_once 'QuickBooks/Result.php';
 
 /**
  * Result class for ->closeConnection() SOAP method

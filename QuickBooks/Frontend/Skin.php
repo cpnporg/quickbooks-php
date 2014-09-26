@@ -13,7 +13,12 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Utilities.php';
 
 define('QUICKBOOKS_SKIN_HOOK_SETHEADER', 'setheader');
 define('QUICKBOOKS_SKIN_HOOK_SETFOOTER', 'setfooter');

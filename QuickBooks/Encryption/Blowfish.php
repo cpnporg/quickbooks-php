@@ -15,7 +15,7 @@
 /** 
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Encryption.php');
+require_once 'QuickBooks/Encryption.php';
 
 define('CRYPT_ENGINE_BUILTIN', 'builtin');
 define('CRYPT_ENGINE_MCRYPT', 'mcrypt');

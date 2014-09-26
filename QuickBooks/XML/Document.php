@@ -10,7 +10,7 @@
 /**
  * Node class
  */
-QuickBooks_Loader::load('/QuickBooks/XML/Node.php');
+require_once 'QuickBooks/XML/Node.php';
 
 /**
  * QuickBooks XML document container

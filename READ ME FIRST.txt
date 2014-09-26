@@ -11,8 +11,6 @@
   
   - Charge credit cards using the QuickBooks Merchant Service
   
-  - Connect to the Intuit Partner Platform and access IDS Services  
-  
   - Get access to QuickBooks reports 
   
   - Pull information out of QuickBooks and display it online 
@@ -28,20 +26,12 @@
  Edition, and with QuickBooks Merchant Service can be accomplished via this 
  framework. 
 
-    If you have questions, suggestions, or find a bug, the absolute best way to 
-    get support, report bugs, or ask for help is to ask on the forums:
-     http://www.consolibyte.com/forum/
-     https://idnforums.intuit.com/
-     
-    You will find examples in the docs/ folder. There is additional 
-    documentation and additional examples on our wiki:
-     http://wiki.consolibyte.com/wiki/doku.php/quickbooks
-     http://wiki.consolibyte.com/wiki/doku.php/quickbooks_integration_php_consolibyte
+    If you have questions, suggestions, or find a bug, please feel free to 
+    get in touch with me! 
     
-    Please remember that this is an open-source project! Donations, 
-    contributions, and general thank-yous are all very appreciated! Monetary 
-    donations can be made at my website:
-     http://www.consolibyte.com/
+    Please remember that this is an open-source project, and is licensed with a 
+    BSD-with-attribution license! Donations, contributions, and general thank-
+    yous are all very appreciated!
     
    - Keith Palmer
      keith@consolibyte.com
@@ -51,10 +41,6 @@
 
 
  DOCUMENTATION:   (look at these files for examples of how to do stuff)
- 
- Integration with the Intuit Partner Platform and IDS
-    docs/example_ipp_basics.php
-    docs/example_ipp_objects.php
  
  Integration with QuickBooks Desktop Editions (Pro, Premier, Enterprise)
  	docs/example_server.php
@@ -68,7 +54,6 @@
  
  Mirroring the QuickBooks company file in an SQL database
  	docs/example_mysql_mirror.php
- 	docs/example_pgsql_mirror.php
  	
  Using the QuickBooks_API classes for a very OOP approach to talking to QuickBooks
  	docs/example_api_server.php
@@ -79,11 +64,7 @@
  	docs/example_bridge_http-send.php
  	docs/example_bridge_http-receive.php
  
- 
  RECOMMENDATIONS: 
- 
- If you're developing a SaaS application that integrates with QuickBooks, you 
- should be developing on the Intuit Partner Platform using IDS. 
   
  QuickBooks integration can be a *beast* to develop for and debug. You will 
  save yourself *countless* hours if you configure PHP so that: 

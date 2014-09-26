@@ -15,7 +15,7 @@
 /**
  *
  */
-QuickBooks_Loader::load('/QuickBooks/Transport.php');
+require_once 'QuickBooks/Transport.php';
 
 /**
  * 

@@ -11,24 +11,19 @@
  */
 
 /**
- * QuickBooks XML stuff (we need this for some constants)
+ * QuickBooks base class
  */
-QuickBooks_Loader::load('/QuickBooks/XML.php', false);
+require_once 'QuickBooks.php';
 
 /**
  * QuickBooks XML parser class
  */
-QuickBooks_Loader::load('/QuickBooks/XML/Parser.php');
+require_once 'QuickBooks/XML/Parser.php';
 
 /**
  * QuickBooks API class
  */
-QuickBooks_Loader::load('/QuickBooks/API.php');
-
-/**
- * QuickBooks data type casting
- */
-QuickBooks_Loader::load('/QuickBooks/Cast.php');
+require_once 'QuickBooks/API.php';
 
 /**
  * QuickBooks XML parser option - preserve empty XML elements
@@ -194,7 +189,7 @@ abstract class QuickBooks_Object
 	 * @param string $value
 	 * @return boolean
 	 */
-	public function set($key, $value, $cast = true)
+	public function set($key, $value)
 	{
 		if (is_array($value))
 		{
@@ -202,15 +197,6 @@ abstract class QuickBooks_Object
 		}
 		else
 		{
-			//print('set(' . $key . ', ' . $value . ', ' . $cast . ')' . "\n");
-			
-			if ($cast)
-			{
-				$value = QuickBooks_Cast::cast($this->object(), $key, $value);
-			}
-			
-			//print('	setting [' . $key . '] to value {' . $value . '}' . "\n");
-			
 			$this->_object[$key] = $value;
 		}
 		
@@ -235,98 +221,6 @@ abstract class QuickBooks_Object
 	}
 	
 	/**
-	 * Get a FullName value (where : separates parent and child items)
-	 * 
-	 * @param string $fullname_key		The key to set, i.e. FullName
-	 * @param string $name_key			The 'Name' key, i.e. Name
-	 * @param string $parent_key		The parent key, i.e. ParentRef_FullName
-	 * @param mixed $default
-	 * @return string
-	 */
-	public function getFullNameType($fullname_key, $name_key, $parent_key, $default = null)
-	{
-		$fullname = $this->get($fullname_key);
-		if (!$fullname)
-		{
-			$name = $this->get($name_key);
-			$parent = $this->get($parent_key);
-			
-			if ($name and $parent)
-			{
-				$fullname = $parent . ':' . $name;
-			}
-			else
-			{
-				$fullname = $name;
-			}
-		}
-		
-		return $fullname;
-	}
-	
-	/**
-	 * Set a Name field
-	 * 
-	 * @param string $name_key
-	 * @param string $value
-	 * @return void
-	 */
-	public function setNameType($name_key, $value)
-	{
-		return $this->set($name_key, str_replace(':', '-', $value));
-	}
-	
-	/**
-	 * Set a FullName field
-	 * 
-	 * @param string $fullname_key
-	 * @param string $name_key
-	 * @param string $parent_key
-	 * @param string $value
-	 * @return void
-	 */
-	public function setFullNameType($fullname_key, $name_key, $parent_key, $value)
-	{
-		if (false !== strpos($value, ':'))
-		{
-			if ($name_key and $parent_key)
-			{
-				// This covers the case where we are setting FullName, which 
-				//	needs to be broken up into:
-				//		Name
-				//		ParentRef FullName
-				
-				$explode = explode(':', $value);
-				$name = end($explode);
-				$parent = implode(':', array_slice($explode, 0, -1));
-				
-				$this->set($name_key, $name);
-				$this->set($parent_key, $parent);
-				
-				// Build the parent name from the newly set Name and ParentRef (need to fetch because they might have been casted/truncate)
-				$value = $this->get($parent_key) . ':' . $this->get($name_key);
-			}
-			else
-			{
-				// This covers the case where we are setting 
-				//	CustomerType_FullName, there is no separate parent element, 
-				//	so we just set the whole chunk 
-				
-				; 
-			}
-		}
-		else
-		{
-			$this->set($name_key, $value);
-			
-			// Fetch the Name (need to fetch because they might have been casted/truncate)
-			$value = $this->get($name_key);
-		}
-		
-		$this->set($fullname_key, $value);
-	}
-	
-	/**
 	 * Set a boolean value
 	 * 
 	 * @param string $key		
@@ -335,15 +229,11 @@ abstract class QuickBooks_Object
 	 */
 	public function setBooleanType($key, $value)
 	{
-		//print('setting BooleanType [' . $key . '] to ' . $value . "\n");
-		
 		if ($value == 'true' or $value === 1 or $value === true)
 		{
-			//print("\t" . ' set to TRUE' . "\n");
 			return $this->set($key, 'true');
 		}
 		
-		//print("\t" . ' set to FALSE' . "\n");
 		return $this->set($key, 'false');
 	}
 	
@@ -435,7 +325,7 @@ abstract class QuickBooks_Object
 	
 	public function getAmountType($key)
 	{
-		return sprintf('%01.2f', (float) $this->get($key));
+		return (float) $this->get($key);
 	}
 	
 	/**
@@ -530,16 +420,13 @@ abstract class QuickBooks_Object
 		return array_merge($defaults, $list);
 	}
 	
-	/**
-	 * Do some fancy string matching
-	 * 
-	 * @param string $pattern
-	 * @param string $str
-	 * @return boolean
-	 */
 	protected function _fnmatch($pattern, $str)
 	{
-		return QuickBooks_Utilities::fnmatch($pattern, $str);
+		$arr = array(
+			'\*' => '.*', 
+			'\?' => '.'
+			);
+		return preg_match('#^' . strtr(preg_quote($pattern, '#'), $arr) . '$#i', $str);
 	}
 	
 	/**
@@ -578,21 +465,16 @@ abstract class QuickBooks_Object
 	 * @param string $parent		
 	 * @return QuickBooks_XML_Node
 	 */
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
 		if (is_null($root))
 		{
 			$root = $this->object();
 		}
 		
-		if (is_null($object))
-		{
-			$object = $this->_object;
-		}
-		
 		$Node = new QuickBooks_XML_Node($root);
 		
-		foreach ($object as $key => $value)
+		foreach ($this->_object as $key => $value)
 		{
 			if (is_array($value))
 			{
@@ -622,31 +504,18 @@ abstract class QuickBooks_Object
 		
 	}
 	
-	protected function _cleanup()
-	{
-		
-	}
-	
 	/**
 	 * Convert this object to a valid qbXML request/response
 	 * 
-	 * @todo Support for qbXML versions
+	 * @todo What should this function return if a schema can't be found...? 
 	 * 
 	 * @param boolean $compress_empty_elements
 	 * @param string $indent
 	 * @param string $root
 	 * @return string
 	 */
-	//public function asQBXML($request, $todo_for_empty_elements = QUICKBOOKS_XML_XML_DROP, $indent = "\t", $root = null)
-	public function asQBXML($request, $version = null, $locale = null, $root = null)
+	public function asQBXML($request, $todo_for_empty_elements = QUICKBOOKS_XML_XML_DROP, $indent = "\t", $root = null)
 	{
-		$todo_for_empty_elements = QUICKBOOKS_XML_XML_DROP;
-		$indent = "\t";
-		
-		// Call any cleanup routines
-		$this->_cleanup();
-		
-		// 
 		if (strtolower(substr($request, -2, 2)) != 'rq')
 		{
 			$request .= 'Rq';
@@ -658,32 +527,14 @@ abstract class QuickBooks_Object
 		{
 			$tmp = array();
 			
-			// Restrict it to a specific qbXML version?
-			if ($version)
-			{
-				
-			}
-			
-			// Restrict it to a specific qbXML locale?
-			if ($locale)
-			{
-				// List of fields which are not supported for some versions of qbXML
-				
-				if (strlen($locale) == 2)
-				{
-					// The OSR lists locales as 'QBOE', 'QBUK', 'QBCA', etc. vs. our QUICKBOOKS_LOCALE_* constants of just 'OE', 'UK', 'CA', etc.
-					$locale = 'QB' . $locale;
-				}
-				
-				$locales = $schema->localePaths();
-			}
+			//print_r(array_keys($this->asList($request)));
 			
 			foreach ($schema->reorderPaths(array_keys($this->asList($request))) as $key => $path)
 			{
 				$value = $this->_object[$path];
 				
 				if (is_array($value))
-				{	
+				{
 					$tmp[$path] = array();
 					
 					foreach ($value as $arr)
@@ -697,34 +548,9 @@ abstract class QuickBooks_Object
 						
 						foreach ($schema->reorderPaths(array_keys($arr->asList(''))) as $subkey => $subpath)
 						{
-							// We need this later, so store it
-							$fullpath = $subpath;
+							$subpath = substr($subpath, strlen($path) + 1);
 							
-							if ($locale and 
-								isset($locales[$subpath]))
-							{
-								if (in_array($locale, $locales[$subpath]))
-								{
-									// 
-									//print('found: ' . $subpath . ' (' . $locale . ') so skipping!' . "\n");
-								}
-								else
-								{
-									$subpath = substr($subpath, strlen($path) + 1);
-									$tmp2[$subpath] = $arr->get($subpath);									
-								}
-							}
-							else
-							{
-								$subpath = substr($subpath, strlen($path) + 1);
-								$tmp2[$subpath] = $arr->get($subpath);								
-							}
-							
-							if ($schema->dataType($fullpath) == QUICKBOOKS_QBXML_SCHEMA_TYPE_AMTTYPE and 
-								isset($tmp2[$subpath]))
-							{
-								$tmp2[$subpath] = sprintf('%01.2f', $tmp2[$subpath]);
-							}
+							$tmp2[$subpath] = $arr->get($subpath);
 						}
 						
 						$tmp2 = new QuickBooks_Object_Generic($tmp2, $arr->object());
@@ -734,42 +560,16 @@ abstract class QuickBooks_Object
 				}
 				else
 				{
-					// Do some simple data type casting... 
-					if ($schema->dataType($path) == QUICKBOOKS_QBXML_SCHEMA_TYPE_AMTTYPE)
-					{
-						$this->_object[$path] = sprintf('%01.2f', $this->_object[$path]);
-					}
-					
-					if ($locale and 				// If a locale is specified...
-						isset($locales[$path]))		// ... and this path is set in the locales restriction array
-					{
-						// Check to see if it's supported by the given locale
-						
-						if (in_array($locale, $locales[$path]))
-						{
-							// It's not supported by this locale, don't show add it
-						}
-						else
-						{
-							$tmp[$path] = $this->_object[$path];
-						}
-					}
-					else
-					{
-						// If we don't know whether or not it's supported, return it!
-							
-						$tmp[$path] = $this->_object[$path];
-					}
+					$tmp[$path] = $this->_object[$path];
 				}
 			}
 			
-			// *DO NOT* change the source values of the original object! 
-			//$this->_object = $tmp;
+			$this->_object = $tmp;
 			
 			if ($wrapper = $schema->qbxmlWrapper())
 			{
 				
-				$Node = $this->asXML($wrapper, null, $tmp);
+				$Node = $this->asXML($wrapper);
 				$Request->addChild($Node);
 				
 				return $Request->asXML($todo_for_empty_elements, $indent);
@@ -781,13 +581,13 @@ abstract class QuickBooks_Object
 				//	and we need to *preserve* this empty element rather than just 
 				//	drop it (which results in an empty string, and thus invalid query)
 				
-				$Node = $this->asXML($request, null, $tmp);
+				$Node = $this->asXML($request);
 				
 				return $Node->asXML(QUICKBOOKS_XML_XML_PRESERVE, $indent);
 			}
 			else
 			{
-				$Node = $this->asXML($request, null, $tmp);
+				$Node = $this->asXML($request);
 				
 				return $Node->asXML($todo_for_empty_elements, $indent);
 			}
@@ -796,24 +596,11 @@ abstract class QuickBooks_Object
 		return '';
 	}
 	
-	/**
-	 * 
-	 * 
-	 * 
-	 */
 	public function asList($request)
 	{
-		$arr = $this->_object;
-		$object = $this->object();
 		
-		/*
-		foreach ($arr as $key => $value)
-		{
-			$arr[$key] = QuickBooks_Cast::cast($object, $key, $value);
-		}
-		*/
 		
-		return $arr;
+		return $this->_object;
 	}
 
 	/**
@@ -822,20 +609,15 @@ abstract class QuickBooks_Object
 	 */
 	static protected function _fromXMLHelper($class, $XML)
 	{
-		if (is_object($XML))
+		$paths = $XML->asArray(QUICKBOOKS_XML_ARRAY_PATHS);
+		foreach ($paths as $path => $value)
 		{
-			$paths = $XML->asArray(QUICKBOOKS_XML_ARRAY_PATHS);
-			foreach ($paths as $path => $value)
-			{
-				$newpath = implode(' ', array_slice(explode(' ', $path), 1));
-				$paths[$newpath] = $value;
-				unset($paths[$path]);
-			}
-			
-			return new $class($paths);		
+			$newpath = implode(' ', array_slice(explode(' ', $path), 1));
+			$paths[$newpath] = $value;
+			unset($paths[$path]);
 		}
 		
-		return null;
+		return new $class($paths);		
 	}
 	
 	/**
@@ -847,56 +629,21 @@ abstract class QuickBooks_Object
 	 */
 	static public function fromXML($XML, $action_or_object = null)
 	{		
-		if (!$action_or_object or $action_or_object == QUICKBOOKS_QUERY_ITEM)
+		if (!$action_or_object)
 		{
 			$action_or_object = $XML->name();
 		}
 		
 		$type = QuickBooks_Utilities::actionToObject($action_or_object);
-		
-		$exceptions = array(
-			QUICKBOOKS_OBJECT_SERVICEITEM => 'ServiceItem', 
-			QUICKBOOKS_OBJECT_INVENTORYITEM => 'InventoryItem', 
-			QUICKBOOKS_OBJECT_NONINVENTORYITEM => 'NonInventoryItem', 
-			QUICKBOOKS_OBJECT_DISCOUNTITEM => 'DiscountItem', 
-			QUICKBOOKS_OBJECT_FIXEDASSETITEM => 'FixedAssetItem', 
-			QUICKBOOKS_OBJECT_GROUPITEM => 'GroupItem', 
-			QUICKBOOKS_OBJECT_OTHERCHARGEITEM => 'OtherChargeItem', 
-			QUICKBOOKS_OBJECT_SALESTAXITEM => 'SalesTaxItem', 
-			QUICKBOOKS_OBJECT_SALESTAXGROUPITEM => 'SalesTaxGroupItem', 
-			QUICKBOOKS_OBJECT_SUBTOTALITEM => 'SubtotalItem', 
-			QUICKBOOKS_OBJECT_INVENTORYASSEMBLYITEM => 'InventoryAssemblyItem', 
-			);
-		
-		if (isset($exceptions[$type]))
-		{
-			$type = $exceptions[$type];
-		}
-		
-		//print('trying to create type: {' . $type . '}' . "\n");
-		
 		$class = 'QuickBooks_Object_' . ucfirst(strtolower($type));
 		
-		if (class_exists($class, false))
+		if (class_exists($class))
 		{
 			$Object = QuickBooks_Object::_fromXMLHelper($class, $XML);
-			
-			if (!is_object($Object))
-			{
-				return false;
-			}
 			
 			$children = array();
 			switch ($Object->object())
 			{
-				case QUICKBOOKS_OBJECT_BILL:
-					
-					$children = array(
-						'ItemLineRet' => array( 'QuickBooks_Object_Bill_ItemLine', 'addItemLine' ), 
-						'ExpenseLineRet' => array( 'QuickBooks_Object_Bill_ExpenseLine', 'addExpenseLine' ), 
-						);					
-					
-					break;
 				case QUICKBOOKS_OBJECT_PURCHASEORDER:
 					
 					$children = array(
@@ -928,23 +675,8 @@ abstract class QuickBooks_Object
 				case QUICKBOOKS_OBJECT_JOURNALENTRY:
 					
 					$children = array(
-						'JournalCreditLineRet' => array( 'QuickBooks_Object_JournalEntry_JournalCreditLine', 'addCreditLine' ), 
-						'JournalDebitLineRet' => array( 'QuickBooks_Object_JournalEntry_JournalDebitLine', 'addDebitLine' ), 
-						);
-					
-					break;
-				case QUICKBOOKS_OBJECT_SALESTAXGROUPITEM:
-					
-					$children = array(
-						'ItemSalesTaxRef' => array( 'QuickBooks_Object_SalesTaxGroupItem_ItemSalesTaxRef', 'addItemSalesTaxRef' ), 
-						);
-					
-					break;
-				case QUICKBOOKS_OBJECT_UNITOFMEASURESET:
-					
-					$children = array(
-						'RelatedUnit' => array( 'QuickBooks_Object_UnitOfMeasureSet_RelatedUnit', 'addRelatedUnit' ), 
-						'DefaultUnit' => array( 'QuickBooks_Object_UnitOfMeasureSet_DefaultUnit', 'addDefaultUnit' ), 
+						'JournalCreditLine' => array( 'QuickBooks_Object_JournalEntry_JournalCreditLine', 'addCreditLine' ), 
+						'JournalDebitLine' => array( 'QuickBooks_Object_JournalEntry_JournalDebitLine', 'addDebitLine' ), 
 						);
 					
 					break;
@@ -965,10 +697,6 @@ abstract class QuickBooks_Object
 							$Object->$childmethod($ChildObject);			
 						}	
 					}
-				}
-				else
-				{
-					print('Missing class: ' . $childclass . "\n");
 				}
 			}
 			

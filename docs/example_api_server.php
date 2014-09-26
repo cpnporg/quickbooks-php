@@ -21,7 +21,7 @@ if (function_exists('date_default_timezone_set'))
 }
 
 // Include path
-ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . '/Users/keithpalmerjr/Projects/QuickBooks');
+ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . '/Users/kpalmer/Projects/QuickBooks');
 
 // Turn on all error reporting
 error_reporting(E_ALL | E_STRICT);
@@ -33,7 +33,7 @@ ini_set('display_errors', 1);
 require_once 'QuickBooks.php';
 
 // Database DSN-style connection string which stores the queue and logging tables
-$dsn = 'mysql://root:root@localhost/quickbooks_api';
+$dsn = 'mysql://root:@localhost/quickbooks_api';
 
 // This should match the user you used to queue things up with in the QuickBooks_API client
 $user = 'api';
@@ -327,23 +327,6 @@ function _quickbooks_customer_add_callback($method, $action, $ID, $err, $qbxml, 
 	if (is_object($qbobject))
 	{
 		$fp = fopen('/home/kpalmer/logs/customer_add.log', 'w+');
-		fwrite($fp, var_export($qbobject, true));
-		fclose($fp);
-		
-		return true;
-	}
-	
-	return false;
-}
-
-/**
- * 
- */
-function _quickbooks_bill_add_callback($method, $action, $ID, $err, $qbxml, $qbobject, $qbres)
-{
-	if (is_object($qbobject))
-	{
-		$fp = fopen('/Users/keithpalmerjr/logs/bill_add.log', 'w+');
 		fwrite($fp, var_export($qbobject, true));
 		fclose($fp);
 		

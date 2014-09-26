@@ -195,39 +195,34 @@ class QuickBooks_QBXML_Schema_Object_DepositAddRq extends QuickBooks_QBXML_Schem
 	protected function &_reorderPathsPaths()
 	{
 		static $paths = array (
-			'TxnDate',
-			'DepositToAccountRef ListID',
-			'DepositToAccountRef FullName',
-			'Memo',
-			'CashBackInfoAdd',
-			'CashBackInfoAdd AccountRef',
-			'CashBackInfoAdd AccountRef ListID',
-			'CashBackInfoAdd AccountRef FullName',
-			'CashBackInfoAdd Memo',
-			'CashBackInfoAdd Amount',
-			'DepositLineAdd', 
-			'DepositLineAdd PaymentTxnID',
-			'DepositLineAdd PaymentTxnLineID',
-
-			'DepositLineAdd OverrideMemo',
-			'DepositLineAdd OverrideCheckNumber',
-			'DepositLineAdd ClassRef ListID',
-			'DepositLineAdd ClassRef FullName',
-			
-			'DepositLineAdd EntityRef ListID',
-			'DepositLineAdd EntityRef FullName',
-			'DepositLineAdd AccountRef ListID',
-			'DepositLineAdd AccountRef FullName',
-			'DepositLineAdd Memo',
-			'DepositLineAdd CheckNumber',
-			'DepositLineAdd PaymentMethodRef ListID',
-			'DepositLineAdd PaymentMethodRef FullName',
-			'DepositLineAdd ClassRef ListID',
-			'DepositLineAdd ClassRef FullName',
-			'DepositLineAdd Amount',
-			'IncludeRetElement',
-			);
+  0 => 'TxnDate',
+  1 => 'DepositToAccountRef ListID',
+  2 => 'DepositToAccountRef FullName',
+  3 => 'Memo',
+  4 => 'CashBackInfoAdd',
+  5 => 'CashBackInfoAdd AccountRef',
+  6 => 'CashBackInfoAdd AccountRef ListID',
+  7 => 'CashBackInfoAdd AccountRef FullName',
+  8 => 'CashBackInfoAdd Memo',
+  9 => 'CashBackInfoAdd Amount',
+  10 => 'DepositLineAdd PaymentTxnID',
+  11 => 'DepositLineAdd PaymentTxnLineID',
+  12 => 'DepositLineAdd EntityRef ListID',
+  13 => 'DepositLineAdd EntityRef FullName',
+  14 => 'DepositLineAdd AccountRef ListID',
+  15 => 'DepositLineAdd AccountRef FullName',
+  16 => 'DepositLineAdd Memo',
+  17 => 'DepositLineAdd CheckNumber',
+  18 => 'DepositLineAdd PaymentMethodRef ListID',
+  19 => 'DepositLineAdd PaymentMethodRef FullName',
+  20 => 'DepositLineAdd ClassRef ListID',
+  21 => 'DepositLineAdd ClassRef FullName',
+  22 => 'DepositLineAdd Amount',
+  23 => 'IncludeRetElement',
+);
 			
 		return $paths;
 	}
 }
+
+?>

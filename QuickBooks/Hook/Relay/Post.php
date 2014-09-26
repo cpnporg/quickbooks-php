@@ -1,18 +1,9 @@
 <?php
 
-/**
- * 
- * 
- */
+require_once 'QuickBooks.php';
 
-/**
- * 
- */
-QuickBooks_Loader::load('/QuickBooks/Hook.php');
+require_once 'QuickBooks/Hook.php';
 
-/**
- * 
- */
 class QuickBooks_Hook_Relay_POST extends QuickBooks_Hook
 {
 	protected $_url;

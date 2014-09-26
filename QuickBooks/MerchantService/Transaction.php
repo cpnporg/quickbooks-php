@@ -11,36 +11,29 @@
  */
 
 /**
+ * QuickBooks base classes
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks MerchantService transaction processor
  */
-QuickBooks_Loader::load('/QuickBooks/MerchantService.php');
+require_once 'QuickBooks/MerchantService.php';
 
 /**
  * XML parser class
  */
-QuickBooks_Loader::load('/QuickBooks/XML/Parser.php');
+require_once 'QuickBooks/XML/Parser.php';
 
 /**
- * QuickBooks Merchant Service transaction class
+ * 
+ * 
+ * 
  */
 class QuickBooks_MerchantService_Transaction
 {
-	/**
-	 * The type of transaction (QUICKBOOKS_MERCHANTSERVICE_CHARGE, etc.)
-	 * @var string
-	 */
 	protected $_type;
-	
-	/**
-	 * The transaction ID
-	 * @var string
-	 */
 	protected $_transID;
-	
-	/**
-	 * The client transaction ID
-	 * @var string
-	 */
 	protected $_clientTransID;
 	protected $_authcode;
 	protected $_merchant;
@@ -55,37 +48,10 @@ class QuickBooks_MerchantService_Transaction
 	protected $_networkname;
 	protected $_networknumber;
 	
-	protected $_resultcode;
-	protected $_resultmessage;
-
-	protected $_creditcardnumber;
-	protected $_expmonth;
-	protected $_expyear;
-	protected $_nameoncard;
-	protected $_address;
-	protected $_postalcode;
-	
 	/**
-	 * Create a new Transaction object
 	 * 
-	 * @note There is more information available to be set in the transaction 
-	 * 	object by using the ->setExtraData() method. 
 	 * 
-	 * @param string $type
-	 * @param string $transID
-	 * @param string $clientTransID
-	 * @param string $authcode
-	 * @param string $merchant
-	 * @param string $batch
-	 * @param string $paymengroup
-	 * @param string $paymentstatus
-	 * @param string $txnauthtime
-	 * @param string $txnauthstamp
-	 * @param string $avsstreet
-	 * @param string $avszip
-	 * @param string $cvvmatch
-	 * @param string $networkname
-	 * @param string $networknumber
+	 * 
 	 */
 	public function __construct($type, $transID, $clientTransID = null, $authcode = null, $merchant = null, $batch = null, $paymentgroup = null, $paymentstatus = null, $txnauthtime = null, $txnauthstamp = null, $avsstreet = null, $avszip = null, $cvvmatch = null, $networkname = null, $networknumber = null)
 	{
@@ -104,25 +70,6 @@ class QuickBooks_MerchantService_Transaction
 		$this->_cvvmatch = $cvvmatch;
 		$this->_networkname = $networkname;
 		$this->_networknumber = $networknumber;
-	}
-	
-	/** 
-	 * 
-	 * 
-	 */
-	public function setExtraData($resultcode, $resultmessage, $creditcardnumber, $expmonth, $expyear, $nameoncard, $address, $postalcode)
-	{
-		$this->_resultcode = $resultcode;
-		$this->_resultmessage = $resultmessage;
-		
-		$this->_creditcardnumber = $creditcardnumber;
-		$this->_expmonth = $expmonth;
-		$this->_expyear = $expyear;
-		$this->_nameoncard = $nameoncard;
-		$this->_address = $address;
-		$this->_postalcode = $postalcode;
-		
-		return true;		
 	}
 	
 	/**
@@ -148,9 +95,10 @@ class QuickBooks_MerchantService_Transaction
 	}
 	
 	/**
-	 * Get the transaction ID
 	 * 
-	 * @return string
+	 * 
+	 * 
+	 * 
 	 */
 	public function getTransactionID()
 	{
@@ -158,6 +106,8 @@ class QuickBooks_MerchantService_Transaction
 	}
 	
 	/**
+	 * 
+	 * 
 	 * 
 	 * 
 	 */
@@ -176,21 +126,11 @@ class QuickBooks_MerchantService_Transaction
 		return $this->_merchant;
 	}
 	
-	/**
-	 * Get the address verification (AVS) status of the transaction
-	 * 
-	 * @return string An AVS result (QUICKBOOKS_MERCHANTSERVICE_PASS, QUICKBOOKS_MERCHANTSERVICE_FAIL, QUICKBOOKS_MERCHANTSERVICE_NOTAVAILABLE)
-	 */
 	public function getAVSStreet()
 	{
 		return $this->_avsstreet;
 	}
-
-	/**
-	 * Get the postal code verification (AVS) status of the transaction
-	 * 
-	 * @return string An AVS result (QUICKBOOKS_MERCHANTSERVICE_PASS, QUICKBOOKS_MERCHANTSERVICE_FAIL, QUICKBOOKS_MERCHANTSERVICE_NOTAVAILABLE)
-	 */	
+	
 	public function getAVSZip()
 	{
 		return $this->_avszip;
@@ -250,37 +190,6 @@ class QuickBooks_MerchantService_Transaction
 			'NetworkName' => $this->_networkname, 
 			'NetworkNumber' => $this->_networknumber, 
 			//'DebitCardTransID' => $this->_transID, 
-			
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_CreditCardNumber' => $this->_creditcardnumber, 
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_ExpirationMonth' => $this->_expmonth, 
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_ExpirationYear' => $this->_expyear,
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_NameOnCard' => $this->_nameoncard, 
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_CreditCardAddress' => $this->_address,
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_CreditCardPostalCode' => $this->_postalcode, 
-			// <CommercialCardCode >STRTYPE</CommercialCardCode> <!-- optional -->
-			// <!-- TransactionMode may have one of the following values: CardNotPresent [DEFAULT], CardPresent -->
-			// <TransactionMode >ENUMTYPE</TransactionMode> <!-- optional -->
-			// <!-- CreditCardTxnType may have one of the following values: Authorization, Capture, Charge, Refund, VoiceAuthorization -->
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_CreditCardTxnType' => $this->_type, 
-
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_ResultCode' => $this->_resultcode, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_ResultMessage' => $this->_resultmessage, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_CreditCardTransID' => $this->_transID, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_MerchantAccountNumber' => $this->_merchant, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_AuthorizationCode' => $this->_authcode, 
-			// <!-- AVSStreet may have one of the following values: Pass, Fail, NotAvailable -->
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_AVSStreet' => $this->_avsstreet, 
-			// <!-- AVSZip may have one of the following values: Pass, Fail, NotAvailable -->
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_AVSZip' => $this->_avszip, 
-			// <!-- CardSecurityCodeMatch may have one of the following values: Pass, Fail, NotAvailable -->
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_CardSecurityCodeMatch' => $this->_cvvmatch, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_ReconBatchID' => $this->_batch,
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_PaymentGroupingCode' => $this->_paymentgroup, 
-			// <!-- PaymentStatus may have one of the following values: Unknown, Completed -->
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_PaymentStatus' => $this->_paymentstatus, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_TxnAuthorizationTime' => $this->_txnauthtime, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_TxnAuthorizationStamp' => $this->_txnauthstamp,
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_ClientTransID' => $this->_clientTransID, 	
 			);
 	}
 	
@@ -303,42 +212,11 @@ class QuickBooks_MerchantService_Transaction
 			'NetworkName' => null, 
 			'NetworkNumber' => null, 
 			'DebitCardTransID' => null, 
-
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_CreditCardNumber' => null, 
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_ExpirationMonth' => null, 
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_ExpirationYear' => null, 
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_NameOnCard' => null, 
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_CreditCardAddress' => null, 
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_CreditCardPostalCode' => null, 
-			// <CommercialCardCode >STRTYPE</CommercialCardCode> <!-- optional -->
-			// <!-- TransactionMode may have one of the following values: CardNotPresent [DEFAULT], CardPresent -->
-			// <TransactionMode >ENUMTYPE</TransactionMode> <!-- optional -->
-			// <!-- CreditCardTxnType may have one of the following values: Authorization, Capture, Charge, Refund, VoiceAuthorization -->
-			'CreditCardTxnInfo_CreditCardTxnInputInfo_CreditCardTxnType' => null, 
-
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_ResultCode' => null, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_ResultMessage' => null, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_CreditCardTransID' => null, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_MerchantAccountNumber' => null, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_AuthorizationCode' => null, 
-			// <!-- AVSStreet may have one of the following values: Pass, Fail, NotAvailable -->
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_AVSStreet' => null, 
-			// <!-- AVSZip may have one of the following values: Pass, Fail, NotAvailable -->
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_AVSZip' => null, 
-			// <!-- CardSecurityCodeMatch may have one of the following values: Pass, Fail, NotAvailable -->
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_CardSecurityCodeMatch' => null, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_ReconBatchID' => null, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_PaymentGroupingCode' => null, 
-			// <!-- PaymentStatus may have one of the following values: Unknown, Completed -->
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_PaymentStatus' => null, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_TxnAuthorizationTime' => null, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_TxnAuthorizationStamp' => null, 
-			'CreditCardTxnInfo_CreditCardTxnResultInfo_ClientTransID' => null, 
 			);		
 		
 		$trans = array_merge($defaults, $arr);
 		
-		$obj = new QuickBooks_MerchantService_Transaction(
+		return new QuickBooks_MerchantService_Transaction(
 			$trans['Type'], 
 			$trans['CreditCardTransID'], 
 			$trans['ClientTransID'], 
@@ -353,19 +231,7 @@ class QuickBooks_MerchantService_Transaction
 			$trans['AVSZip'], 
 			$trans['CardSecurityCodeMatch'], 
 			$trans['NetworkName'], 
-			$trans['NetworkNumber']);
-			
-		$obj->setExtraData(
-			$trans['CreditCardTxnInfo_CreditCardTxnResultInfo_ResultCode'], 
-			$trans['CreditCardTxnInfo_CreditCardTxnResultInfo_ResultMessage'], 
-			$trans['CreditCardTxnInfo_CreditCardTxnInputInfo_CreditCardNumber'], 
-			$trans['CreditCardTxnInfo_CreditCardTxnInputInfo_ExpirationMonth'], 
-			$trans['CreditCardTxnInfo_CreditCardTxnInputInfo_ExpirationYear'], 
-			$trans['CreditCardTxnInfo_CreditCardTxnInputInfo_NameOnCard'], 
-			$trans['CreditCardTxnInfo_CreditCardTxnInputInfo_CreditCardAddress'],
-			$trans['CreditCardTxnInfo_CreditCardTxnInputInfo_CreditCardPostalCode']);	
-		
-		return $obj;
+			$trans['NetworkNumber']);		
 	}
 	
 	public function toXML()
@@ -378,60 +244,6 @@ class QuickBooks_MerchantService_Transaction
 			$xml .= '<' . $key . '>' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '</' . $key . '>' . QUICKBOOKS_CRLF;
 		}
 		$xml .= '</QBMSTransaction>';
-		
-		return $xml;
-	}
-	
-	public function toQBXML()
-	{
-		// CreditCardTxnInfo
-		
-		$arr = array(
-			'CreditCardTxnInputInfo' => array(
-				'CreditCardNumber' => '', 
-				'ExpirationMonth' => '', 
-				'ExpirationYear' => '', 
-				'NameOnCard' => '', 
-				'CreditCardAddress' => '', 
-				'CreditCardPostalCode' => '', 
-				// <!-- TransactionMode may have one of the following values: CardNotPresent [DEFAULT], CardPresent -->
-				// TransactionMode	// CardNotPresent, CardPresent
-				'CreditCardTxnType' => $this->_type, 
-			), 
-			'CreditCardTxnResultInfo' => array(
-				'ResultCode' => $this->_resultcode, 
-				'ResultMessage' => $this->_resultmessage, 
-				
-				'CreditCardTransID' => $this->_transID, 
-				'MerchantAccountNumber' => $this->_merchant, 
-				'AuthorizationCode' => $this->_authcode, 
-				// <!-- AVSStreet may have one of the following values: Pass, Fail, NotAvailable -->
-				'AVSStreet' => $this->_avsstreet,
-				// <!-- AVSZip may have one of the following values: Pass, Fail, NotAvailable -->
-				'AVSZip' => $this->_avszip,
-				// <!-- CardSecurityCodeMatch may have one of the following values: Pass, Fail, NotAvailable -->
-				'CardSecurityCodeMatch' => $this->_cvvmatch,
-				'ReconBatchID'  => $this->_batch, 
-				'PaymentGroupingCode' => $this->_paymentgroup, 
-				// <!-- PaymentStatus may have one of the following values: Unknown, Completed -->
-				'PaymentStatus' => $this->_paymentstatus, 
-				'TxnAuthorizationTime' => $this->_txnauthtime, 
-				'TxnAuthorizationStamp' => $this->_txnauthstamp, 
-				'ClientTransID' => $this->_clientTransID, 
-			));
-		
-		$xml = '';
-		foreach ($arr as $creditcardtxn => $data)
-		{
-			$xml .= '<' . $creditcardtxn . '>' . QUICKBOOKS_CRLF;
-			
-			foreach ($data as $key => $value)
-			{
-				$xml .= "\t" . '<' . $key . '>' . htmlspecialchars($value) . '</' . $key . '>' . QUICKBOOKS_CRLF;
-			}
-			
-			$xml .= '</' . $creditcardtxn . '>' . QUICKBOOKS_CRLF;
-		}
 		
 		return $xml;
 	}

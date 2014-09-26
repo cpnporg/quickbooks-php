@@ -11,14 +11,19 @@
  */
 
 /**
+ * QuickBooks base
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks object base class
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * QuickBooks invoice class
  */
-QuickBooks_Loader::load('/QuickBooks/Object/Invoice.php');
+require_once 'QuickBooks/Object/Invoice.php';
 
 /**
  * QuickBooks InvoiceLine class for Invoices
@@ -73,11 +78,6 @@ class QuickBooks_Object_Invoice_InvoiceLine extends QuickBooks_Object
 		return $this->set('ItemRef FullName', $name);
 	}
 	
-	public function setItemFullName($FullName)
-	{
-		return $this->setFullNameType('ItemRef FullName', null, null, $FullName);
-	}
-	
 	/**
 	 * Get the ListID for this item
 	 * 
@@ -106,11 +106,6 @@ class QuickBooks_Object_Invoice_InvoiceLine extends QuickBooks_Object
 	 * @return string
 	 */
 	public function getItemName()
-	{
-		return $this->get('ItemRef FullName');
-	}
-	
-	public function getItemFullName()
 	{
 		return $this->get('ItemRef FullName');
 	}
@@ -369,7 +364,7 @@ class QuickBooks_Object_Invoice_InvoiceLine extends QuickBooks_Object
 		return parent::asArray($request, $nest);
 	}
 	
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
 		$this->_cleanup();
 		
@@ -377,15 +372,13 @@ class QuickBooks_Object_Invoice_InvoiceLine extends QuickBooks_Object
 		{
 			case QUICKBOOKS_ADD_INVOICE:
 				$root = 'InvoiceLineAdd';
-				$parent = null;
 				break;
 			case QUICKBOOKS_MOD_INVOICE:
 				$root = 'InvoiceLineMod';
-				$parent = null;
 				break;
 		}
 		
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root);
 	}
 	
 	/**
@@ -413,3 +406,5 @@ class QuickBooks_Object_Invoice_InvoiceLine extends QuickBooks_Object
 		return 'InvoiceLine';
 	}
 }
+
+?>

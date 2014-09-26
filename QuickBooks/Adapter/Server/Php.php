@@ -13,7 +13,7 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Adapter/Server.php');
+require_once 'QuickBooks/Adapter/Server.php';
 
 /**
  * 
@@ -42,3 +42,5 @@ class QuickBooks_Adapter_Server_PHP implements QuickBooks_Adapter_Server
 		return $this->_server->getFunctions();
 	}
 }
+
+?>

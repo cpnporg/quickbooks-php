@@ -374,3 +374,5 @@ class QuickBooks_QBXML_Schema_Object_ReceivePaymentAddRq extends QuickBooks_QBXM
 		return $paths;
 	}
 }
+
+?>

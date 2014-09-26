@@ -11,9 +11,14 @@
  */
 
 /** 
+ * QuickBooks constants
+ */
+require_once 'QuickBooks.php';
+
+/** 
  * QuickBooks Integrator base class
  */
-QuickBooks_Loader::load('/QuickBooks/Integrator.php');
+require_once 'QuickBooks/Integrator.php';
 
 /**
  *
@@ -219,12 +224,6 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 				$arr['ShipAddress_Country'] = $arr['BillAddress_Country'];
 			}
 			
-			$format = $this->_foxycartConfigRead('foxycart_user_customer_customertype_format');
-			if ($format)
-			{
-				$arr['CustomerTypeName'] = $this->_applyFormat($format, $arr);
-			}
-			
 			return $this->_customerFromArray($arr);
 		}
 		
@@ -245,25 +244,16 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 	}
 	
 	/**
-	 * Fetch a list of customer IDs that are newer than the give date/time stamp
 	 * 
-	 * @param string $datetime
-	 * @return array
+	 * 
+	 * 
 	 */
 	protected function _listNewCustomersSince($datetime)
 	{
 		$list = array();
 		
 		$Driver = $this->_driver;
-
-		// Check to make sure that this user is enabled
-		$user_status = $this->_foxycartConfigRead('foxycart_user_status');
-		if ($user_status != QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_STATUS_ENABLED)
-		{
-			return array();
-		}
 		
-		// Fetch any new customers to send to QuickBooks
 		$errnum = 0;
 		$errmsg = '';
 		$res = $Driver->query("
@@ -284,10 +274,9 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 	}
 	
 	/**
-	 * Fetch a list of customer IDs modified since the given date/time
 	 * 
-	 * @param string $datetime
-	 * @return array
+	 * 
+	 * 
 	 */
 	protected function _listModifiedCustomersSince($datetime)
 	{
@@ -306,14 +295,6 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 		
 		$Driver = $this->_driver;
 		
-		// Check to make sure that this user is enabled
-		$user_status = $this->_foxycartConfigRead('foxycart_user_status');
-		if ($user_status != QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_STATUS_ENABLED)
-		{
-			return array();
-		}
-		
-		// Fetch any new orders to send to QuickBooks
 		$errnum = 0;
 		$errmsg = '';
 		$res = $Driver->query("
@@ -334,7 +315,7 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 	}
 	
 	/**
-	 * Fetch a list of orders ID numbers modified since the given date/time
+	 * 
 	 * 
 	 * @param string $datetime
 	 * @return array 
@@ -364,7 +345,6 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 		$res = $Driver->query("
 			SELECT
 				id AS RefNumber, 
-				transaction_date AS TxnDate, 
 				customer_id AS CustomerID, 
 				CONCAT(customer_first_name, ' ', customer_last_name) AS BillAddress_Addr1,
 				CASE 
@@ -392,17 +372,11 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 				shipping_state AS ShipAddress_State, 
 				shipping_postal_code AS ShipAddress_PostalCode, 
 				shipping_country AS ShipAddress_Country, 
-				shipto_shipping_service_description AS ShipMethodName, 
-				product_total, 
 				shipping_total, 
-				tax_total AS SalesTaxLineAmount, 
-				order_total AS TotalAmount, 
+				tax_total, 
+				order_total, 
 				processor_response, 
-				payment_gateway_type, 
-				cc_number_masked, 
-				cc_type AS PaymentMethodName, 
-				cc_exp_month, 
-				cc_exp_year
+				payment_gateway_type
 			FROM
 				" . QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION . " 
 			WHERE
@@ -426,62 +400,16 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 				$arr['ShipAddress_Country'] = $arr['BillAddress_Country'];
 			}
 			
-			// Custom memo field format
-			$format = $this->_foxycartConfigRead('foxycart_user_order_memo_format');
-			if ($format)
-			{
-				$arr['Memo'] = $this->_applyFormat($format, $arr);
-			}
-			
-			// Auto-incrementing RefNumbers
-			$autoincrement = $this->_foxycartConfigRead('foxycart_user_order_autoincrement');
-			if ($autoincrement)
-			{
-				unset($arr['RefNumber']);
-			}
-			
-			// Class support
-			$format = $this->_foxycartConfigRead('foxycart_user_order_class_format');
-			if ($format)
-			{
-				$arr['ClassName'] = $this->_applyFormat($format, $arr);
-			}			
-
-			// What are we creating? an Invoice? a Sales Receipt? a PO?
-			$as = $this->_foxycartConfigRead('foxycart_user_order_as');
-			if (!$as)
-			{
-				$as = QUICKBOOKS_OBJECT_SALESRECEIPT;
-			}
-			
-			// Quick little tweak for paypal_express payment method
-			if (empty($arr['PaymentMethodName']) and 
-				$arr['payment_gateway_type'] == 'paypal_express')
-			{
-				$arr['PaymentMethodName'] = 'paypal_express';
-			}
-			
 			// Fetch the order items
-			$items = $this->getOrderItems($ID);
+			$items = $this->_getOrderItems($ID);
 			
-			$shipping = null;
+			// Create the shipping line item
+			$arr_shipping = array(
+				'Desc' => 'Shipping Charge', 
+				'Amount' => $arr['shipping_total'], 
+				);
 			
-			if ($arr['shipping_total'] > 0.0)
-			{
-				// Create the shipping line item
-				$arr_shipping = array(
-					'Desc' => 'Shipping Charge: ' . $arr['ShipMethodName'], 
-					'Amount' => $arr['shipping_total'], 
-					);
-				
-				$format = $this->_foxycartConfigRead('foxycart_user_shipping_format');
-				if ($format)
-				{
-					$arr_shipping['ProductName'] = $this->_applyFormat($format, $arr);
-				}
-				
-				$shipping = $this->_shippingFromArray($arr_shipping, $as);
-			}
+			$shipping = $this->_shippingFromArray($arr_shipping);
 			
 			$handling = null;
 			
@@ -490,7 +418,6 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 			$tmp1 = '';
 			$tmp2 = 0.0;
 			
-			// Discounts at the *transaction* level (as opposed to the line-item level)
 			$errnum = 0;
 			$errmsg = '';
 			$res_discount = $Driver->query("
@@ -509,14 +436,6 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 						$tmp2 += $arr_discount['discount_amount'];
 						break;
 					default:
-						
-						// Try to guess the discount type
-						if ($arr_discount['discount_amount'] != 0)
-						{
-							$tmp1 .= $arr_discount['discount_name'] . ': ' . $arr_discount['discount_display'] . '';
-							$tmp2 += $arr_discount['discount_amount'];
-						}
-						
 						break;
 				}
 			}
@@ -532,134 +451,40 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 			}
 			
 			// Create the order
-			return $this->_orderFromArray($arr, $items, $shipping, $handling, $discount, $as);
+			return $this->_orderFromArray($arr, $items, $shipping, $handling, $discount);	
 		}
 		
 		return null;
 	}
 	
-	/**
-	 * 
-	 * 
-	 * @todo This shouldn't happen if the order was a PO
-	 */
 	protected function _getPayment($ID)
 	{
-		$Driver = $this->_driver;
-		
-		$as = $this->_foxycartConfigRead('foxycart_user_order_as');
-		if ($as == QUICKBOOKS_OBJECT_INVOICE)
-		{
-			$errnum = 0;
-			$errmsg = '';
-			$res = $Driver->query("
-				SELECT
-					id AS RefNumber, 
-					transaction_date AS TxnDate, 
-					customer_id AS CustomerID, 
-					order_total AS TotalAmount, 
-					processor_response AS Memo, 
-					id AS AppliedToTxn_ID, 
-					-- order_total AS AppliedToTxn_PaymentAmount, 
-					processor_response, 
-					payment_gateway_type, 
-					cc_number_masked, 
-					cc_type AS PaymentMethodName, 
-					cc_exp_month, 
-					cc_exp_year
-				FROM
-					" . QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION . " 
-				WHERE
-					id = '" . (int) $ID . "' ", $errnum, $errmsg);
-			
-			if ($arr = $Driver->fetch($res))
-			{
-				return $this->_paymentFromArray($arr);
-			}
-		}
-		
 		return null;
 	}
 	
 	protected function _getOrderItems($OrderID)
 	{
 		$Driver = $this->_driver;
-
-		$as = $this->_foxycartConfigRead('foxycart_user_order_as');
-		if (!$as)
-		{
-			$as = QUICKBOOKS_OBJECT_SALESRECEIPT;
-		}
 	
 		// Now, fetch a list of items 
 		$errnum = null;
 		$errmsg = null;
 		$res2 = $Driver->query("
 			SELECT
-				_id, 
 				product__id AS ItemID, 
 				product_name AS Descrip, 
 				product_price AS Rate, 
-				product_quantity AS Quantity, 
-				product_weight
+				product_quantity AS Quantity
 			FROM
 				" . QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTIONDETAIL . " 
 			WHERE
 				transaction_id = " . (int) $OrderID . " ", $errnum, $errmsg);
-		
+			
 		// ... and turn those details into order line items
 		$items = array();
 		while ($arr2 = $Driver->fetch($res2))
 		{
-			// Fetch any details for this line item
-			$res3 = $Driver->query("
-				SELECT
-					_id, 
-					product_option_name, 
-					product_option_value, 
-					price_mod, 
-					weight_mod
-				FROM
-					" . QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTIONDETAILOPTION . "
-				WHERE
-					transaction_detail__id = " . $arr2['_id'], $errnum, $errmsg);
-			
-			while ($arr3 = $Driver->fetch($res3))
-			{
-				$arr2['Descrip'] .= QUICKBOOKS_CRLF . ' - ' . $arr3['product_option_name'] . ': ' . $arr3['product_option_value'];
-				
-				// Make any price modifications
-				if ($arr3['price_mod'] != 0.0)
-				{
-					$arr2['Descrip'] .= ' (normally $' . sprintf('%01.2f', $arr2['Rate']) . ', now $' . sprintf('%01.2f', $arr2['Rate'] + $arr3['price_mod']) . ')';
-					$arr2['Rate'] += $arr3['price_mod'];
-				}
-				
-				// Make any weight modifications
-				if ($arr3['weight_mod'] != 0.0)
-				{
-					$arr2['Descrip'] .= ' (' . $arr3['weight_mod'] . ' lbs)';
-				}
-			}
-			
-			// If UnitOfMeasure support is enabled, guess the unit of measure and apply it
-			$uom = $this->_foxycartConfigRead('foxycart_user_order_unitofmeasure');
-			if ($uom)
-			{
-				$arr_qb_unitofmeasure_map = $this->_listUnitOfMeasureMap();
-				$cart_weight = $arr2['product_weight'] * $arr2['Quantity'];
-				$cart_quantity = $arr2['Quantity'];
-				
-				$unitofmeasure = $this->_guessQuickBooksUnitOfMeasure(null, $cart_weight, $cart_quantity, $arr_qb_unitofmeasure_map);
-				
-				if ($unitofmeasure)
-				{
-					$arr2['UnitOfMeasure'] = $unitofmeasure;
-				}
-			}
-			
-			// Build the item
-			$item = $this->_orderItemFromArray($arr2, $as);
+			$item = $this->_orderItemFromArray($arr2);
 			
 			if ($item)
 			{
@@ -690,10 +515,10 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 	 * @param integer $OrderID
 	 * @return array 
 	 */
-	/*protected function _getOrderItemsForOrder($OrderID)
+	protected function _getOrderItemsForOrder($OrderID)
 	{
 		return array();
-	}*/
+	}
 
 	protected function _getEstimateItemsForEstimate($EstimateID)
 	{
@@ -873,9 +698,8 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 		$errmsg = '';
 		$res = $Driver->query("
 			SELECT
-				*, 
 				_id AS ProductID, 
-				_name AS FullName, 
+				_name AS Name, 
 				NULL AS IncomeAccountName,
 				NULL AS COGSAccountName, 
 				NULL AS AssetAccountName
@@ -886,18 +710,6 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 		
 		if ($arr = $Driver->fetch($res))
 		{
-			// If the Name element of this item follows a custom format... 
-			$format = $this->_foxycartConfigRead('foxycart_user_item_format');
-			
-			//$this->_log('format: [' . $format . ']');
-			//$this->_log('data: [' . print_r($arr, true) . ']');
-			
-			if ($format)
-			{
-				$arr['FullName'] = $this->_applyFormat($format, $arr);
-			}
-			
-			//$this->_log('name: [' . $arr['FullName'] . ']');
 			
 			$income_account = $this->_foxycartConfigRead('foxycart_user_item_account_income');
 			if ($income_account)
@@ -908,25 +720,7 @@ class QuickBooks_Integrator_FoxyCart extends QuickBooks_Integrator
 				$arr['SalesAndPurchase_IncomeAccountName'] = $income_account;
 			}
 			
-			$cogs_account = $this->_foxycartConfigRead('foxycart_user_item_account_cogs');
-			if ($cogs_account)
-			{
-				$arr['COGSAccountName'] = $cogs_account;
-			}
-			
-			$asset_account = $this->_foxycartConfigRead('foxycart_user_item_account_asset');
-			if ($asset_account)
-			{
-				$arr['AssetAccountName'] = $asset_account;
-			}
-			
-			$as = $this->_foxycartConfigRead('foxycart_user_item_as');
-			if (!$as)
-			{
-				$as = QUICKBOOKS_OBJECT_SERVICEITEM;
-			}
-			
-			return $this->_productFromArray($arr, $as);
+			return $this->_productFromArray($arr);
 		}
 		
 		return null;

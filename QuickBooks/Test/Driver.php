@@ -2,8 +2,9 @@
 
 //ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . '/home/library_php');
 
+require_once 'QuickBooks.php';
 
-QuickBooks_Loader::load('/QuickBooks/UnitTest.php');
+require_once 'QuickBooks/UnitTest.php';
 
 class QuickBooks_Test_Driver extends QuickBooks_UnitTest
 {

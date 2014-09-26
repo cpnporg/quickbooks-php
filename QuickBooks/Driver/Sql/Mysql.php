@@ -19,19 +19,24 @@
  */
 
 /**
+ * Base QuickBooks constants
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks driver base class
  */
-QuickBooks_Loader::load('/QuickBooks/Driver.php');
+require_once 'QuickBooks/Driver.php';
 
 /**
  * QuickBooks driver SQL base class
  */
-QuickBooks_Loader::load('/QuickBooks/Driver/Sql.php', false);
+require_once 'QuickBooks/Driver/Sql.php';
 
 /**
  * QuickBooks utilities class
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks/Utilities.php';
 
 if (!defined('QUICKBOOKS_DRIVER_SQL_MYSQL_SALT'))
 {
@@ -278,15 +283,14 @@ class QuickBooks_Driver_Sql_Mysql extends QuickBooks_Driver_Sql
 	{
 		if ($port)
 		{
-			$this->_conn = mysql_connect($host . ':' . $port, $user, $pass, $new_link, $client_flags) or die('host: ' . $host . ', user: ' . $user . ', pass: XXXX, mysql_error(): ' . mysql_error());
+			$this->_conn = mysql_connect($host . ':' . $port, $user, $pass, $new_link, $client_flags) or die('host: ' . $host . ', user: ' . $user . ', pass: ' . $pass . ' mysql_error(): ' . mysql_error());
 		}
 		else
 		{
-			$this->_conn = mysql_connect($host, $user, $pass, $new_link, $client_flags) or die('host: ' . $host . ', user: ' . $user . ', pass: XXXX, mysql_error(): ' . mysql_error());
+			$this->_conn = mysql_connect($host, $user, $pass, $new_link, $client_flags) or die('host: ' . $host . ', user: ' . $user . ', pass: ' . $pass . ' mysql_error(): ' . mysql_error());
 		}
 			
-		$tmp = mysql_select_db($db, $this->_conn) or die(mysql_error());
-		return $tmp;
+		return mysql_select_db($db, $this->_conn);
 	}
 	
 	/**
@@ -324,7 +328,6 @@ class QuickBooks_Driver_Sql_Mysql extends QuickBooks_Driver_Sql
 			// @todo Should this be implemented...?
 		}
 		
-		//print($sql . "\n\n");
 		$res = mysql_query($sql, $this->_conn);
 		
 		if (!$res)
@@ -339,28 +342,6 @@ class QuickBooks_Driver_Sql_Mysql extends QuickBooks_Driver_Sql
 		}
 		
 		return $res;
-	}
-	
-	/**
-	 * 
-	 * 
-	 * 
-	 */
-	protected function _fields($table)
-	{
-		$sql = "SHOW FIELDS FROM " . $table;
-		
-		$list = array();
-		
-		$errnum = 0;
-		$errmsg = '';
-		$res = $this->_query($sql, $errnum, $errmsg);
-		while ($arr = $this->_fetch($res))
-		{
-			$list[] = current($arr);
-		}
-		
-		return $list;
 	}
 	
 	/**

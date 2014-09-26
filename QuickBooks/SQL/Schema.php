@@ -15,19 +15,24 @@
  */
 
 /**
+ * QuickBooks base class
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks SQL base class (is this even required?)
  */
-QuickBooks_Loader::load('/QuickBooks/SQL.php');
+require_once 'QuickBooks/SQL.php';
 
 /**
  * XML parsing
  */
-QuickBooks_Loader::load('/QuickBooks/XML.php');
+require_once 'QuickBooks/XML.php';
 
 /**
  * Various utilities methods
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks/Utilities.php';
 
 /**
  * Map a SQL schema to a qbXML schema
@@ -204,21 +209,35 @@ class QuickBooks_SQL_Schema
 	 */
 	static protected function _transform($curpath, $node, &$tables)
 	{
+		//print("\n");
 		print('' . $curpath . '   node: ' . $node->name() . "\n");
+		//print('	node: ' . $node->name() . "\n");
+		
+		//$tables = array();
 		
 		$table = '';
 		$field = '';
+		//QuickBooks_SQL_Schema::mapPathToSQL($node->name(), $table, $field);		// table name
+		
+		//print('		table for node: ' . $table . "\n");
+		//print('		field for node: ' . $field . "\n");
 		
 		$this_sql = array();
 		$other_sql = array();
 		QuickBooks_SQL_Schema::mapToSchema($curpath . ' ' . $node->name(), QUICKBOOKS_SQL_SCHEMA_MAP_TO_SQL, $this_sql, $other_sql);
+		
+		//print('mapping: ');
+		//print_r($this_sql);
+		//print_r($other_sql);
+		//print("\n\n\n");
+		
+		//print_r($this_sql);
 		
 		foreach (array_merge(array( $this_sql ), $other_sql) as $sql)
 		{
 			$table = $sql[0];
 			$field = $sql[1];
 			
-			/*
 			if (!$sql[0] or !$sql[1])
 			{
 				print('		table for node: ' . $sql[0] . "\n");
@@ -228,12 +247,19 @@ class QuickBooks_SQL_Schema
 			{
 				print("\n");
 			}
-			*/
 			
 			if ($table)
 			{
 				if (!isset($tables[$table]))
 				{
+					//print('trying to map key for: ' . $curpath . ' ' . $name);
+					
+					//$map = null;
+					//QuickBooks_SQL_Schema::mapPrimaryKey($curpath . ' ' . $name, QUICKBOOKS_SQL_SCHEMA_MAP_TO_SQL, $map);
+					
+					//print_r($map);
+					//exit;
+					
 					$tables[$table] = array(
 						0 => $table, 
 						1 => array(),		// fields
@@ -255,13 +281,35 @@ class QuickBooks_SQL_Schema
 		
 		if ($node->childCount())
 		{
+			/*
+			$sql = array();
+			$other_sql = array();
+			QuickBooks_SQL_Schema::mapToSchema($curpath . ' ' . $node->name(), QUICKBOOKS_SQL_SCHEMA_MAP_TO_SQL, $sql, $other_sql);
+			
+			foreach (array_merge($sql, $other_sql) as $sql)
+			{
+				$table = $sql[0];
+				$field = $sql[1];
+			}
+			*/
+			
 			foreach ($node->children() as $child)
 			{
 				QuickBooks_SQL_Schema::_transform($curpath . ' ' . $node->name(), $child, $tables);
 			}
 		}
 		
-		return true;
+		/*
+		print('tables: ');
+		print_r($tables);
+		exit;
+		
+		foreach ($tables as $table)
+		{
+			//print_r($table);
+			exit;
+		}
+		*/
 	}
 	
 	/**
@@ -273,7 +321,11 @@ class QuickBooks_SQL_Schema
 	 */
 	static protected function _fnmatch($pattern, $str)
 	{
-		return QuickBooks_Utilities::fnmatch($pattern, $str);
+		$arr = array(
+			'\*' => '.*', 
+			'\?' => '.'
+			);
+		return preg_match('#^' . strtr(preg_quote($pattern, '#'), $arr) . '$#i', $str);
 	}
 	
 	/**
@@ -598,8 +650,6 @@ class QuickBooks_SQL_Schema
 			'BillRet APAccountRef *' => 								array( 'Bill', 'APAccount_*' ),
 			'BillRet TermsRef' => 										array( null, null ), 
 			'BillRet TermsRef *' => 									array( 'Bill', 'Terms_*' ),  
-			'BillRet CurrencyRef' => 									array( null, null ), 
-			'BillRet CurrencyRef *' => 									array( 'Bill', 'Currency_*' ), 			
 			'BillRet LinkedTxn' => 										array( null, null ), 
 			'BillRet LinkedTxn TxnID' => 								array( 'Bill_LinkedTxn', 'ToTxnID' ),
 			'BillRet LinkedTxn *' => 									array( 'Bill_LinkedTxn', '*' ), 
@@ -675,8 +725,6 @@ class QuickBooks_SQL_Schema
 			'CheckRet AddressBlock *' => 										array( 'Check', 'AddressBlock_*' ),
 			'CheckRet Address' => 												array( null, null ), 
 			'CheckRet Address *' => 											array( 'Check', 'Address_*' ),
-			'CheckRet CurrencyRef' => 											array( null, null ), 
-			'CheckRet CurrencyRef *' => 										array( 'Check', 'Currency_*' ), 			
 			'CheckRet LinkedTxn' => 											array( null, null ), 
 			'CheckRet LinkedTxn TxnID' => 										array( 'Check_LinkedTxn', 'ToTxnID' ),
 			'CheckRet LinkedTxn *' => 											array( 'Check_LinkedTxn', '*' ), 
@@ -754,8 +802,6 @@ class QuickBooks_SQL_Schema
 			'CreditCardChargeRet AccountRef *' => 			array( 'CreditCardCharge', 'Account_*' ), 
 			'CreditCardChargeRet PayeeEntityRef' => 		array( null, null ), 
 			'CreditCardChargeRet PayeeEntityRef *' => 		array( 'CreditCardCharge', 'PayeeEntity_*' ), 			
-			'CreditCardChargeRet CurrencyRef' => 			array( null, null ), 
-			'CreditCardChargeRet CurrencyRef *' => 			array( 'CreditCardCharge', 'Currency_*' ), 			
 			
 			'CreditCardChargeRet ItemLineRet' => 							array( null, null ), 
 			'CreditCardChargeRet ItemLineRet Desc' => 						array( 'CreditCardCharge_ItemLine', 'Descrip' ), 
@@ -808,8 +854,6 @@ class QuickBooks_SQL_Schema
 			'CreditCardCreditRet AccountRef *' => 			array( 'CreditCardCredit', 'Account_*' ), 
 			'CreditCardCreditRet PayeeEntityRef' => 		array( null, null ), 
 			'CreditCardCreditRet PayeeEntityRef *' => 		array( 'CreditCardCredit', 'PayeeEntity_*' ), 
-			'CreditCardCreditRet CurrencyRef' => 			array( null, null ), 
-			'CreditCardCreditRet CurrencyRef *' => 			array( 'CreditCardCredit', 'Currency_*' ), 
 			
 			'CreditCardCreditRet ExpenseLineRet' => 					array( null, null ),
 			'CreditCardCreditRet ExpenseLineRet AccountRef' => 			array( null, null ), 
@@ -1065,8 +1109,6 @@ class QuickBooks_SQL_Schema
 			'EstimateRet ItemSalesTaxRef *' => 			array( 'Estimate', 'ItemSalesTax_*' ), 
 			'EstimateRet SalesRepRef' => 				array( null, null ), 
 			'EstimateRet SalesRepRef *' => 				array( 'Estimate', 'SalesRep_*' ), 
-			'EstimateRet CurrencyRef' => 				array( null, null ), 
-			'EstimateRet CurrencyRef *' => 				array( 'Estimate', 'Currency_*' ), 
 			'EstimateRet CustomerMsgRef' => 			array( null, null ), 
 			'EstimateRet CustomerMsgRef *' => 			array( 'Estimate', 'CustomerMsg_*' ), 
 			'EstimateRet CustomerSalesTaxCodeRef' =>	array( null, null ), 
@@ -1164,8 +1206,6 @@ class QuickBooks_SQL_Schema
 			'InvoiceRet ShipMethodRef *' => 			array( 'Invoice', 'ShipMethod_*' ),  
 			'InvoiceRet SalesRepRef' => 				array( null, null ), 
 			'InvoiceRet SalesRepRef *' => 				array( 'Invoice', 'SalesRep_*' ), 
-			'InvoiceRet CurrencyRef' => 				array( null, null ), 
-			'InvoiceRet CurrencyRef *' => 				array( 'Invoice', 'Currency_*' ), 
 			'InvoiceRet CustomerMsgRef' => 				array( null, null ), 
 			'InvoiceRet CustomerMsgRef *' => 			array( 'Invoice', 'CustomerMsg_*' ), 
 			'InvoiceRet CustomerSalesTaxCodeRef' =>		array( null, null ), 
@@ -1531,8 +1571,6 @@ class QuickBooks_SQL_Schema
 			'PurchaseOrderRet TermsRef *' => 								array( 'PurchaseOrder', 'Terms_*' ), 
 			'PurchaseOrderRet ShipMethodRef' => 							array( null, null ), 
 			'PurchaseOrderRet ShipMethodRef *' => 							array( 'PurchaseOrder', 'ShipMethod_*' ), 			
-			'PurchaseOrderRet CurrencyRef' => 								array( null, null ), 
-			'PurchaseOrderRet CurrencyRef *' => 							array( 'PurchaseOrder', 'Currency_*' ), 			
 			'PurchaseOrderRet PurchaseOrderLineRet' => 						array( null, null ), 
 			'PurchaseOrderRet PurchaseOrderLineRet ItemRef' => 				array( null, null ), 
 			'PurchaseOrderRet PurchaseOrderLineRet ItemRef *' => 			array( 'PurchaseOrder_PurchaseOrderLine', 'Item_*' ), 
@@ -1593,11 +1631,13 @@ class QuickBooks_SQL_Schema
 			
 			'ReceivePaymentRet DepositToAccountRef' => 							array( null, null ), 
 			'ReceivePaymentRet DepositToAccountRef *' => 						array( 'ReceivePayment', 'DepositToAccount_*' ), 
+/*
 			'ReceivePaymentRet CreditCardTxnInfo' => 							array( null, null ), 
 			'ReceivePaymentRet CreditCardTxnInfo CreditCardTxnInputInfo' => 	array( null, null ), 
 			'ReceivePaymentRet CreditCardTxnInfo CreditCardTxnInputInfo *' => 	array( 'ReceivePayment', 'CreditCardTxnInfo_CreditCardTxnInputInfo_*' ), 
 			'ReceivePaymentRet CreditCardTxnInfo CreditCardTxnResultInfo' => 	array( null, null ), 
 			'ReceivePaymentRet CreditCardTxnInfo CreditCardTxnResultInfo *' => 	array( 'ReceivePayment', 'CreditCardTxnInfo_CreditCardTxnResultInfo_*' ), 
+*/
 			'ReceivePaymentRet AppliedToTxnRet' => 								array( null, null ), 
 			'ReceivePaymentRet AppliedToTxnRet TxnID' => 						array( 'ReceivePayment_AppliedToTxn', 'ToTxnID' ), 
 			'ReceivePaymentRet AppliedToTxnRet DiscountAccountRef' => 			array( null, null ),
@@ -1708,8 +1748,6 @@ class QuickBooks_SQL_Schema
 			'SalesReceiptRet ShipMethodRef *' => 				array( 'SalesReceipt', 'ShipMethod_*' ), 
 			'SalesReceiptRet ItemSalesTaxRef' => 				array( null, null ), 
 			'SalesReceiptRet ItemSalesTaxRef *' => 				array( 'SalesReceipt', 'ItemSalesTax_*' ), 
-			'SalesReceiptRet CurrencyRef' =>					array( null, null ), 
-			'SalesReceiptRet CurrencyRef *' => 					array( 'SalesReceipt', 'Currency_*' ), 
 			'SalesReceiptRet CustomerMsgRef' => 				array( null, null ), 
 			'SalesReceiptRet CustomerMsgRef *' => 				array( 'SalesReceipt', 'CustomerMsg_*' ), 
 			'SalesReceiptRet CustomerSalesTaxCodeRef' => 		array( null, null ), 
@@ -1719,9 +1757,9 @@ class QuickBooks_SQL_Schema
 			
 			'SalesReceiptRet CreditCardTxnInfo' => 								array( null, null ), 
 			'SalesReceiptRet CreditCardTxnInfo CreditCardTxnInputInfo' => 		array( null, null ), 
-			'SalesReceiptRet CreditCardTxnInfo CreditCardTxnInputInfo *' => 	array( 'SalesReceipt', 'CreditCardTxnInfo_CreditCardTxnInputInfo_*' ), 
+			'SalesReceiptRet CreditCardTxnInfo CreditCardTxnInputInfo *' => 	array( 'SalesReceipt', 'CreditCardTxnInputInfo_*' ), 
 			'SalesReceiptRet CreditCardTxnInfo CreditCardTxnResultInfo' => 		array( null, null ), 
-			'SalesReceiptRet CreditCardTxnInfo CreditCardTxnResultInfo *' => 	array( 'SalesReceipt', 'CreditCardTxnInfo_CreditCardTxnResultInfo_*' ), 
+			'SalesReceiptRet CreditCardTxnInfo CreditCardTxnResultInfo *' => 	array( 'SalesReceipt', 'CreditCardTxnResultInfo_*' ), 
 			'SalesReceiptRet CreditCardTxnInfo *' => 							array( 'SalesReceipt', 'CreditCardTxnInfo_*' ), 
 			
 			'SalesReceiptRet SalesReceiptLineRet' => 								array( null, null ), 
@@ -1930,11 +1968,8 @@ class QuickBooks_SQL_Schema
 				$sql_to_xml[$sql[0] . '.' . $sql[1]] = $xml;
 			}
 		}
-		
-		// Mapping of:
-		//	XPATH => array(
-		//		array( table => extra field ), 
-		//		array( another table => another extra field ), 	
+			
+		// Something in here is broken... it's pushing arrays into places where strings should be... 
 		static $xml_to_sql_others = array(
 			'AccountRet TaxLineInfoRet' => 											array(
 				array( 'Account_TaxLineInfo', 'Account_ListID'),
@@ -1956,63 +1991,51 @@ class QuickBooks_SQL_Schema
 				), 
 			'BillPaymentCheckRet AppliedToTxnRet' => 								array( 
 				array( 'BillPaymentCheck_AppliedToTxn', 'FromTxnID' ),
-				array( 'BillPaymentCheck_AppliedToTxn', 'BillPaymentCheck_TxnID' ), 
 				),
 			'BillPaymentCreditCardRet AppliedToTxnRet' => 							array( 
 				array( 'BillPaymentCreditCard_AppliedToTxn', 'FromTxnID' ),
-				array( 'BillPaymentCreditCard_AppliedToTxn', 'BillPaymentCreditCard_TxnID' ), 
 				),
 			'BillRet' => 															array(
 				array( 'Bill', 'Tax1Total' ),
 				array( 'Bill', 'Tax2Total' ),
-				//array( 'Bill', 'ExchangeRate' ), 
+				array( 'Bill', 'ExchangeRate' ), 
 				),
 			'BillRet LinkedTxn' => 													array( 
 				array( 'Bill_LinkedTxn', 'FromTxnID' ),
-				array( 'Bill_LinkedTxn', 'Bill_TxnID' ), 
 				array( 'Bill_LinkedTxn', 'LinkType' ),
 				),	
 			'BillRet ExpenseLineRet' => 											array(
 				array( 'Bill_ExpenseLine', 'Bill_TxnID' ), 
-				array( 'Bill_ExpenseLine', 'SortOrder' ), 
 				),
 			'BillRet ItemLineRet' => 												array(
 				array( 'Bill_ItemLine', 'Bill_TxnID' ), 
-				array( 'Bill_ItemLine', 'SortOrder' ), 
 				),
 			'BillRet ItemGroupLineRet' => 											array(
 				array( 'Bill_ItemGroupLine', 'Bill_TxnID' ), 
 				array( 'Bill_ItemGroupLine', 'TxnLineID' ), 
-				array( 'Bill_ItemGroupLine', 'SortOrder' ), 
 				),
 			'BillRet ItemGroupLineRet ItemLineRet' => 								array(
 				array( 'Bill_ItemGroupLine_ItemLine', 'Bill_ItemGroupLine_TxnLineID' ), 
 				array( 'Bill_ItemGroupLine_ItemLine', 'Bill_TxnID' ), 
-				array( 'Bill_ItemGroupLine_ItemLine', 'SortOrder' ), 
 				),
 			'ChargeRet' => 															array(
 				array( 'Charge', 'IsPaid' ),
 				),
 			'CheckRet ExpenseLineRet' => 											array(
 				array( 'Check_ExpenseLine', 'Check_TxnID' ), 
-				array( 'Check_ExpenseLine', 'SortOrder' ), 
 				), 
 			'CheckRet ItemGroupLineRet' => 											array(
 				array( 'Check_ItemGroupLine', 'Check_TxnID' ), 
-				array( 'Check_ItemGroupLine', 'SortOrder' ), 
 				), 
 			'CheckRet ItemGroupLineRet ItemLineRet' => 								array(
 				array( 'Check_ItemGroupLine_ItemLine', 'Check_TxnID' ), 
 				array( 'Check_ItemGroupLine_ItemLine', 'Check_ItemGroupLine_TxnLineID' ), 
-				array( 'Check_ItemGroupLine_ItemLine', 'SortOrder' ), 
 				), 
 			'CheckRet ItemLineRet' => 												array(
 				array( 'Check_ItemLine', 'Check_TxnID' ), 
-				array( 'Check_ItemLine', 'SortOrder' ), 
 				), 
 			'CheckRet LinkedTxn' => 												array( 
 				array( 'Check_LinkedTxn', 'FromTxnID' ),
-				array( 'Check_LinkedTxn', 'Check_TxnID' ), 
 				array( 'Check_LinkedTxn', 'LinkType' ),
 				),	
 			'CompanyRet SubscribedServices Service' => 								array( 
@@ -2020,54 +2043,42 @@ class QuickBooks_SQL_Schema
 				),	
 			'CreditCardChargeRet ExpenseLineRet' => 								array( 
 				array( 'CreditCardCharge_ExpenseLine', 'CreditCardCharge_TxnID' ),
-				array( 'CreditCardCharge_ExpenseLine', 'SortOrder' ), 
 				),	
 			'CreditCardChargeRet ItemLineRet' => 									array( 
 				array( 'CreditCardCharge_ItemLine', 'CreditCardCharge_TxnID' ),
-				array( 'CreditCardCharge_ItemLine', 'SortOrder' ), 
 				),	
 			'CreditCardChargeRet ItemGroupLineRet' => 								array( 
 				array( 'CreditCardCharge_ItemGroupLine', 'CreditCardCharge_TxnID' ),
-				array( 'CreditCardCharge_ItemGroupLine', 'SortOrder' ), 
 				),	
 			'CreditCardChargeRet ItemGroupLineRet ItemLineRet' => 					array( 
 				array( 'CreditCardCharge_ItemGroupLine_ItemLine', 'CreditCardCharge_TxnID' ),
 				array( 'CreditCardCharge_ItemGroupLine_ItemLine', 'CreditCardCharge_ItemGroupLine_TxnLineID' ),
-				array( 'CreditCardCharge_ItemGroupLine_ItemLine', 'SortOrder' ), 
 				),	
 			'CreditCardCreditRet ExpenseLineRet' => 								array( 
 				array( 'CreditCardCredit_ExpenseLine', 'CreditCardCredit_TxnID' ),
-				array( 'CreditCardCredit_ExpenseLine', 'SortOrder' ), 
 				),	
 			'CreditCardCreditRet ItemLineRet' => 									array( 
 				array( 'CreditCardCredit_ItemLine', 'CreditCardCredit_TxnID' ),
-				array( 'CreditCardCredit_ItemLine', 'SortOrder' ), 
 				),	
 			'CreditCardCreditRet ItemGroupLineRet' => 								array( 
 				array( 'CreditCardCredit_ItemGroupLine', 'CreditCardCredit_TxnID' ),
-				array( 'CreditCardCredit_ItemGroupLine', 'SortOrder' ), 
 				),	
 			'CreditCardCreditRet ItemGroupLineRet ItemLineRet' => 					array( 
 				array( 'CreditCardCredit_ItemGroupLine_ItemLine', 'CreditCardCredit_TxnID' ),
 				array( 'CreditCardCredit_ItemGroupLine_ItemLine', 'CreditCardCredit_ItemGroupLine_TxnLineID' ),
-				array( 'CreditCardCredit_ItemGroupLine_ItemLine', 'SortOrder' ), 
 				),	
 			'CreditMemoRet CreditMemoLineRet' => 									array( 
 				array( 'CreditMemo_CreditMemoLine', 'CreditMemo_TxnID' ),
-				array( 'CreditMemo_CreditMemoLine', 'SortOrder' ), 
 				),	
 			'CreditMemoRet CreditMemoLineGroupRet' => 								array( 
 				array( 'CreditMemo_CreditMemoLineGroup', 'CreditMemo_TxnID' ),
-				array( 'CreditMemo_CreditMemoLineGroup', 'SortOrder' ), 
 				),	
 			'CreditMemoRet CreditMemoLineGroupRet CreditMemoLineRet' => 			array( 
 				array( 'CreditMemo_CreditMemoLineGroup_CreditMemoLine', 'CreditMemo_TxnID' ),
 				array( 'CreditMemo_CreditMemoLineGroup_CreditMemoLine', 'CreditMemo_CreditMemoLineGroup_TxnLineID' ),
-				array( 'CreditMemo_CreditMemoLineGroup_CreditMemoLine', 'SortOrder' ), 
 				),	
 			'CreditMemoRet LinkedTxn' => 											array( 
 				array( 'CreditMemo_LinkedTxn', 'FromTxnID' ),
-				array( 'CreditMemo_LinkedTxn', 'CreditMemo_TxnID' ), 
 				array( 'CreditMemo_LinkedTxn', 'LinkType' ),
 				),
 			'DataExtDefRet AssignToObject' => 										array(
@@ -2076,79 +2087,62 @@ class QuickBooks_SQL_Schema
 				),
 			'DepositRet DepositLineRet' => 											array( 
 				array( 'Deposit_DepositLine', 'Deposit_TxnID' ),
-				array( 'Deposit_DepositLine', 'SortOrder' ), 
 				),	
 			'EmployeeRet EmployeePayrollInfo Earnings' => 							array( 
 				array( 'Employee_Earnings', 'Employee_ListID' ),
 				),	
 			'EstimateRet EstimateLineRet' => 										array(
 				array( 'Estimate_EstimateLine', 'Estimate_TxnID' ), 
-				array( 'Estimate_EstimateLine', 'SortOrder' ), 
 				),
 			'EstimateRet EstimateLineGroupRet' => 									array(
 				array( 'Estimate_EstimateLineGroup', 'Estimate_TxnID' ), 
-				array( 'Estimate_EstimateLineGroup', 'SortOrder' ), 
 				),
 			'EstimateRet EstimateLineGroupRet EstimateLineRet' => 					array(
 				array( 'Estimate_EstimateLineGroup_EstimateLine', 'Estimate_TxnID' ), 
 				array( 'Estimate_EstimateLineGroup_EstimateLine', 'Estimate_EstimateLineGroup_TxnLineID' ), 
-				array( 'Estimate_EstimateLineGroup_EstimateLine', 'SortOrder' ), 
 				),
 			'EstimateRet LinkedTxn' => 												array(
 				array( 'Estimate_LinkedTxn', 'FromTxnID' ),
-				array( 'Estimate_LinkedTxn', 'Estimate_TxnID' ), 
 				array( 'Estimate_LinkedTxn', 'LinkType' ),
 				),	
 			'InventoryAdjustmentRet InventoryAdjustmentLineRet' => 					array(
 				array( 'InventoryAdjustment_InventoryAdjustmentLine', 'InventoryAdjustment_TxnID' ), 
-				array( 'InventoryAdjustment_InventoryAdjustmentLine', 'SortOrder' ), 
 				),			
 			'InvoiceRet InvoiceLineRet' => 											array(
 				array( 'Invoice_InvoiceLine', 'Invoice_TxnID' ), 
-				array( 'Invoice_InvoiceLine', 'SortOrder' ), 
 				),
 			'InvoiceRet InvoiceLineGroupRet' => 									array(
 				array( 'Invoice_InvoiceLineGroup', 'Invoice_TxnID' ), 
-				array( 'Invoice_InvoiceLineGroup', 'SortOrder' ), 
 				),
 			'InvoiceRet InvoiceLineGroupRet InvoiceLineRet' => 						array(
 				array( 'Invoice_InvoiceLineGroup_InvoiceLine', 'Invoice_TxnID' ), 
 				array( 'Invoice_InvoiceLineGroup_InvoiceLine', 'Invoice_InvoiceLineGroup_TxnLineID' ), 
-				array( 'Invoice_InvoiceLineGroup_InvoiceLine', 'SortOrder' ), 
 				),
 			'InvoiceRet LinkedTxn' => 												array(
 				array( 'Invoice_LinkedTxn', 'FromTxnID' ),
-				array( 'Invoice_LinkedTxn', 'Invoice_TxnID' ), 
 				array( 'Invoice_LinkedTxn', 'LinkType' ),
 				),
 			'ItemGroupRet ItemGroupLine' => 										array(
 				array( 'ItemGroup_ItemGroupLine', 'ItemGroup_ListID' ), 
-				array( 'ItemGroup_ItemGroupLine', 'SortOrder' ), 
 				),
 			'ItemInventoryAssemblyRet ItemInventoryAssemblyLine' => 				array(
 				array( 'ItemInventoryAssembly_ItemInventoryAssemblyLine', 'ItemInventoryAssembly_ListID' ), 
-				array( 'ItemInventoryAssembly_ItemInventoryAssemblyLine', 'SortOrder' ), 
 				),
 			'ItemReceiptRet ExpenseLineRet' => 										array(
 				array( 'ItemReceipt_ExpenseLine', 'ItemReceipt_TxnID' ), 
-				array( 'ItemReceipt_ExpenseLine', 'SortOrder' ), 
 				),
 			'ItemReceiptRet ItemLineRet' => 										array(
 				array( 'ItemReceipt_ItemLine', 'ItemReceipt_TxnID' ), 
-				array( 'ItemReceipt_ItemLine', 'SortOrder' ), 
 				),
 			'ItemReceiptRet ItemGroupLineRet' => 									array(
 				array( 'ItemReceipt_ItemGroupLine', 'ItemReceipt_TxnID' ), 
-				array( 'ItemReceipt_ItemGroupLine', 'SortOrder' ), 
 				),
 			'ItemReceiptRet ItemGroupLineRet ItemLineRet' => 						array(
 				array( 'ItemReceipt_ItemGroupLine_ItemLine', 'ItemReceipt_TxnID' ), 
 				array( 'ItemReceipt_ItemGroupLine_ItemLine', 'ItemReceipt_ItemGroupLine_TxnLineID' ), 
-				array( 'ItemReceipt_ItemGroupLine_ItemLine', 'SortOrder' ), 
 				),
 			'ItemReceiptRet LinkedTxn' => 											array(
 				array( 'ItemReceipt_LinkedTxn', 'FromTxnID' ),
-				array( 'ItemReceipt_LinkedTxn', 'ItemReceipt_TxnID' ), 
 				array( 'ItemReceipt_LinkedTxn', 'LinkType' ),
 				),
 			'ItemSalesTaxGroupRet ItemSalesTaxRef' => 								array(
@@ -2156,67 +2150,53 @@ class QuickBooks_SQL_Schema
 				),
 			'JournalEntryRet JournalDebitLine' => 									array(
 				array( 'JournalEntry_JournalDebitLine', 'JournalEntry_TxnID' ),
-				array( 'JournalEntry_JournalDebitLine', 'SortOrder' ), 
 				),
 			'JournalEntryRet JournalCreditLine' => 									array(
 				array( 'JournalEntry_JournalCreditLine', 'JournalEntry_TxnID' ),
-				array( 'JournalEntry_JournalCreditLine', 'SortOrder' ),
 				),
 			'PriceLevelRet PriceLevelPerItemRet' => 								array(
 				array( 'PriceLevel_PriceLevelPerItem', 'PriceLevel_ListID' ),
 				),
 			'PurchaseOrderRet PurchaseOrderLineRet' => 								array(
 				array( 'PurchaseOrder_PurchaseOrderLine', 'PurchaseOrder_TxnID' ),
-				array( 'PurchaseOrder_PurchaseOrderLine', 'SortOrder' ),
 				),
 			'PurchaseOrderRet PurchaseOrderLineGroupRet' => 						array(
 				array( 'PurchaseOrder_PurchaseOrderLineGroup', 'PurchaseOrder_TxnID' ),
-				array( 'PurchaseOrder_PurchaseOrderLineGroup', 'SortOrder' ),
 				),
 			'PurchaseOrderRet PurchaseOrderLineGroupRet PurchaseOrderLineRet' => 	array(
 				array( 'PurchaseOrder_PurchaseOrderLineGroup_PurchaseOrderLine', 'PurchaseOrder_TxnID' ),
 				array( 'PurchaseOrder_PurchaseOrderLineGroup_PurchaseOrderLine', 'PurchaseOrder_PurchaseOrderLineGroup_TxnLineID' ),
-				array( 'PurchaseOrder_PurchaseOrderLineGroup_PurchaseOrderLine', 'SortOrder' ),
 				),
 			'PurchaseOrderRet LinkedTxn' => 										array(
 				array( 'PurchaseOrder_LinkedTxn', 'FromTxnID' ),
-				array( 'PurchaseOrder_LinkedTxn', 'PurchaseOrder_TxnID' ),
 				array( 'PurchaseOrder_LinkedTxn', 'LinkType' ),
 				),
 			'ReceivePaymentRet AppliedToTxnRet' => 									array(
 				array( 'ReceivePayment_AppliedToTxn', 'FromTxnID' ),
-				array( 'ReceivePayment_AppliedToTxn', 'ReceivePayment_TxnID' ),
 				),
 			'SalesOrderRet SalesOrderLineRet' => 									array(
 				array( 'SalesOrder_SalesOrderLine', 'SalesOrder_TxnID' ),
-				array( 'SalesOrder_SalesOrderLine', 'SortOrder' ),
 				),
 			'SalesOrderRet SalesOrderLineGroupRet' => 								array(
 				array( 'SalesOrder_SalesOrderLineGroup', 'SalesOrder_TxnID' ),
-				array( 'SalesOrder_SalesOrderLineGroup', 'SortOrder' ),
 				),
 			'SalesOrderRet SalesOrderLineGroupRet SalesOrderLineRet' => 			array(
 				array( 'SalesOrder_SalesOrderLineGroup_SalesOrderLine', 'SalesOrder_TxnID' ),
 				array( 'SalesOrder_SalesOrderLineGroup_SalesOrderLine', 'SalesOrder_SalesOrderLineGroup_TxnLineID' ),
-				array( 'SalesOrder_SalesOrderLineGroup_SalesOrderLine', 'SortOrder' ),
 				),
 			'SalesOrderRet LinkedTxn' => 											array(
 				array( 'SalesOrder_LinkedTxn', 'FromTxnID' ),
-				array( 'SalesOrder_LinkedTxn', 'SalesOrder_TxnID' ),
 				array( 'SalesOrder_LinkedTxn', 'LinkType' ),
 				),
 			'SalesReceiptRet SalesReceiptLineRet' => 								array(
 				array( 'SalesReceipt_SalesReceiptLine', 'SalesReceipt_TxnID' ),
-				array( 'SalesReceipt_SalesReceiptLine', 'SortOrder' ),
 				),
 			'SalesReceiptRet SalesReceiptLineGroupRet' => 							array(
 				array( 'SalesReceipt_SalesReceiptLineGroup', 'SalesReceipt_TxnID' ),
-				array( 'SalesReceipt_SalesReceiptLineGroup', 'SortOrder' ),
 				),
 			'SalesReceiptRet SalesReceiptLineGroupRet SalesReceiptLineRet' => 		array(
 				array( 'SalesReceipt_SalesReceiptLineGroup_SalesReceiptLine', 'SalesReceipt_TxnID' ),
 				array( 'SalesReceipt_SalesReceiptLineGroup_SalesReceiptLine', 'SalesReceipt_SalesReceiptLineGroup_TxnLineID' ),
-				array( 'SalesReceipt_SalesReceiptLineGroup_SalesReceiptLine', 'SortOrder' ),
 				),
 			'UnitOfMeasureSetRet RelatedUnit' => 									array(
 				array( 'UnitOfMeasureSet_RelatedUnit', 'UnitOfMeasureSet_ListID' ),
@@ -2226,24 +2206,19 @@ class QuickBooks_SQL_Schema
 				),
 			'VendorCreditRet ExpenseLineRet' => 									array(
 				array( 'VendorCredit_ExpenseLine', 'VendorCredit_TxnID' ), 
-				array( 'VendorCredit_ExpenseLine', 'SortOrder' ), 
 				),
 			'VendorCreditRet ItemLineRet' => 										array(
 				array( 'VendorCredit_ItemLine', 'VendorCredit_TxnID' ), 
-				array( 'VendorCredit_ItemLine', 'SortOrder' ), 
 				),
 			'VendorCreditRet ItemGroupLineRet' => 									array(
 				array( 'VendorCredit_ItemGroupLine', 'VendorCredit_TxnID' ), 
-				array( 'VendorCredit_ItemGroupLine', 'SortOrder' ), 
 				),
 			'VendorCreditRet ItemGroupLineRet ItemLineRet' => 						array(
 				array( 'VendorCredit_ItemGroupLine_ItemLine', 'VendorCredit_TxnID' ), 
 				array( 'VendorCredit_ItemGroupLine_ItemLine', 'VendorCredit_ItemGroupLine_TxnLineID' ), 
-				array( 'VendorCredit_ItemGroupLine_ItemLine', 'SortOrder' ), 
 				),
 			'VendorCreditRet LinkedTxn' => 											array(
 				array( 'VendorCredit_LinkedTxn', 'FromTxnID' ),
-				array( 'VendorCredit_LinkedTxn', 'VendorCredit_TxnID' ),
 				array( 'VendorCredit_LinkedTxn', 'LinkType' ),
 				),
 			'WorkersCompCodeRet RateHistory' => 									array(
@@ -2334,6 +2309,8 @@ class QuickBooks_SQL_Schema
 			
 			$underscores = substr_count($tablefield, '_');
 			$map = '';
+			
+			//print_r($sql_to_xml);
 			
 			foreach ($sql_to_xml as $pattern => $path)
 			{
@@ -2433,24 +2410,9 @@ class QuickBooks_SQL_Schema
 	 */
 	static public function mapFieldToSQLDefinition($object_type, $field, $qb_type)
 	{
-		// array( type, length, default )
-		
 		static $overrides = array(
-			'creditmemo_creditmemoline' => array(
-				'creditcardtxninputinfo_expirationmonth' => array( null, null, 'null' ),
-				'creditcardtxninputinfo_expirationyear' => array( null, null, 'null' ),
-				'creditcardtxnresultinfo_resultcode' => array( null, null, 'null' ),
-				'creditcardtxnresultinfo_paymentgroupingcode' => array( null, null, 'null' ),
-				'creditcardtxnresultinfo_txnauthorizationstamp' => array( null, null, 'null' ),
-				), 
-			'creditmemo_creditmemolinegroup_creditmemoline' => array(
-				'creditcardtxninfo_creditcardtxninputinfo_expirationmonth' => array( null, null, 'null' ),
-				'creditcardtxninfo_creditcardtxninputinfo_expirationyear' => array( null, null, 'null' ),
-				'creditcardtxninfo_creditcardtxnresultinfo_resultcode' => array( null, null, 'null' ),
-				'creditcardtxninfo_creditcardtxnresultinfo_paymentgroupingcode' => array( null, null, 'null' ),
-				'creditcardtxninfo_creditcardtxnresultinfo_txnauthorizationstamp' => array( null, null, 'null' ),			
-				), 
-			'customer' => array(
+			'customer' => 		array(
+		//									array( type, length, default )
 				'creditcardinfo_expirationmonth' => array( null, null, 'null' ),
 				'creditcardinfo_expirationyear' => array( null, null, 'null' )
 				),
@@ -2463,20 +2425,6 @@ class QuickBooks_SQL_Schema
 			'purchaseorder_purchaseorderline' => array(
 				'quantity' => array( null, null, 'null' )
 				),
-			'receivepayment' => array(
-				'creditcardtxninfo_creditcardtxninputinfo_expirationmonth' => array( null, null, 'null' ), 
-				'creditcardtxninfo_creditcardtxninputinfo_expirationyear' => array( null, null, 'null' ), 
-				'creditcardtxninfo_creditcardtxnresultinfo_resultcode' => array( null, null, 'null' ), 
-				'creditcardtxninfo_creditcardtxnresultinfo_paymentgroupingcode' => array( null, null, 'null' ), 
-				'creditcardtxninfo_creditcardtxnresultinfo_txnauthorizationstamp' => array( null, null, 'null' ), 
-				), 
-			'salesreceipt' => array(
-				'creditcardtxninfo_creditcardtxninputinfo_expirationmonth' => array( null, null, 'null' ), 
-				'creditcardtxninfo_creditcardtxninputinfo_expirationyear' => array( null, null, 'null' ), 
-				'creditcardtxninfo_creditcardtxnresultinfo_resultcode' => array( null, null, 'null' ), 
-				'creditcardtxninfo_creditcardtxnresultinfo_paymentgroupingcode' => array( null, null, 'null' ), 
-				'creditcardtxninfo_creditcardtxnresultinfo_txnauthorizationstamp' => array( null, null, 'null' ), 
-				), 
 			'invoice_invoiceline' => array(
 				'quantity' => array( null, null, 'null' )
 				),
@@ -2641,20 +2589,14 @@ class QuickBooks_SQL_Schema
 				break;
 		}*/
 		
-		// @TODO -- Keith, is this a good way to accomplish converting all txnid/listid fields to varchar? ~Garrett
-		if (stripos($field, 'listid') !== false or stripos($field, 'txnid') !== false)
+		//@TODO -- Keith, is this a good way to accomplish converting all txnid/listid fields to varchar? ~Garrett
+		if(stripos($field, "listid") !== false || stripos($field, "txnid") !== false)
 		{
 			$type = QUICKBOOKS_DRIVER_SQL_VARCHAR;
 			$length = 40;
 			$default = 'null';
 		}
-		else if (strtolower($field) == 'sortorder')
-		{
-			$type = QUICKBOOKS_DRIVER_SQL_INTEGER;
-			$length = null;
-			$default = 0;
-		}
-		
+	
 		if (isset($overrides[$object_type][$field]))
 		{
 			if (!is_null($overrides[$object_type][$field][0]))
@@ -2676,3 +2618,5 @@ class QuickBooks_SQL_Schema
 		return array( $type, $length, $default );
 	}
 }
+
+?>

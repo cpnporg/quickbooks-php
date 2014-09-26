@@ -11,9 +11,14 @@
  */
 
 /**
+ * QuickBooks base 
+ */
+require_once 'QuickBooks.php';
+
+/**
  * Base object class
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * QuickBooks Customer object class
@@ -120,11 +125,6 @@ class QuickBooks_Object_Customer extends QuickBooks_Object
 	public function setCustomerTypeListID($lid)
 	{
 		return $this->set('CustomerTypeRef ListID', $lid);
-	}
-	
-	public function setCustomerTypeFullName($FullName)
-	{
-		return $this->setFullNameType('CustomerTypeRef FullName', null, null, $FullName);
 	}
 	
 	public function setCustomerTypeName($name)
@@ -242,6 +242,22 @@ class QuickBooks_Object_Customer extends QuickBooks_Object
 	{
 		return $this->set('Name', $name);
 	}
+
+	/**																												 
+	 * Sets the name as first and last.												 
+	 *
+	 * NOTE: Please follow the coding style if you're going to commit changes... 
+	 * 																													
+	 * @return boolean																					
+	 */																												 
+	/*public function setNameAsFirstLast() {
+		$first = $this->getFirstName();
+		$last = $this->getLastName();
+		if (is_null($first)) { $first = ''; }
+		if (is_null($last)) { $last = ''; }
+																															
+		return $this->set('Name', $first .' '. $last);
+	}*/
 	
 	/**
 	 * Get the name of this customer
@@ -252,6 +268,15 @@ class QuickBooks_Object_Customer extends QuickBooks_Object
 	 */
 	public function getName()
 	{
+		if (!$this->exists('Name'))
+		{		
+			/*if (!is_null($this->getFirstName()) || !is_null($this->getLastName())) {
+				$this->setNameAsFirstLast();
+			}*/
+			
+			return '';		
+		}		
+		
 		return $this->get('Name');
 	}
 
@@ -266,7 +291,12 @@ class QuickBooks_Object_Customer extends QuickBooks_Object
 	 */
 	public function setFullName($name)
 	{
-		return $this->setFullNameType('FullName', 'Name', 'ParentRef FullName', $name);
+		if (!$name) 
+		{
+			$name = $this->getName();
+		}
+		
+		$this->set('FullName', $name);
 	}
 	
 	/**
@@ -276,7 +306,12 @@ class QuickBooks_Object_Customer extends QuickBooks_Object
 	 */
 	public function getFullName()
 	{
-		return $this->getFullNameType('FullName', 'Name', 'ParentRef FullName');
+		if (!$this->exists('FullName'))
+		{
+			$this->setFullName($this->get('Name'));
+		}
+		
+		return $this->get('FullName');
 	}
 	
 	/**
@@ -762,11 +797,11 @@ class QuickBooks_Object_Customer extends QuickBooks_Object
 	 * @param string $root
 	 * @return string
 	 */
-	public function asQBXML($request, $version = null, $locale = null, $root = null)
+	public function asQBXML($request, $todo_for_empty_elements = QUICKBOOKS_OBJECT_XML_DROP, $indent = "\t", $root = null)
 	{
 		$this->_cleanup();
 		
-		return parent::asQBXML($request, $version = null, $locale = null, $root);
+		return parent::asQBXML($request, $todo_for_empty_elements, $indent, $root);
 	}
 	
 	/**

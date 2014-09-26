@@ -18,7 +18,12 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Object.php';
 
 /**
  * 
@@ -62,16 +67,6 @@ class QuickBooks_Object_SalesTaxItem extends QuickBooks_Object
 		return $this->set('Name', $name);
 	}
 	
-	public function getIsActive()
-	{
-		return $this->getBooleanType('IsActive', true);
-	}
-	
-	public function setIsActive($IsActive)
-	{
-		return $this->setBooleanType('IsActive', $IsActive);
-	}
-	
 	/**
 	 * Get the name for this item
 	 * 
@@ -112,12 +107,6 @@ class QuickBooks_Object_SalesTaxItem extends QuickBooks_Object
 		return $this->set('TaxVendorRef FullName', $name);
 	}
 	
-	// @todo Make sure these are ->setFullNameType instead of just ->set
-	public function setTaxVendorFullName($FullName)
-	{
-		return $this->set('TaxVendorRef FullName', $FullName);
-	}
-	
 	public function setTaxVendorApplicationID($value)
 	{
 		return $this->set('TaxVendorRef ' . QUICKBOOKS_API_APPLICATIONID, $this->encodeApplicationID(QUICKBOOKS_OBJECT_VENDOR, QUICKBOOKS_LISTID, $value));
@@ -134,11 +123,6 @@ class QuickBooks_Object_SalesTaxItem extends QuickBooks_Object
 	}
 	
 	public function getTaxVendorName()
-	{
-		return $this->get('TaxVendorRef FullName');
-	}
-	
-	public function getTaxVendorFullName()
 	{
 		return $this->get('TaxVendorRef FullName');
 	}
@@ -191,3 +175,5 @@ class QuickBooks_Object_SalesTaxItem extends QuickBooks_Object
 		return QUICKBOOKS_OBJECT_SALESTAXITEM;
 	}
 }
+
+?>

@@ -11,9 +11,14 @@
  */ 
 
 /**
+ * QuickBooks base includes
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks object base class
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * 
@@ -72,7 +77,7 @@ class QuickBooks_Object_Check_ItemLine extends QuickBooks_Object
 	 * @param string $FullName		The FullName of the record to reference
 	 * @return boolean
 	 */
-	public function setItemFullName($FullName)
+	public function setItemName($FullName)
 	{
 		return $this->set('ItemRef FullName', $FullName);
 	}
@@ -82,7 +87,7 @@ class QuickBooks_Object_Check_ItemLine extends QuickBooks_Object
 	 * 
 	 * @return string
 	 */
-	public function getItemFullName()
+	public function getItemName()
 	{
 		return $this->get('ItemRef FullName');
 	}
@@ -491,26 +496,19 @@ class QuickBooks_Object_Check_ItemLine extends QuickBooks_Object
 		return $this->get('OverrideItemAccountRef FullName');
 	}
 	
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
-		if (is_null($object))
-		{
-			$object = $this->_object;
-		}
-		
 		switch ($parent)
 		{
 			case QUICKBOOKS_ADD_CHECK:
 				$root = 'ItemLineAdd';
-				$parent = null;
 				break;
 			case QUICKBOOKS_MOD_CHECK:
 				$root = 'ItemLineMod';
-				$parent = null;
 				break;
 		}
 		
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root);
 	}
 	
 	/**

@@ -52,7 +52,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryModRq extends QuickBooks_QBXML_
   'JournalLineMod ClassRef FullName' => 'STRTYPE',
   'JournalLineMod ItemSalesTaxRef ListID' => 'IDTYPE',
   'JournalLineMod ItemSalesTaxRef FullName' => 'STRTYPE',
-  'JournalLineMod BillableStatus' => 'ENUMTYPE',
+//  'JournalLineMod BillableStatus' => 'ENUMTYPE',
   'IncludeRetElement' => 'STRTYPE',
 );
 		
@@ -79,7 +79,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryModRq extends QuickBooks_QBXML_
   'JournalLineMod ClassRef FullName' => 159,
   'JournalLineMod ItemSalesTaxRef ListID' => 0,
   'JournalLineMod ItemSalesTaxRef FullName' => 159,
-  'JournalLineMod BillableStatus' => 0,
+//  'JournalLineMod BillableStatus' => 0,
   'IncludeRetElement' => 50,
 );
 		
@@ -106,7 +106,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryModRq extends QuickBooks_QBXML_
   'JournalLineMod ClassRef FullName' => true,
   'JournalLineMod ItemSalesTaxRef ListID' => true,
   'JournalLineMod ItemSalesTaxRef FullName' => true,
-  'JournalLineMod BillableStatus' => true,
+//  'JournalLineMod BillableStatus' => true,
   'IncludeRetElement' => true,
 );
 	}
@@ -131,7 +131,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryModRq extends QuickBooks_QBXML_
   'JournalLineMod ClassRef FullName' => 999.99,
   'JournalLineMod ItemSalesTaxRef ListID' => 999.99,
   'JournalLineMod ItemSalesTaxRef FullName' => 999.99,
-  'JournalLineMod BillableStatus' => 999.99,
+//  'JournalLineMod BillableStatus' => 999.99,
   'IncludeRetElement' => 999.99,
 );
 		
@@ -158,7 +158,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryModRq extends QuickBooks_QBXML_
   'JournalLineMod ClassRef FullName' => false,
   'JournalLineMod ItemSalesTaxRef ListID' => false,
   'JournalLineMod ItemSalesTaxRef FullName' => false,
-  'JournalLineMod BillableStatus' => false,
+//  'JournalLineMod BillableStatus' => false,
   'IncludeRetElement' => true,
 );
 			
@@ -197,7 +197,7 @@ class QuickBooks_QBXML_Schema_Object_JournalEntryModRq extends QuickBooks_QBXML_
   14 => 'JournalLineMod ClassRef FullName',
   15 => 'JournalLineMod ItemSalesTaxRef ListID',
   16 => 'JournalLineMod ItemSalesTaxRef FullName',
-  17 => 'JournalLineMod BillableStatus',
+//  17 => 'JournalLineMod BillableStatus',
   18 => 'IncludeRetElement',
 );
 			

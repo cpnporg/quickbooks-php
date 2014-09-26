@@ -11,7 +11,7 @@
  * 
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Frontend/Module.php');
+require_once 'QuickBooks/Frontend/Module.php';
 
 /**
  * 

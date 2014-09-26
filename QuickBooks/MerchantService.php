@@ -58,12 +58,6 @@ define('QUICKBOOKS_MERCHANTSERVICE_ERROR_PARAM', -1094);
 define('QUICKBOOKS_MERCHANTSERVICE_ERROR_SSL', -1095);
 
 /**
- * 
- * 
- */
-define('QUICKBOOKS_MERCHANTSERVICE_ERROR_HTTP', -1096);
-
-/**
  * Indicates that this transaction type is a 'Charge' (actually capture funds on a credit/debit card)
  * @var string
  */
@@ -173,29 +167,29 @@ gateway.
 */
 
 /**
- * Utilities class (for masking and some other misc things)
+ * QuickBooks base package
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks.php';
 
 /**
- * HTTP connection class
+ * Utilities class (for masking and some other misc things)
  */
-QuickBooks_Loader::load('/QuickBooks/HTTP.php');
+require_once 'QuickBooks/Utilities.php';
 
 /**
  * QuickBooks driver factory for database logging
  */
-QuickBooks_Loader::load('/QuickBooks/Driver/Factory.php');
+require_once 'QuickBooks/Driver/Factory.php';
 
 /**
  * QuickBooks credit card class
  */
-QuickBooks_Loader::load('/QuickBooks/MerchantService/CreditCard.php');
+require_once 'QuickBooks/MerchantService/CreditCard.php';
 
 /**
  * QuickBooks merchant service transaction class
  */
-QuickBooks_Loader::load('/QuickBooks/MerchantService/Transaction.php');
+require_once 'QuickBooks/MerchantService/Transaction.php';
 
 /**
  * QuickBooks Merchant Service implementation
@@ -567,12 +561,7 @@ class Quickbooks_MerchantService
 		return md5($type . '-' . serialize($Obj) . '-' . $amount . '-' . $rand);
 	}
 	
-	/**
-	 * 
-	 * 
-	 * 
-	 */
-	protected function _doQBMS($type, $path, $xml, $CreditCard = null)
+	protected function _doQBMS($type, $path, $xml)
 	{
 		$errnum = QUICKBOOKS_MERCHANTSERVICE_OK;
 		$errmsg = '';
@@ -635,19 +624,6 @@ class Quickbooks_MerchantService
 		$xml_errmsg = '';
 		if ($Transaction = $this->_parseResponse($type, $path, $response, $xml_errnum, $xml_errmsg))
 		{
-			if ($CreditCard instanceof QuickBooks_MerchantService_CreditCard)
-			{
-				$Transaction->setExtraData(
-					$qbms_code, 
-					$qbms_message, 
-					$CreditCard->getNumber(true), 
-					$CreditCard->getExpirationMonth(), 
-					$CreditCard->getExpirationYear(), 
-					$CreditCard->getName(), 
-					$CreditCard->getAddress(), 
-					$CreditCard->getPostalCode());
-			}
-			
 			return $Transaction;
 		}
 		
@@ -688,7 +664,7 @@ class Quickbooks_MerchantService
 		$xml .= '	</QBMSXMLMsgsRq>' . QUICKBOOKS_CRLF;
 		$xml .= '</QBMSXML>' . QUICKBOOKS_CRLF;
 		
-		return $this->_doQBMS(QUICKBOOKS_MERCHANTSERVICE_TYPE_AUTHORIZE, 'QBMSXML/QBMSXMLMsgsRs/CustomerCreditCardAuthRs', $xml, $Card);
+		return $this->_doQBMS(QUICKBOOKS_MERCHANTSERVICE_TYPE_AUTHORIZE, 'QBMSXML/QBMSXMLMsgsRs/CustomerCreditCardAuthRs', $xml);
 	}
 	
 	protected function _createSessionXML()
@@ -866,7 +842,7 @@ class Quickbooks_MerchantService
 		$xml .= '	</QBMSXMLMsgsRq>' . QUICKBOOKS_CRLF;		
 		$xml .= '</QBMSXML>' . QUICKBOOKS_CRLF;
 		
-		return $this->_doQBMS(QUICKBOOKS_MERCHANTSERVICE_TYPE_CHARGE, 'QBMSXML/QBMSXMLMsgsRs/CustomerCreditCardChargeRs', $xml, $Card);
+		return $this->_doQBMS(QUICKBOOKS_MERCHANTSERVICE_TYPE_CHARGE, 'QBMSXML/QBMSXMLMsgsRs/CustomerCreditCardChargeRs', $xml);
 	}
 	
 	/**
@@ -982,7 +958,7 @@ class Quickbooks_MerchantService
 		$xml .= '	</QBMSXMLMsgsRq>' . QUICKBOOKS_CRLF;		
 		$xml .= '</QBMSXML>' . QUICKBOOKS_CRLF;
 		
-		return $this->_doQBMS(QUICKBOOKS_MERCHANTSERVICE_TYPE_CAPTURE, 'QBMSXML/QBMSXMLMsgsRs/CustomerCreditCardRefundRs', $xml, $Card);
+		return $this->_doQBMS(QUICKBOOKS_MERCHANTSERVICE_TYPE_CAPTURE, 'QBMSXML/QBMSXMLMsgsRs/CustomerCreditCardRefundRs', $xml);
 	}
 	
 	/**
@@ -1028,7 +1004,7 @@ class Quickbooks_MerchantService
 		$xml .= '	</QBMSXMLMsgsRq>' . QUICKBOOKS_CRLF;
 		$xml .= '</QBMSXML>' . QUICKBOOKS_CRLF;
 			
-		return $this->_doQBMS(QUICKBOOKS_MERCHANTSERVICE_TYPE_VOID, 'QBMSXML/QBMSXMLMsgsRs/CustomerCreditCardTxnVoidRs', $xml);
+		return $this->_doQBMS(QUICKBOOKS_MERCHANTSERVICE_TYPE_VOID, 'QBMSXML/QBMSXMLMsgsRs/CustomerCreditCardAuthRs', $xml);
 	}
 		
 	/**
@@ -1199,47 +1175,93 @@ class Quickbooks_MerchantService
 	 */
 	protected function _request($xml, &$errnum, &$errmsg) 
 	{
-		$HTTP = new QuickBooks_HTTP($this->_gateway());
+		if (function_exists('curl_init'))
+		{
+			$this->_log('Using CURL to send request!', QUICKBOOKS_LOG_DEVELOP);
+			return $this->_requestCurl($xml, $errnum, $errmsg);
+		}
+		else
+		{
+			$this->_log('Using FSOCKOPEN to send request!', QUICKBOOKS_LOG_DEVELOP);
+			return $this->_requestFsockopen($xml, $errnum, $errmsg);
+		}
+	}
+	
+	/**
+	 * Send a request to the remote QBMS server using the PHP curl extension (www.php.net/curl)
+	 * 
+	 * @param string $xml			The XML request to send
+	 * @param integer $errnum		If an error occurs, an error number is returned here
+	 * @param string $errmsg		If an error occurs, an error message is returned here
+	 * @return string				The raw HTTP response
+	 */
+	protected function _requestCurl($xml, &$errnum, &$errmsg)
+	{
+		$headers = array();
+		$headers[] = 'Content-Type: application/x-qbmsxml';
+		$headers[] = 'Content-Length: ' . strlen($xml);
 		
-		$headers = array(
-			'Content-Type' => 'application/x-qbmsxml',
-			);
-		$HTTP->setHeaders($headers);
+		$this->_log('Opening connection to: ' . $this->_gateway(), QUICKBOOKS_LOG_VERBOSE);
 		
-		// Turn on debugging for the HTTP object if it's been enabled in the payment processor
-		$HTTP->useDebugMode($this->_debug);
+		$params = array();
+		$params[CURLOPT_POST] = true;
+		$params[CURLOPT_RETURNTRANSFER] = true;
+		//$params[CURLOPT_CUSTOMREQUEST] = 'POST';
+		$params[CURLOPT_URL] = $this->_gateway();
+		//$params[CURLOPT_TIMEOUT] = 15;
+		$params[CURLOPT_HTTPHEADER] = $headers;
+		$params[CURLOPT_POSTFIELDS] = $xml;
+		//$params[CURLOPT_STDERR] = $logger;
+		$params[CURLOPT_VERBOSE] = $this->_debug;
 		
-		// 
-		$HTTP->setRawBody($xml);
+		// Some Windows servers will fail with SSL errors unless we turn this off
+		$params[CURLOPT_SSL_VERIFYPEER] = false;
+		$params[CURLOPT_SSL_VERIFYHOST] = 0;
 		
-		$HTTP->verifyHost(false);
-		$HTTP->verifyPeer(false);
-		
+		// Check for an SSL certificate (HOSTED model of communication)
 		if ($this->_certificate)
 		{
-			$HTTP->setCertificate($this->_certificate);
+			if (file_exists($this->_certificate))
+			{
+				$this->_log('Using SSL certificate at: ' . $this->_certificate, QUICKBOOKS_LOG_DEBUG);
+				$params[CURLOPT_SSLCERT] = $this->_certificate;
+			}
+			else
+			{
+				$msg = 'Specified SSL certificate could not be located: ' . $this->_certificate;
+				
+				$this->_log($msg, QUICKBOOKS_LOG_NORMAL);
+				$errnum = QUICKBOOKS_MERCHANTSERVICE_ERROR_SSL;
+				$errmsg = $msg;
+				return false;
+			}
 		}
 		
-		$return = $HTTP->POST();
+		$ch = curl_init();
+		curl_setopt_array($ch, $params);
+		$response = curl_exec($ch);
 		
-		$this->_last_request = $HTTP->lastRequest();
-		$this->_last_response = $HTTP->lastResponse();
+		$this->_log('CURL options: ' . print_r($params, true), QUICKBOOKS_LOG_DEBUG);
 		
-		// 
-		$this->_log($HTTP->getLog(), QUICKBOOKS_LOG_DEBUG);
+		$this->_last_request = $xml;
+		$this->_log('Outgoing QBMS request: ' . $xml, QUICKBOOKS_LOG_DEBUG);	// Set as DEBUG so that no one accidentally logs all the credit card numbers...
 		
-		$errnum = $HTTP->errorNumber();
-		$errmsg = $HTTP->errorMessage();
+		$this->_last_response = $response;
+		$this->_log('Incoming QBMS response: ' . $response, QUICKBOOKS_LOG_VERBOSE);
 		
-		if ($errnum)
+		if (curl_errno($ch)) 
 		{
-			// An error occurred!
-			$this->_setError(QUICKBOOKS_MERCHANTSERVICE_ERROR_HTTP, $errnum . ': ' . $errmsg);
+			$errnum = curl_errno($ch);
+			$errmsg = curl_error($ch);
+			
+			$this->_log('CURL error: ' . $errnum . ': ' . $errmsg, QUICKBOOKS_LOG_NORMAL);
+			
 			return false;
-		}
+		} 
 		
-		// Everything is good, return the data!
-		$this->_setError(QUICKBOOKS_MERCHANTSERVICE_ERROR_OK, '');
-		return $return;
+		// Close the connection 
+		@curl_close($ch);
+		
+		return $response;		
 	}
 }

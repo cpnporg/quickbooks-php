@@ -12,12 +12,17 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object/ReceivePayment.php');
+require_once 'QuickBooks/Object.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Object/ReceivePayment.php';
 
 /**
  * 
@@ -68,22 +73,12 @@ class QuickBooks_Object_ReceivePayment_AppliedToTxn extends QuickBooks_Object
 	
 	public function getPaymentAmount($amount)
 	{
-		return $this->getAmountType('PaymentAmount');
+		return $this->get('PaymentAmount');
 	}
 	
 	public function setPaymentAmount($amount)
 	{
-		return $this->setAmountType('PaymentAmount', $amount);
-	}
-	
-	public function setDiscountAmount($amount)
-	{
-		return $this->setAmountType('DiscountAmount', $amount);
-	}
-	
-	public function getDiscountAmount()
-	{
-		return $this->getDiscountAmount('DiscountAmount');
+		return $this->set('PaymentAmount', sprintf('%01.2f', (float) $amount));
 	}
 	
 	/**
@@ -93,6 +88,11 @@ class QuickBooks_Object_ReceivePayment_AppliedToTxn extends QuickBooks_Object
 	 */
 	protected function _cleanup()
 	{
+		if ($this->exists('PaymentAmount'))
+		{
+			$this->set('PaymentAmount', sprintf('%01.2f', $this->get('PaymentAmount')));
+		}
+		
 		return true;
 	}
 	
@@ -106,28 +106,21 @@ class QuickBooks_Object_ReceivePayment_AppliedToTxn extends QuickBooks_Object
 		return parent::asArray($request, $nest);
 	}
 	
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
 		$this->_cleanup();
-		
-		if (is_null($object))
-		{
-			$object = $this->_object;
-		}
 		
 		switch ($parent)
 		{
 			case QUICKBOOKS_ADD_RECEIVEPAYMENT:
 				$root = 'AppliedToTxnAdd';
-				$parent = null;
 				break;
 			case QUICKBOOKS_MOD_RECEIVEPAYMENT:
 				$root = 'AppliedToTxnMod';
-				$parent = null;
 				break;
 		}
 		
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root);
 	}
 	
 	/**
@@ -155,3 +148,5 @@ class QuickBooks_Object_ReceivePayment_AppliedToTxn extends QuickBooks_Object
 		return 'AppliedToTxn';
 	}
 }
+
+?>

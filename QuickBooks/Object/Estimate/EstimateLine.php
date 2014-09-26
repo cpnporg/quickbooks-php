@@ -12,12 +12,17 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object/Estimate.php');
+require_once 'QuickBooks/Object.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Object/Estimate.php';
 
 /**
  * 
@@ -306,7 +311,7 @@ class QuickBooks_Object_Estimate_EstimateLine extends QuickBooks_Object
 		return parent::asArray($request, $nest);
 	}
 	
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
 		$this->_cleanup();
 		
@@ -314,15 +319,13 @@ class QuickBooks_Object_Estimate_EstimateLine extends QuickBooks_Object
 		{
 			case QUICKBOOKS_ADD_ESTIMATE:
 				$root = 'EstimateLineAdd';
-				$parent = null;
 				break;
 			case QUICKBOOKS_MOD_ESTIMATE:
 				$root = 'EstimateLineMod';
-				$parent = null;
 				break;
 		}
 		
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root);
 	}
 	
 	/**

@@ -13,7 +13,7 @@
 /**
  * Result base class
  */
-QuickBooks_Loader::load('/QuickBooks/Result.php');
+require_once 'QuickBooks/Result.php';
 
 /**
  * Response result for the SOAP ->receiveRequestXML() method call

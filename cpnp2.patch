@@ -1,0 +1,270 @@
+Index: QuickBooks/Server/SQL/Callbacks.php
+===================================================================
+--- QuickBooks/Server/SQL/Callbacks.php	(revision 13297)
++++ QuickBooks/Server/SQL/Callbacks.php	(working copy)
+@@ -189,6 +189,8 @@
+ 				
+ 				$table_and_field = array();
+ 				
++if (!isset($table_and_field[0])) continue;				
++
+ 				// Convert to table and primary key, select qbsql id
+ 				QuickBooks_SQL_Schema::mapPrimaryKey($object, QUICKBOOKS_SQL_SCHEMA_MAP_TO_SQL, $table_and_field);  
+ 				
+@@ -2237,6 +2239,222 @@
+ 	}
+ 	
+ 	/**
++	 * 
++	 * 
++	 * 
++	 */
++	public static function CheckAddRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array())
++	{
++		$Driver = QuickBooks_Driver_Singleton::getInstance();
++		if ($Account = $Driver->get(QUICKBOOKS_DRIVER_SQL_PREFIX_SQL . 'check', array( QUICKBOOKS_DRIVER_SQL_FIELD_ID => $ID )))
++		{
++			return QuickBooks_Server_SQL_Callbacks::_AddRequest(QUICKBOOKS_OBJECT_CHECK, $Account, $requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config);
++		}
++		
++		return ''; 
++	}
++	
++	/**
++	 * 
++	 * 
++	 * 
++	 */
++	public static function CheckAddResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents, $config = array() )
++	{
++		$Parser = new QuickBooks_XML_Parser($xml);
++		
++		$errnum = 0;
++		$errmsg = '';
++		$Doc = $Parser->parse($errnum, $errmsg);
++		$Root = $Doc->getRoot();		
++		
++		$List = $Root->getChildAt('QBXML QBXMLMsgsRs CheckAddRs');
++		
++		$extra['IsAddResponse'] = true;
++		QuickBooks_Server_SQL_Callbacks::_QueryResponse(QUICKBOOKS_OBJECT_CHECK, $List, $requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents, $config);
++	}
++
++	/**
++	 * Generate a qbXML CheckMod request to update an check
++	 */
++	public static function CheckModRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array())
++	{
++		//$Driver = QuickBooks_Driver_Singleton::getInstance();
++		//$args = func_get_args();
++		//$Driver->log('got in: ' . print_r($args, true));
++	
++		$Driver = QuickBooks_Driver_Singleton::getInstance();
++		if ($Check = $Driver->get(QUICKBOOKS_DRIVER_SQL_PREFIX_SQL . 'check', array( QUICKBOOKS_DRIVER_SQL_FIELD_ID => $ID )))
++		{
++			return QuickBooks_Server_SQL_Callbacks::_AddRequest(QUICKBOOKS_OBJECT_CHECK, $Check, $requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config);
++		}
++		
++		return ''; 
++	}
++	
++	/**
++	 * Handle an CheckMod response from QuickBooks
++	 */
++	public static function CheckModResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents, $config = array() )
++	{
++		$Parser = new QuickBooks_XML_Parser($xml);
++		
++		$errnum = 0;
++		$errmsg = '';
++		$Doc = $Parser->parse($errnum, $errmsg);
++		$Root = $Doc->getRoot();	
++		
++		$List = $Root->getChildAt('QBXML QBXMLMsgsRs CheckModRs');
++		
++		$extra['IsModResponse'] = true;
++		QuickBooks_Server_SQL_Callbacks::_QueryResponse(QUICKBOOKS_OBJECT_CHECK, $List, $requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents, $config);
++	}
++	
++	/**
++	 * 
++	 * 
++	 * 
++	 */
++	public static function DepositAddRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array())
++	{
++		$Driver = QuickBooks_Driver_Singleton::getInstance();
++		if ($Account = $Driver->get(QUICKBOOKS_DRIVER_SQL_PREFIX_SQL . 'deposit', array( QUICKBOOKS_DRIVER_SQL_FIELD_ID => $ID )))
++		{
++			return QuickBooks_Server_SQL_Callbacks::_AddRequest(QUICKBOOKS_OBJECT_DEPOSIT, $Account, $requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config);
++		}
++		
++		return ''; 
++	}
++	
++	/**
++	 * 
++	 * 
++	 * 
++	 */
++	public static function DepositAddResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents, $config = array() )
++	{
++		$Parser = new QuickBooks_XML_Parser($xml);
++		
++		$errnum = 0;
++		$errmsg = '';
++		$Doc = $Parser->parse($errnum, $errmsg);
++		$Root = $Doc->getRoot();		
++		
++		$List = $Root->getChildAt('QBXML QBXMLMsgsRs DepositAddRs');
++		
++		$extra['IsAddResponse'] = true;
++		QuickBooks_Server_SQL_Callbacks::_QueryResponse(QUICKBOOKS_OBJECT_DEPOSIT, $List, $requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents, $config);
++	}
++
++	/**
++	 * Generate a qbXML DepositMod request to update an deposit
++	 */
++	public static function DepositModRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array())
++	{
++		//$Driver = QuickBooks_Driver_Singleton::getInstance();
++		//$args = func_get_args();
++		//$Driver->log('got in: ' . print_r($args, true));
++	
++		$Driver = QuickBooks_Driver_Singleton::getInstance();
++		if ($Deposit = $Driver->get(QUICKBOOKS_DRIVER_SQL_PREFIX_SQL . 'deposit', array( QUICKBOOKS_DRIVER_SQL_FIELD_ID => $ID )))
++		{
++			return QuickBooks_Server_SQL_Callbacks::_AddRequest(QUICKBOOKS_OBJECT_DEPOSIT, $Deposit, $requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config);
++		}
++		
++		return ''; 
++	}
++	
++	/**
++	 * Handle an DepositMod response from QuickBooks
++	 */
++	public static function DepositModResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents, $config = array() )
++	{
++		$Parser = new QuickBooks_XML_Parser($xml);
++		
++		$errnum = 0;
++		$errmsg = '';
++		$Doc = $Parser->parse($errnum, $errmsg);
++		$Root = $Doc->getRoot();	
++		
++		$List = $Root->getChildAt('QBXML QBXMLMsgsRs DepositModRs');
++		
++		$extra['IsModResponse'] = true;
++		QuickBooks_Server_SQL_Callbacks::_QueryResponse(QUICKBOOKS_OBJECT_DEPOSIT, $List, $requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents, $config);
++	}
++	
++	/**
++	 * 
++	 * 
++	 * 
++	 */
++	public static function JournalEntryAddRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array())
++	{
++		$Driver = QuickBooks_Driver_Singleton::getInstance();
++		if ($Account = $Driver->get(QUICKBOOKS_DRIVER_SQL_PREFIX_SQL . 'journalentry', array( QUICKBOOKS_DRIVER_SQL_FIELD_ID => $ID )))
++		{
++			return QuickBooks_Server_SQL_Callbacks::_AddRequest(QUICKBOOKS_OBJECT_JOURNALENTRY, $Account, $requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config);
++		}
++		
++		return ''; 
++	}
++	
++	/**
++	 * 
++	 * 
++	 * 
++	 */
++	public static function JournalEntryAddResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents, $config = array() )
++	{
++		$Parser = new QuickBooks_XML_Parser($xml);
++		
++		$errnum = 0;
++		$errmsg = '';
++		$Doc = $Parser->parse($errnum, $errmsg);
++		$Root = $Doc->getRoot();		
++		
++		$List = $Root->getChildAt('QBXML QBXMLMsgsRs JournalEntryAddRs');
++		
++		$extra['IsAddResponse'] = true;
++		QuickBooks_Server_SQL_Callbacks::_QueryResponse(QUICKBOOKS_OBJECT_JOURNALENTRY, $List, $requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents, $config);
++	}
++
++	/**
++	 * Generate a qbXML JournalEntryMod request to update an journalentry
++	 */
++	public static function JournalEntryModRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array())
++	{
++		//$Driver = QuickBooks_Driver_Singleton::getInstance();
++		//$args = func_get_args();
++		//$Driver->log('got in: ' . print_r($args, true));
++	
++		$Driver = QuickBooks_Driver_Singleton::getInstance();
++		if ($JournalEntry = $Driver->get(QUICKBOOKS_DRIVER_SQL_PREFIX_SQL . 'journalentry', array( QUICKBOOKS_DRIVER_SQL_FIELD_ID => $ID )))
++		{
++			return QuickBooks_Server_SQL_Callbacks::_AddRequest(QUICKBOOKS_OBJECT_JOURNALENTRY, $JournalEntry, $requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config);
++		}
++		
++		return ''; 
++	}
++	
++	/**
++	 * Handle an JournalEntryMod response from QuickBooks
++	 */
++	public static function JournalEntryModResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents, $config = array() )
++	{
++		$Parser = new QuickBooks_XML_Parser($xml);
++		
++		$errnum = 0;
++		$errmsg = '';
++		$Doc = $Parser->parse($errnum, $errmsg);
++		$Root = $Doc->getRoot();	
++		
++		$List = $Root->getChildAt('QBXML QBXMLMsgsRs JournalEntryModRs');
++		
++		$extra['IsModResponse'] = true;
++		QuickBooks_Server_SQL_Callbacks::_QueryResponse(QUICKBOOKS_OBJECT_JOURNALENTRY, $List, $requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents, $config);
++	}
++	
++	/**
+ 	 * Generate a JobTypeAdd qbXML request to send to QuickBooks
+ 	 */
+ 	public static function JobTypeAddRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array())
+@@ -7226,7 +7444,7 @@
+ 			
+ 		// Find out if we need to iterate further to get more results
+ 		$matches = array();
+-		$iterator_count = ereg('iteratorRemainingCount="([0-9]*)" iteratorID="([^"]*)"', $xml, $matches);
++		$iterator_count = @ereg('iteratorRemainingCount="([0-9]*)" iteratorID="([^"]*)"', $xml, $matches);
+ 			
+ 		// If an iterator was used and there's results remaining 
+ 		if ($iterator_count !== false and 
+Index: QuickBooks/SQL/Schema.php
+===================================================================
+--- QuickBooks/SQL/Schema.php	(revision 13297)
++++ QuickBooks/SQL/Schema.php	(working copy)
+@@ -1631,11 +1631,13 @@
+ 			
+ 			'ReceivePaymentRet DepositToAccountRef' => 							array( null, null ), 
+ 			'ReceivePaymentRet DepositToAccountRef *' => 						array( 'ReceivePayment', 'DepositToAccount_*' ), 
++/*
+ 			'ReceivePaymentRet CreditCardTxnInfo' => 							array( null, null ), 
+ 			'ReceivePaymentRet CreditCardTxnInfo CreditCardTxnInputInfo' => 	array( null, null ), 
+ 			'ReceivePaymentRet CreditCardTxnInfo CreditCardTxnInputInfo *' => 	array( 'ReceivePayment', 'CreditCardTxnInfo_CreditCardTxnInputInfo_*' ), 
+ 			'ReceivePaymentRet CreditCardTxnInfo CreditCardTxnResultInfo' => 	array( null, null ), 
+ 			'ReceivePaymentRet CreditCardTxnInfo CreditCardTxnResultInfo *' => 	array( 'ReceivePayment', 'CreditCardTxnInfo_CreditCardTxnResultInfo_*' ), 
++*/
+ 			'ReceivePaymentRet AppliedToTxnRet' => 								array( null, null ), 
+ 			'ReceivePaymentRet AppliedToTxnRet TxnID' => 						array( 'ReceivePayment_AppliedToTxn', 'ToTxnID' ), 
+ 			'ReceivePaymentRet AppliedToTxnRet DiscountAccountRef' => 			array( null, null ),
+@@ -2617,4 +2619,4 @@
+ 	}
+ }
+ 
+-?>
+\ No newline at end of file
++?>

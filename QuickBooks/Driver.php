@@ -144,8 +144,6 @@ define('QUICKBOOKS_DRIVER_HOOK_QUEUEVIEW', 'QuickBooks_Driver::queueView');
 
 define('QUICKBOOKS_DRIVER_HOOK_QUEUEEXISTS', 'QuickBooks_Driver::queueExists');
 
-define('QUICKBOOKS_DRIVER_HOOK_QUEUEREMOVE', 'QuickBooks_Driver::queueRemove');
-
 /**
  * 
  * @var string
@@ -181,12 +179,6 @@ define('QUICKBOOKS_DRIVER_HOOK_QUEUEFETCH', 'QuickBooks_Driver::queueFetch');
  * @var string
  */
 define('QUICKBOOKS_DRIVER_HOOK_QUEUEPROCESSED', 'QuickBooks_Driver::queueProcessed');
-
-/**
- * 
- * @var string
- */
-define('QUICKBOOKS_DRIVER_HOOK_QUEUEPROCESSING', 'QuickBooks_Driver::queueProcessing');
 
 /**
  * 
@@ -238,19 +230,14 @@ define('QUICKBOOKS_DRIVER_HOOK_CONFIGREAD', 'QuickBooks_Driver::configRead');
 define('QUICKBOOKS_DRIVER_HOOK_CONFIGWRITE', 'QuickBooks_Driver::configWrite');
 
 /**
- * 
+ * Require the base QuickBooks constants
  */
-define('QUICKBOOKS_DRIVER_HOOK_CONNECTIONLOAD', 'QuickBooks_Driver::connectionLoad');
+require_once 'QuickBooks.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Iterator.php');
-
-/**
- * 
- */
-QuickBooks_Loader::load('/QuickBooks/Encryption.php');
+require_once 'QuickBooks/Iterator.php';
 
 /**
  * QuickBooks driver base class
@@ -299,29 +286,6 @@ abstract class QuickBooks_Driver
 			
 			$this->_hooks[$hook] = $funcs;
 		}
-	}
-	
-	final public function connectionLoad($user)
-	{
-		$hookdata = array(
-			'username' => $user, 
-			);
-		$hookerr = '';
-		$this->_callHook(QUICKBOOKS_DRIVER_HOOK_CONNECTIONLOAD, null, $hookerr, $hookdata);
-		
-		$arr = $this->_connectionLoad($user);
-		
-		if (!empty($arr['connection_ticket']))
-		{
-			$crypt = QuickBooks_Encryption_Factory::determine($arr['connection_ticket']);
-			
-			if ($crypt)
-			{
-				// Do the decryption... 
-			}
-		}
-		
-		return $arr;
 	}
 	
 	/**
@@ -568,28 +532,6 @@ abstract class QuickBooks_Driver
 	abstract protected function _queueDequeue($user, $by_priority = false);
 	
 	/**
-	 * Fetch the item currently being processed by QuickBooks
-	 * 
-	 * @param string $user
-	 * @return array
-	 */
-	final public function queueProcessing($user)
-	{
-		$hookdata = array(
-			'username' => $user, 
-			);
-		$hookerr = '';
-		$this->_callHook(QUICKBOOKS_DRIVER_HOOK_QUEUEPROCESSING, null, $hookerr, $hookdata);
-		
-		return $this->_queueProcessing($user);		
-	}
-	
-	/**
-	 * @see QuickBooks_Driver::queueProcessing()
-	 */
-	abstract protected function _queueProcessing($user);
-	
-	/**
 	 * Create a recurring event which will be queued up every so often...
 	 * 
 	 * @param integer $run_every
@@ -681,8 +623,6 @@ abstract class QuickBooks_Driver
 	 */ 
 	final public function configWrite($user, $module, $key, $value, $type = null, $opts = null)
 	{
-		//$module = strtolower($module);
-		
 		$hookdata = array(
 			'username' => $user, 
 			'module' => $module, 
@@ -709,7 +649,7 @@ abstract class QuickBooks_Driver
 	 */
 	final public function configRead($user, $module, $key, &$type, &$opts)
 	{
-		//$module = strtolower($module);
+		$module = strtolower($module);
 		
 		$hookdata = array(
 			'username' => $user, 
@@ -726,33 +666,7 @@ abstract class QuickBooks_Driver
 	 * @see QuickBooks_Driver::configRead()
 	 */
 	abstract protected function _configRead($user, $module, $key, &$type, &$opts);
-	
-	/**
-	 * Forcibly remove an item from the queue
-	 * 
-	 * @param string $user
-	 * @param string $action
-	 * @param mixed $ident
-	 * @return boolean
-	 */
-	final public function queueRemove($user, $action, $ident)
-	{
-		$hookdata = array(
-			'username' => $user, 
-			'action' => $action, 
-			'ident' => $ident
-			);
-		$hookerr = '';
-		$this->_callHook(QUICKBOOKS_DRIVER_HOOK_QUEUEREMOVE, null, $hookerr, $hookdata);
-		
-		return $this->_queueRemove($user, $action, $ident);
-	}
-	
-	/**
-	 * @see QuickBooks_Driver::queueRemove()
-	 */
-	abstract protected function _queueRemove($user, $action, $ident);
-	
+
 	/**
 	 * Update the status of a particular item in the queue
 	 * 
@@ -1044,7 +958,6 @@ abstract class QuickBooks_Driver
 		$hookdata = array(
 			'username' => $username, 
 			'password' => $password, 
-			'override' => $override, 
 			);
 		$err = '';
 		$this->_callHook(QUICKBOOKS_DRIVER_HOOK_AUTHLOGIN, null, $err, $hookdata);

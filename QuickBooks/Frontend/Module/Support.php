@@ -1,6 +1,6 @@
 <?php
 
-QuickBooks_Loader::load('/QuickBooks/Frontend/Module.php');
+require_once 'QuickBooks/Frontend/Module.php';
 
 class QuickBooks_Frontend_Module_Support extends QuickBooks_Frontend_Module
 {

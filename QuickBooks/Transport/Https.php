@@ -13,7 +13,7 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Transport/Http.php');
+require_once 'QuickBooks/Transport/Http.php';
 
 /**
  * 

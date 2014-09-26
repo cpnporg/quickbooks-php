@@ -15,19 +15,24 @@
  */
 
 /**
+ * Required QuickBooks base classes/constants
+ */
+require_once 'QuickBooks.php';
+
+/**
  * XML base constants
  */
-QuickBooks_Loader::load('/QuickBooks/XML.php');
+require_once 'QuickBooks/XML.php';
 
 /**
  * XML_Node class
  */
-QuickBooks_Loader::load('/QuickBooks/XML/Node.php');
+require_once 'QuickBooks/XML/Node.php';
 
 /**
  * XML_Document class
  */
-QuickBooks_Loader::load('/QuickBooks/XML/Document.php');
+require_once 'QuickBooks/XML/Document.php';
 
 /**
  * QuickBooks XML Parser
@@ -93,11 +98,7 @@ class QuickBooks_XML_Parser
 	 */
 	protected function _read($mixed)
 	{
-		if (empty($mixed))
-		{
-			return '';
-		}
-		else if (is_resource($mixed) and get_resource_type($mixed) == 'stream')
+		if (is_resource($mixed) and get_resource_type($mixed) == 'stream')
 		{
 			$buffer = '';
 			$tmp = '';
@@ -170,26 +171,7 @@ class QuickBooks_XML_Parser
 				break;
 			}
 		}
-		
-		// Remove <![CDATA[ sections
-		$has_cdata = false;
-		while (false !== strpos($xml, '<![CDATA['))
-		{
-			$has_cdata = true;
-			
-			$start = strpos($xml, '<![CDATA[');
-			$end = strpos($xml, ']]>', $start);
-			
-			if (false !== $start and false !== $end)
-			{
-				$xml = substr($xml, 0, $start) . substr($xml, $end + 3);
-			}
-			else
-			{
-				break;
-			}
-		}	
-		
+				
 		// Check well-formedness
 		while (false !== strpos($xml, '<'))
 		{
@@ -242,14 +224,14 @@ class QuickBooks_XML_Parser
 		
 		if (strlen($xml))
 		{
-			$errnum = QuickBooks_XML::ERROR_GARBAGE;
+			$errnum = QUICKBOOKS_XML_ERROR_GARBAGE;
 			$errmsg = 'Found this garbage data at end of stream: ' . $xml;
 			return false;
 		}
 		
 		if (count($stack))
 		{
-			$errnum = QuickBooks_XML::ERROR_DANGLING;
+			$errnum = QUICKBOOKS_XML_ERROR_DANGLING;
 			$errmsg = 'XML stack still contains this after parsing: ' . var_export($stack, true);
 			return false;
 		}
@@ -299,11 +281,6 @@ class QuickBooks_XML_Parser
 			$base = new QuickBooks_XML_Node('root');
 			$this->_parseHelper($this->_xml, $base, $errnum, $errmsg);
 			
-			if ($errnum != QuickBooks_XML::ERROR_OK)
-			{
-				return false;
-			}
-			
 			$tmp = $base->children();
 			
 			return new QuickBooks_XML_Document(current($tmp));
@@ -321,7 +298,7 @@ class QuickBooks_XML_Parser
 	 */
 	protected function _parseHelper($xml, &$Root, &$errnum, &$errmsg, $indent = 0)
 	{
-		$errnum = QuickBooks_XML::ERROR_OK;
+		$errnum = QUICKBOOKS_XML_ERROR_OK;
 		$errmsg = '';
 		
 		$arr = array();
@@ -362,28 +339,8 @@ class QuickBooks_XML_Parser
 		// Parse
 		while (false !== strpos($xml, '<'))
 		{
-			/*
-			print('now examinging:');
-			print('--------------');
-			print($xml);
-			print('-----------');
-			print("\n\n\n");
-			*/
-			
 			$opentag_start = strpos($xml, '<');
 			$opentag_end = strpos($xml, '>');
-			
-			// CDATA check
-			if (substr($xml, $opentag_start, 3) == '<![')
-			{
-				// Find the end of the CDATA section
-				$cdata_end = strpos($xml, ']]>');
-				
-				$opentag_start = strpos($xml, '<', $cdata_end + 3);
-				$opentag_end = strpos($xml, '>', $cdata_end + 3);
-			}
-			
-			//print('opentag start/end (' . $opentag_start . ', ' . $opentag_end . ') puts us at: {{' . substr($xml, $opentag_start, $opentag_end - $opentag_start) . '}}' . "\n\n");
 			
 			$tag_w_attrs = trim(substr($xml, $opentag_start + 1, $opentag_end - $opentag_start - 1));
 			
@@ -449,25 +406,13 @@ class QuickBooks_XML_Parser
 				
 				if ($pop != $tag)
 				{
-					$errnum = QuickBooks_XML::ERROR_MISMATCH;
+					$errnum = QUICKBOOKS_XML_ERROR_MISMATCH;
 					$errmsg = 'Mismatched tags, found: ' . $tag . ', expected: ' . $pop;
-					
+
 					return false;
 				}
 				
 				$data = substr($raw, $pos, $current + $opentag_start - $pos);
-				
-				// Handle <![CDATA[ ... ]]> sections
-				if (substr($data, 0, 9) == '<![CDATA[')
-				{
-					$cdata_end = strpos($data, ']]>');
-					
-					// Set the data to the CDATA section...
-					$data = QuickBooks_XML::encode(substr($data, 9, $cdata_end - 9));
-					
-					// ... and remove the CDATA from the remaining XML string
-					//$current = $current + strlen($data) + 12; 
-				}
 				
 				if (count($vstack))
 				{
@@ -483,26 +428,22 @@ class QuickBooks_XML_Parser
 				array_unshift($vstack, array( $tag, $tag_w_attrs, $current + $opentag_end + 1 ) );
 				array_unshift($dstack, array( $tag, $tag_w_attrs, $current + $opentag_end + 1 ) );
 			}
-			
-			//print('stacks' . "\n");
-			//print_r($vstack);
-			//print_r($dstack);
-			
+
 			$xml = substr($xml, $opentag_end + 1);
-			
+
 			$current = $current + $opentag_end + 1;
 		}
 
 		if (strlen($xml))
 		{
-			$errnum = QuickBooks_XML::ERROR_GARBAGE;
+			$errnum = QUICKBOOKS_XML_ERROR_GARBAGE;
 			$errmsg = 'Found this garbage data at end of stream: ' . $xml;
 			return false;
 		}
 
 		if (count($vstack))
 		{
-			$errnum = QuickBooks_XML::ERROR_DANGLING;
+			$errnum = QUICKBOOKS_XML_ERROR_DANGLING;
 			$errmsg = 'XML stack still contains this after parsing: ' . var_export($vstack, true);
 			return false;
 		}
@@ -567,23 +508,103 @@ class QuickBooks_XML_Parser
 		return $Root;
 	}
 	
+	/**
+	 * Extract the attributes from a tag container
+	 * 
+	 * @param string $tag_w_attributes
+	 * @param string $tag
+	 * @param array $attributes
+	 * @return void
+	 */
 	protected function _extractAttributes($tag_w_attrs, &$tag, &$attributes)
 	{
-		$tag = '';
-		$attributes = array();
+		$tag_w_attrs = trim($tag_w_attrs);
 		
-		$tmp = QuickBooks_XML::extractTagAttributes($tag_w_attrs, true);
-		
-		$tag = array_shift($tmp);
-		$attributes = $tmp;
-		
-		/*
-		print('extracting attributes from: {{' . $tag_w_attrs . '}}' . "\n");
-		print('	tag: [[' . $tag . ']]' . "\n");
-		print('	attrs: ' . print_r($attributes, true) . "\n");
-		print("\n");
-		*/
-		
-		return true;
+		/*if (substr($tag_w_attrs, -1, 1) == '/')		// condensed empty tag
+		{
+			$tag = trim($tag_w_attrs, '/ ');
+			$attributes = array();
+		}
+		else*/ 
+		if (false !== strpos($tag_w_attrs, ' '))
+		{
+			$tmp = explode(' ', $tag_w_attrs);
+			$tag = trim(array_shift($tmp));
+			
+			$attributes = array();
+			
+			$attrs = trim(implode(' ', $tmp));
+			$length = strlen($attrs);
+			
+			$key = '';
+			$value = '';
+			$in_key = true;
+			$in_value = false;
+			$expect_key = false;
+			$expect_value = false;
+			
+			for ($i = 0; $i < $length; $i++)
+			{
+				if ($attrs{$i} == '=')
+				{
+					$in_key = false;
+					$in_value = false;
+					$expect_value = true;
+				}
+				/*
+				else if ($attrs{$i} == '"' and $expect_value)
+				{
+					$in_value = true;
+					$expect_value = false;
+				}
+				*/
+				/*else if ($attrs{$i} == '"' and $in_value)*/
+				else if (($attrs{$i} == '"' or $attrs{$i} == '\'') and $expect_value)
+				{
+					$in_value = true;
+					$expect_value = false;
+				}
+				else if (($attrs{$i} == '"' or $attrs{$i} == '\'') and $in_value)
+				{
+					$attributes[$key] = $value;
+					
+					$key = '';
+					$value = '';
+					
+					$in_value = false;
+					$expect_key = true;
+				}
+				else if ($attrs{$i} == ' ' and $expect_key)
+				{
+					$expect_key = false;
+					$in_key = true;
+				}
+				else if ($in_key)
+				{
+					$key .= $attrs{$i};
+				}
+				else if ($in_value)
+				{
+					$value .= $attrs{$i};
+				}
+			}
+			
+			/*
+			foreach ($tmp as $attribute)
+			{
+				if (false !== ($pos = strpos($attribute, '=')))
+				{
+					$key = trim(substr($attribute, 0, $pos));
+					$value = trim(substr($attribute, $pos + 1), '"');
+					
+					$attributes[$key] = $value;
+				}
+			}*/
+		}
+		else
+		{
+			$tag = $tag_w_attrs;
+			$attributes = array();
+		}
 	}
 }

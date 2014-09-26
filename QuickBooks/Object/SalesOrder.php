@@ -13,17 +13,22 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object/Generic.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object/SalesOrder/SalesOrderLine.php');
+require_once 'QuickBooks/Object/Generic.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Object/SalesOrder/SalesOrderLine.php';
 
 /**
  * 
@@ -743,12 +748,10 @@ class QuickBooks_Object_SalesOrder extends QuickBooks_Object
 		return parent::asList($request);
 	}
 	
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
-		if (is_null($object))
-		{
-			$object = $this->_object;
-		}
+		//print('INVOICE got called asXML: ' . $root . ', ' . $parent . "\n");
+		//exit;
 		
 		switch ($root)
 		{
@@ -759,23 +762,23 @@ class QuickBooks_Object_SalesOrder extends QuickBooks_Object
 				//	$this->_object['InvoiceLineAdd'] = $this->_object['InvoiceLine'];
 				//}
 				
-				foreach ($object['InvoiceLineAdd'] as $key => $obj)
+				foreach ($this->_object['InvoiceLineAdd'] as $key => $obj)
 				{
 					$obj->setOverride('InvoiceLineAdd');
 				}
 				
 				break;
 			case QUICKBOOKS_MOD_INVOICE:
-				if (isset($object['InvoiceLine']))
+				if (isset($this->_object['InvoiceLine']))
 				{
-					$object['InvoiceLineMod'] = $object['InvoiceLine'];
+					$this->_object['InvoiceLineMod'] = $this->_object['InvoiceLine'];
 				}
 				break;
 		}
 		
 		//print_r($this->_object);
 		
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root, $parent);
 	}
 	
 	/**
@@ -813,3 +816,5 @@ class QuickBooks_Object_SalesOrder extends QuickBooks_Object
 		return QUICKBOOKS_OBJECT_SALESORDER;
 	}
 }
+
+?>

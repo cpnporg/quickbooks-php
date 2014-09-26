@@ -11,25 +11,8 @@
  * @package QuickBooks
  */
 
-/**
- * 
- */
-QuickBooks_Loader::load('/QuickBooks/Encryption/Factory.php');
-
-/**
- * 
- * 
- */
-abstract class QuickBooks_Encryption
+class QuickBooks_Encryption
 {
-	/**
-	 * 
-	 * 
-	 * 
-	 */
-	public function prefix($str)
-	{
-		return '{' . strlen(get_class($this)) . ':' . strtolower(get_class($this)) . '}' . $str;
-	}
+	
 }
 

@@ -14,14 +14,18 @@
 // Include path modifications (relative paths within library)
 ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . dirname(__FILE__) . '/../');
 
+/**
+ * 
+ */
+require_once 'QuickBooks.php';
 
-QuickBooks_Loader::load('/QuickBooks/Request.php');
+require_once 'QuickBooks/Request.php';
 
-QuickBooks_Loader::load('/QuickBooks/Request/Authenticate.php');
+require_once 'QuickBooks/Request/Authenticate.php';
 
-QuickBooks_Loader::load('/QuickBooks/Request/SendRequestXML.php');
+require_once 'QuickBooks/Request/SendRequestXML.php';
 
-QuickBooks_Loader::load('/QuickBooks/Request/ReceiveResponseXML.php');
+require_once 'QuickBooks/Request/ReceiveResponseXML.php';
 
 /**
  * 
@@ -46,10 +50,10 @@ class QuickBooks_Client
 	{
 		$adapter = ucfirst(strtolower($adapter));
 		
-		$file = '/QuickBooks/Adapter/Client/' . $adapter . '.php';
+		$file = 'QuickBooks/Adapter/Client/' . $adapter . '.php';
 		$class = 'QuickBooks_Adapter_Client_' . $adapter;
 		
-		QuickBooks_Loader::load($file);
+		require_once $file;
 		
 		if (class_exists($class))
 		{

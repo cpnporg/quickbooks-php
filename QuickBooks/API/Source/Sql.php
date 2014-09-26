@@ -14,12 +14,12 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/API/Source.php');
+require_once 'QuickBooks/API/Source.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/SQL.php');
+require_once 'QuickBooks/SQL.php';
 
 /**
  * 

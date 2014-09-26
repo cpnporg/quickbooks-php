@@ -78,13 +78,8 @@ class QuickBooks_MerchantService_CreditCard
 		return $this->_name;
 	}
 	
-	public function getNumber($mask = false)
+	public function getNumber()
 	{
-		if ($mask)
-		{
-			return str_repeat('x', strlen($this->_number) - 4) . substr($this->_number, -4, 4);
-		}
-		
 		return $this->_number;
 	}
 	

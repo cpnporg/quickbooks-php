@@ -1,8 +1,8 @@
 <?php
 
-QuickBooks_Loader::load('/QuickBooks/Frontend/Module.php');
+require_once 'QuickBooks/Frontend/Module.php';
 
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks/Utilities.php';
 
 class QuickBooks_Frontend_Module_Ident extends QuickBooks_Frontend_Module
 {

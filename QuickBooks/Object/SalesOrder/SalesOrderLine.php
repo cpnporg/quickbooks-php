@@ -12,12 +12,17 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object/SalesOrder.php');
+require_once 'QuickBooks/Object.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Object/SalesOrder.php';
 
 /**
  * 
@@ -280,28 +285,21 @@ class QuickBooks_Object_SalesOrder_SalesOrderLine extends QuickBooks_Object
 		return parent::asArray($request, $nest);
 	}
 	
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
 		$this->_cleanup();
-		
-		if (is_null($object))
-		{
-			$this->_object = $object;
-		}
 		
 		switch ($parent)
 		{
 			case QUICKBOOKS_ADD_INVOICE:
 				$root = 'InvoiceLineAdd';
-				$parent = null;
 				break;
 			case QUICKBOOKS_MOD_INVOICE:
 				$root = 'InvoiceLineMod';
-				$parent = null;
 				break;
 		}
 		
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root);
 	}
 	
 	/**
@@ -329,3 +327,5 @@ class QuickBooks_Object_SalesOrder_SalesOrderLine extends QuickBooks_Object
 		return 'InvoiceLine';
 	}
 }
+
+?>

@@ -15,14 +15,19 @@
  */
 
 /**
+ * QuickBooks base constants
+ */
+require_once 'QuickBooks.php';
+
+/**
  * Generic utility methods
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks/Utilities.php';
 
 /**
  * API source base class
  */
-QuickBooks_Loader::load('/QuickBooks/API/Source.php');
+require_once 'QuickBooks/API/Source.php';
 
 /**
  * QuickBooks Online Edition API source
@@ -66,16 +71,8 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 	protected $_ticket_session = '';
 	protected $_ticket_connection = '';
 	
-	protected $_ticket_framework;
-	
 	protected $_last_request;
 	protected $_last_response;	
-	
-	protected $_errnum;
-	protected $_errmsg;
-	
-	protected $_qbxml_version;
-	protected $_qbxml_locale;
 	
 	/**
 	 * Whether or not to enable masking of sensitive data in logging messages (credit card numbers, etc.)
@@ -92,8 +89,6 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 		$this->_driver = $driver_obj;
 		$this->_user = $user;
 		
-		$this->_ticket_framework = '';
-		
 		$this->_config = $this->_defaults($options);
 		
 		$this->_masking = true;
@@ -109,44 +104,24 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 		
 		if ($this->_config['connection_ticket'])
 		{
-			// If this info was specified in config, use it
 			$this->_ticket_connection = $this->_config['connection_ticket'];
-
-			$this->_certificate = $this->_config['certificate'];
-			$this->_application_login = $this->_config['application_login'];
-			$this->_application_id = $this->_config['application_id'];
-		}
-		else
-		{
-			// Otherwise, try to load it from connection table
-			
-			$connection = $this->_driver->connectionLoad($user);
-			
-			$this->_ticket_connection = $connection['connection_ticket'];
-			$this->_certificate = $connection['certificate'];
-			$this->_application_login = $connection['application_login'];
-			$this->_application_id = $connection['application_id'];
 		}
 		
-		// Manual overrides... 
 		if ($this->_config['override_session_ticket'])
 		{
 			$this->_ticket_session = $this->_config['override_session_ticket'];
 		} 
-			
+		
 		if ($this->_config['override_connection_ticket'])
 		{
 			$this->_ticket_connection = $this->_config['override_connection_ticket'];
 		}
-				
-		$this->_errnum = 0;
-		$this->_errmsg = '';
+		
+		$this->_certificate = $this->_config['certificate'];
+		$this->_application_login = $this->_config['application_login'];
+		$this->_application_id = $this->_config['application_id'];
 		
 		$this->_log('Initialized the QBOE API source...', QUICKBOOKS_LOG_DEVELOP);
-		
-		// Set the version and locale
-		$this->_qbXMLLocale($this->_config['qbxml_locale']);
-		$this->_qbXMLVersion($this->_config['qbxml_version']);
 	}
 	
 	/**
@@ -159,10 +134,8 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 	{
 		$defaults = array(
 			'qbxml_version' => '6.0', 
-			'qbxml_locale' => QUICKBOOKS_LOCALE_OE, 
 			'qbxml_onerror' => 'stopOnError', 
 			'always_use_iterator' => false, 
-			'connection_ticket' => null, 
 			'override_connection_ticket' => null, 
 			'override_session_ticket' => null, 
 			'application_login' => null, 
@@ -189,6 +162,35 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 		$this->_log('Using LIVE gateway: ' . $this->_live_gateway, QUICKBOOKS_LOG_DEVELOP);
 		return $this->_live_gateway;
 	}	
+
+	/**
+	 * 
+	 * 
+	 * 
+	 * @param string $message
+	 * @param integer $level
+	 * @return boolean
+	 */
+	protected function _log($message, $level = QUICKBOOKS_LOG_NORMAL)
+	{
+		if ($this->_masking)
+		{
+			// Mask credit card numbers, session tickets, and connection tickets
+			$message = QuickBooks_Utilities::mask($message);
+		}
+		
+		if ($this->_debug)
+		{
+			print($message . QUICKBOOKS_CRLF);
+		}
+		
+		if ($this->_driver)
+		{
+			$this->_driver->log($message, $this->_ticket_session, $level);
+		}
+		
+		return true;
+	}
 	
 	/**
 	 * 
@@ -198,7 +200,7 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 	 * @param string $onerror
 	 * @return string
 	 */
-	protected function _makeValidQBXML($xml, $version = '{$version}', $locale = '{$locale}', $onerror = '{$onerror}')
+	protected function _makeValidQBXML($xml, $version = '{$version}', $onerror = '{$onerror}')
 	{
 		$pre = '';
 		$pre .= '<?xml version="1.0" ?>' . QUICKBOOKS_CRLF;
@@ -240,18 +242,6 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 		if ($cticket)
 		{
 			$this->_ticket_connection = $cticket;
-		}
-		
-		return $current;
-	}
-	
-	protected function _frameworkTicket($lticket)
-	{
-		$current = $this->_ticket_framework;
-		
-		if ($lticket)
-		{
-			$this->_ticket_framework = $lticket;
 		}
 		
 		return $current;
@@ -314,30 +304,6 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 		return $current;
 	}
 	
-	protected function _qbXMLVersion($version = null)
-	{
-		$current = $this->_qbxml_version;
-		
-		if ($version)
-		{
-			$this->_qbxml_version = $version;
-		}
-		
-		return $current;
-	}
-	
-	protected function _qbXMLLocale($locale = null)
-	{
-		$current = $this->_qbxml_locale;
-		
-		if ($locale)
-		{
-			$this->_qbxml_locale = $locale;
-		}
-		
-		return $current;
-	}
-	
 	/**
 	 * 
 	 *
@@ -388,13 +354,6 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 		
 		$response = $this->_request($xml, $errnum, $errmsg);
 		
-		// If we didn't get a response back, something is seriously wrong... 
-		if (strlen($response) == 0)
-		{
-			$this->_setError(QUICKBOOKS_API_ERROR_INTERNAL, 'Received an empty response from source...?');
-			return false;
-		}
-		
 		if ($errnum)
 		{
 			$this->_setError(QUICKBOOKS_API_ERROR_SOCKET, $errnum . ': ' . $errmsg);
@@ -414,29 +373,6 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 		{
 			$this->_ticket_session = $ticket;
 			
-			if ($this->_driver)
-			{
-				$company_file = null;
-				$wait_before_next_update = null;
-				$min_run_every_n_seconds = null;
-				
-				// This forces the login even if there's no user in the quickbooks_user table
-				//	We want to do this so we can do further queue and log operations 
-				//	for logging purposes. 
-				$override = true;
-				
-				$fticket = $this->_driver->authLogin(
-					$this->_user, 
-					'', 
-					$company_file, 
-					$wait_before_next_update, 
-					$min_run_every_n_seconds, 
-					$override); 		// Force it to login successfully and create us a ticket
-					
-				// Use that as the logging ticket	
-				$this->frameworkTicket($fticket);
-			}
-			
 			return true;
 		}
 		
@@ -444,21 +380,47 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 		
 		return false;
 	}
-	
+
 	protected function _extractTagContents($tag, $data)
 	{
-		return QuickBooks_XML::extractTagContents($tag, $data);
+		// SessionTicket
+		if (false !== strpos($data, '<' . $tag . '>') and 
+			false !== strpos($data, '</' . $tag . '>'))
+		{
+			$data = strstr($data, '<' . $tag . '>');
+			$end = strpos($data, '</' . $tag . '>');
+			
+			return substr($data, strlen($tag) + 2, $end - (strlen($tag) + 2));
+		}
+		
+		return null;
 	}
 	
 	protected function _extractAttribute($attr, $data, $which = 0)
 	{
-		return QuickBooks_XML::extractTagAttribute($attr, $data, $which);
+		if ($which == 1)
+		{
+			$spos = strpos($data, $attr . '="');
+			$data = substr($data, $spos + strlen($attr));
+		}
+		
+		if (false !== ($spos = strpos($data, $attr . '="')) and 
+			false !== ($epos = strpos($data, '"', $spos + strlen($attr) + 2)))
+		{
+			//print('start: ' . $spos . "\n");
+			//print('end: ' . $epos . "\n");
+			
+			return substr($data, $spos + strlen($attr) + 2, $epos - $spos - strlen($attr) - 2);
+		}
+		
+		return '';
 	}
 	
 	/**
-	 * Tell whether or not the user is signed on (has a valid session ticket)
 	 * 
-	 * @return boolean
+	 * 
+	 * 
+	 * 
 	 */
 	protected function _isSignedOn()
 	{
@@ -466,10 +428,8 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 	}
 	
 	/**
-	 * Set whether or not to use the test environment
+	 *  
 	 * 
-	 * @param boolean $yes_or_no		TRUE to use the test environment, FALSE to use the live one
-	 * @return void
 	 */
 	public function useTestEnvironment($yes_or_no)
 	{
@@ -477,10 +437,8 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 	}
 	
 	/**
-	 * Set whether or not to use the live environment
 	 * 
-	 * @param boolean $yes_or_no
-	 * @return void
+	 * 
 	 */
 	public function useLiveEnvironment($yes_or_no)
 	{
@@ -502,8 +460,17 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 	}	
 	
 	/**
-	 * Handle an object (the Online Edition driver *does not* handle objects! This always returns FALSE!)
 	 * 
+	 * 
+	 * @param string $method
+	 * @param string $action
+	 * @param string $type
+	 * @param QuickBooks_Object $object
+	 * @param array $callbacks
+	 * @param integer $webapp_ID
+	 * @param integer $priority
+	 * @param string $err
+	 * @param integer $recur
 	 * @return boolean
 	 */
 	public function handleObject($method, $action, $type, $object, $callbacks, $webapp_ID, $priority, &$err, $recur = null)
@@ -512,9 +479,8 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 	}
 	
 	/**
-	 * Handle an array (the Online Edition driver *does not* handle arrays! This always returns FALSE!)
 	 * 
-	 * @return boolean
+	 * 
 	 */
 	public function handleArray($method, $action, $type, $array, $callbacks, $webapp_ID, $priority, &$err, $recur = null)
 	{
@@ -561,11 +527,7 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 		// The qbXML requests that get passed to this function are without the 
 		//	typical qbXML wrapper info, so we need to modify them to make them 
 		// 	into complete, valid requests. 
-		//$qbxml = $this->_makeValidQBXML($qbxml, $this->_config['qbxml_version'], $this->_config['qbxml_onerror']);
-		$qbxml = $this->_makeValidQBXML($qbxml, $this->_qbXMLVersion(), $this->_qbXMLLocale(), $this->_config['qbxml_onerror']);
-		
-		// Map any application identifiers
-		$qbxml = QuickBooks_Callbacks_API_Callbacks::mappings($qbxml, $this->_user);
+		$qbxml = $this->_makeValidQBXML($qbxml, $this->_config['qbxml_version'], $this->_config['qbxml_onerror']);
 		
 		//$requestID = null;
 		$extra = array(
@@ -575,46 +537,14 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 		$last_actionident_time = null;
 		$qb_identifiers = array();
 		
-		if ($this->_driver)
-		{
-			// Stuff this into the queue (just for good record-keeping)...
-			$this->_driver->queueEnqueue($this->_user, $action, $uniqueid, true, $priority, $extra, $qbxml);
-			
-			// ... and mark it as being processed
-			$this->_driver->queueStatus(
-				$this->frameworkTicket(), 
-				$action, 
-				$uniqueid, 
-				QUICKBOOKS_STATUS_PROCESSING);
-		}
-		
 		// Send the request to QuickBooks Online Edition
 		$response = $this->_request($qbxml);
 		
 		// Try to map the response to QuickBooks objects
 		$map = array(
-			QUICKBOOKS_QUERY_ACCOUNT => array( '', 'QuickBooks_Callbacks_API_Callbacks::AccountQueryResponse' ), 
-			
 			QUICKBOOKS_ADD_CUSTOMER => array( '', 'QuickBooks_Callbacks_API_Callbacks::CustomerAddResponse' ), 
 			QUICKBOOKS_MOD_CUSTOMER => array( '', 'QuickBooks_Callbacks_API_Callbacks::CustomerModResponse' ), 
-			QUICKBOOKS_QUERY_CUSTOMER => array( '', 'QuickBooks_Callbacks_API_Callbacks::CustomerQueryResponse' ),
-
-			QUICKBOOKS_QUERY_CLASS => array( '', 'QuickBooks_Callbacks_API_Callbacks::ClassQueryResponse' ), 
-
-			QUICKBOOKS_QUERY_CUSTOMERTYPE => array( '', 'QuickBooks_Callbacks_API_Callbacks::CustomerTypeQueryResponse' ), 
-
-			QUICKBOOKS_QUERY_ITEM => array( '', 'QuickBooks_Callbacks_API_Callbacks::ItemQueryResponse' ), 
-			
-			QUICKBOOKS_QUERY_PAYMENTMETHOD => array( '', 'QuickBooks_Callbacks_API_Callbacks::PaymentMethodQueryResponse' ), 
-			
-			QUICKBOOKS_QUERY_SALESTAXCODE => array( '', 'QuickBooks_Callbacks_API_Callbacks::SalesTaxCodeQueryResponse' ), 
-			
-			QUICKBOOKS_QUERY_SALESTAXITEM => array( '', 'QuickBooks_Callbacks_API_Callbacks::ItemSalesTaxQueryResponse' ), 
-			
-			QUICKBOOKS_QUERY_SHIPMETHOD => array( '', 'QuickBooks_Callbacks_API_Callbacks::ShipMethodQueryResponse' ), 
-			
-			QUICKBOOKS_QUERY_UNITOFMEASURESET => array( '', 'QuickBooks_Callbacks_API_Callbacks::UnitOfMeasureSetQueryResponse' ), 
-			
+			QUICKBOOKS_QUERY_CUSTOMER => array( '', 'QuickBooks_Callbacks_API_Callbacks::CustomerQueryResponse' ), 
 			'*' => array( '', 'QuickBooks_Callbacks_API_Callbacks::RawQBXMLResponse' ), 
 			);
 		
@@ -622,66 +552,6 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 		//print('CALL THIS: QuickBooks_Server_API_Callbacks::' . $action . 'Response');
 		//print($response);
 		
-		// Parse the response and check for errors so we can update the queue
-		
-		// First, check for protocol level errors (bad login, bad session ticket, etc.)
-		$code = $this->_extractAttribute('statusCode', $response, 0);
-		$message = $this->_extractAttribute('statusMessage', $response, 0);
-		
-		if ($code != QUICKBOOKS_API_ERROR_OK)
-		{
-			if ($this->_driver)
-			{
-				$this->_driver->queueStatus(
-					$this->frameworkTicket(), 
-					$action, 
-					$uniqueid, 
-					QUICKBOOKS_STATUS_ERROR, 
-					$code . ': ' . $message);
-			}
-			
-			$this->_setError($code, $message);
-			
-			// @todo Error handlers for the API classes
-			return false;
-		}
-		
-		// Now, check for other errors (customer already exists, you forgot some tag, etc.)		
-		// First, check for protocol level errors (bad login, bad session ticket, etc.)
-		$code = $this->_extractAttribute('statusCode', $response, 1);
-		$message = $this->_extractAttribute('statusMessage', $response);		// This is left at 0 because if we got this far, then there was no statusMessage for the previous check
-		
-		if ($code == QUICKBOOKS_API_ERROR_OK)
-		{
-			if ($this->_driver)
-			{
-				$this->_driver->queueStatus(
-					$this->frameworkTicket(), 
-					$action, 
-					$uniqueid, 
-					QUICKBOOKS_STATUS_SUCCESS);
-			}			
-		}
-		else
-		{
-			if ($this->_driver)
-			{
-				$this->_driver->queueStatus(
-					$this->frameworkTicket(), 
-					$action, 
-					$uniqueid, 
-					QUICKBOOKS_STATUS_ERROR, 
-					$code . ': ' . $message);
-			}
-			
-			$this->_setError($code, $message);
-			
-			// @todo Error handlers for the API classes
-			//return false;
-		}
-		
-		// Call the response handler  
-		// @todo What if an error occurs? Are we still calling the handler?
 		return QuickBooks_Callbacks::callResponseHandler($this->_driver, $map, $action, $this->_user, $action, $uniqueid, $extra, $err, $last_action_time, $last_actionident_time, $response, $qb_identifiers);
 		
 		//exit;
@@ -700,8 +570,6 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 	/**
 	 * Send an XML request to QuickBooks Online Edition
 	 * 
-	 * @todo Documentation
-	 * 
 	 * This function will auto-detect if CURL is enabled, and if so, use CURL. 
 	 * Otherwise, it will fall back to using fsockopen(). 
 	 * 
@@ -710,56 +578,97 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 	 */
 	protected function _request($qbxml)
 	{
-		$HTTP = new QuickBooks_HTTP($this->_gateway());
-		
-		$headers = array(
-			'Content-Type' => 'application/x-qbxml',
-			);
-		$HTTP->setHeaders($headers);
-		
-		// Turn on debugging for the HTTP object if it's been enabled in the payment processor
-		$HTTP->useDebugMode($this->_debug);
-		
-		// 
-		$HTTP->setRawBody($qbxml);
-		
-		$this->_last_request = $qbxml;
-		
-		$HTTP->verifyHost(false);
-		$HTTP->verifyPeer(false);
-		
-		if ($this->_certificate)
+		if (function_exists('curl_init'))
 		{
-			$HTTP->setCertificate($this->_certificate);
+			return $this->_requestCurl($qbxml);
+		}
+		else
+		{
+			return $this->_requestFsockopen($qbxml);
+		}
+	}
+	
+	/**
+	 * Send a request to QuickBooks Online Edition using the CURL PHP module
+	 * 
+	 * @param string $xml
+	 * @return string
+	 */
+	protected function _requestCurl($xml)
+	{
+		$ch = curl_init(); 
+	
+		$header[] = 'Content-Type: application/x-qbxml'; 
+		$header[] = 'Content-Length: ' . strlen($xml); 
+		
+		//$this->_certificate = '/Users/kpalmer/Projects/QuickBooks/QuickBooks/dev/test_qboe.pem';
+		
+		$params = array();
+		$params[CURLOPT_HTTPHEADER] = $header; 
+		$params[CURLOPT_POST] = true; 
+		$params[CURLOPT_RETURNTRANSFER] = true; 
+		$params[CURLOPT_URL] = $this->_gateway(); 
+		$params[CURLOPT_TIMEOUT] = 30; 
+		$params[CURLOPT_POSTFIELDS] = $xml; 
+		$params[CURLOPT_VERBOSE] = $this->_debug; 
+		$params[CURLOPT_HEADER] = true;
+		
+		if (file_exists($this->_certificate))
+		{
+			$params[CURLOPT_SSL_VERIFYPEER] = false; 
+			$params[CURLOPT_SSLCERT] = $this->_certificate; 
 		}
 		
-		$return = $HTTP->POST();
+		// Some Windows servers will fail with SSL errors unless we turn this off
+		$params[CURLOPT_SSL_VERIFYPEER] = false;
+		$params[CURLOPT_SSL_VERIFYHOST] = 0;		
 		
-		$this->_last_response = $return;
+		// Diagnostic information: https://merchantaccount.quickbooks.com/j/diag/http
+		// curl_setopt($ch, CURLOPT_INTERFACE, '<myipaddress>');
 		
-		// 
-		$this->_log($HTTP->getLog(), QUICKBOOKS_LOG_DEBUG);
+		$ch = curl_init();
+		curl_setopt_array($ch, $params);
+		$response = curl_exec($ch);
 		
-		$errnum = $HTTP->errorNumber();
-		$errmsg = $HTTP->errorMessage();
+		$this->_log('CURL options: ' . print_r($params, true), QUICKBOOKS_LOG_DEBUG);
 		
-		if ($errnum)
+		// @todo Strip credit card numbers from logged XML... (or should this be within the _log() method?)
+		
+		$this->_setLastRequest($xml);
+		$this->_log('Outgoing QBOE request: ' . $xml, QUICKBOOKS_LOG_DEBUG);	// Set as DEBUG so that no one accidentally logs all the credit card numbers...
+		
+		$this->_setLastResponse($response);
+		$this->_log('Incoming QBOE response: ' . $response, QUICKBOOKS_LOG_VERBOSE);
+		
+		if (curl_errno($ch)) 
 		{
-			// An error occurred!
-			$this->_setError(QUICKBOOKS_API_ERROR_HTTP, $errnum . ': ' . $errmsg);
+			$errnum = curl_errno($ch);
+			$errmsg = curl_error($ch);
+			
+			$this->_log('CURL error: ' . $errnum . ': ' . $errmsg, QUICKBOOKS_LOG_NORMAL);
+			
 			return false;
-		}
+		} 
 		
-		// Everything is good, return the data!
-		$this->_setError(QUICKBOOKS_API_ERROR_OK, '');
-		return $return;
+		// Close the connection 
+		@curl_close($ch);
 		
+		// Remove the HTTP headers from the response
+		$pos = strpos($response, "\r\n\r\n");
+		$response = ltrim(substr($response, $pos));
+		
+		return $response;		
 	}
 	
 	/**
 	 * 
 	 * 
 	 */
+	protected function _requestFsockopen()
+	{
+		$this->_log('FSOCKOPEN support is not yet implemented (install the PHP CURL extension).', QUICKBOOKS_LOG_NORMAL);
+	}
+	
 	public function  handleSQL($method, $action, $type, $sql, $callbacks, $webapp_ID, $priority, &$err, $recur = null)
 	{
 		return false;
@@ -840,10 +749,6 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 			QUICKBOOKS_MOD_OTHERCHARGEITEM, 
 			QUICKBOOKS_QUERY_OTHERCHARGEITEM, 
 			  
-			QUICKBOOKS_ADD_SALESTAXCODE, 
-			//QUICKBOOKS_MOD_SALESTAXCODE, 
-			QUICKBOOKS_QUERY_SALESTAXCODE, 
-			
 			QUICKBOOKS_ADD_SALESTAXITEM, 
 			QUICKBOOKS_MOD_SALESTAXITEM, 
 			QUICKBOOKS_QUERY_SALESTAXITEM,
@@ -854,10 +759,6 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 			
 			QUICKBOOKS_ADD_SHIPMETHOD, 
 			QUICKBOOKS_QUERY_SHIPMETHOD, 						
-			
-			//QUICKBOOKS_ADD_UNITOFMEASURESET, 
-			//QUICKBOOKS_MOD_UNITOFMEASURESET, 
-			//QUICKBOOKS_QUERY_UNITOFMEASURESET,
 			
 			QUICKBOOKS_ADD_VENDOR, 
 			QUICKBOOKS_MOD_VENDOR, 
@@ -945,3 +846,5 @@ class QuickBooks_API_Source_OE extends QuickBooks_API_Source
 		return false;
 	}
 }
+
+?>

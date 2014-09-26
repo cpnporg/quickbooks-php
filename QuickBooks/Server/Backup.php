@@ -14,10 +14,16 @@ define('QUICKBOOKS_SERVER_BACKUP_MODE_QBXMLRESPONSE', 'qbxml-response');
 define('QUICKBOOKS_SERVER_BACKUP_MODE_QBXMLREQUEST', 'qbxml-request');
 define('QUICKBOOKS_SERVER_BACKUP_MODE_QBXMLRAW', 'raw');
 
+
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Server.php');
+require_once 'QuickBooks.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Server.php';
 
 /**
  * 

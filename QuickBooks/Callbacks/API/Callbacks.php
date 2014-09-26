@@ -10,28 +10,30 @@
  * @subpackage Callbacks
  */
 
-// Only for testing
-//require_once '../../../QuickBooks.php';
+/** 
+ * QuickBooks base constants
+ */
+require_once 'QuickBooks.php';
 
 /**
  * QuickBooks utility methods
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks/Utilities.php';
 
 /**
  * QuickBooks XML parser class 
  */
-QuickBooks_Loader::load('/QuickBooks/XML/Parser.php');
+require_once 'QuickBooks/XML/Parser.php';
 
 /**
  * QuickBooks object instance classes
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Callbacks.php');
+require_once 'QuickBooks/Callbacks.php';
 
 /**
  * Static callback methods for the API classes
@@ -139,7 +141,7 @@ class QuickBooks_Callbacks_API_Callbacks
 	 * @param string $ListID_or_TxnID		The ListID or TxnID of the object within QuickBooks
 	 * @return string						The application record primary key
 	 */
-	static protected function _mapToApplicationID($func, $user, $type, $ListID_or_TxnID)
+	protected function _mapToApplicationID($func, $user, $type, $ListID_or_TxnID)
 	{
 		if (strlen($func))
 		{
@@ -170,7 +172,7 @@ class QuickBooks_Callbacks_API_Callbacks
 	 * @param mixed $ID			The application primary key
 	 * @return string			The QuickBooks EditSequence string
 	 */
-	static protected function _mapToEditSequence($func, $user, $type, $ID)
+	protected function _mapToEditSequence($func, $user, $type, $ID)
 	{
 		if (strlen($func))
 		{
@@ -198,27 +200,13 @@ class QuickBooks_Callbacks_API_Callbacks
 	}
 	
 	/**
-	 * 	 * @TODO THIS NEEDS SOME SERIOUS CLEANUP
-	 */	
-	public static function mappings($xml, $user, $config = array())
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_mappings($xml, $user, $config);
-	}
-	
-	/**
 	 * 
-	 * @TODO THIS NEEDS SOME SERIOUS CLEANUP
 	 * 
 	 * @param string $xml
 	 * @return string
 	 */
 	protected static function _mappings($xml, $user, $config)
 	{
-		if (empty($config['map_to_quickbooks_handler']))
-		{
-			$config['map_to_quickbooks_handler'] = null;
-		}
-		
 		//$EditSequence = '';
 		//$first = true;
 		
@@ -445,7 +433,7 @@ class QuickBooks_Callbacks_API_Callbacks
 	 * @param array $idents
 	 * @return boolean
 	 */
-	public static function _doQueryResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents, $callback_options = array())
+	protected static function _doQueryResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents, $callback_options = array())
 	{
 		// This is stuff we'll be passing to the callback handler functions/methods
 		// $action
@@ -749,46 +737,6 @@ class QuickBooks_Callbacks_API_Callbacks
 		return QuickBooks_Callbacks_API_Callbacks::_doAddResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
 	}
 
-	public static function BillAddRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array(), $qbxml = null)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doAddRequest($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config, $qbxml);
-	}
-	
-	public static function BillAddResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doAddResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
-	}
-
-	public static function BillPaymentCheckAddRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array(), $qbxml = null)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doAddRequest($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config, $qbxml);
-	}
-	
-	public static function BillPaymentCheckAddResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doAddResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
-	}
-
-	public static function CheckAddRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array(), $qbxml = null)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doAddRequest($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config, $qbxml);
-	}
-	
-	public static function CheckAddResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doAddResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
-	}
-
-	public static function DepositAddRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array(), $qbxml = null)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doAddRequest($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config, $qbxml);
-	}
-	
-	public static function DepositAddResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doAddResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
-	}
-
 	public static function JournalEntryAddRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array(), $qbxml = null)
 	{
 		return QuickBooks_Callbacks_API_Callbacks::_doAddRequest($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config, $qbxml);
@@ -856,16 +804,6 @@ class QuickBooks_Callbacks_API_Callbacks
 	}
 	
 	public static function ItemServiceAddResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doAddResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
-	}
-
-	public static function ItemSalesTaxAddRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array(), $qbxml = null)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doAddRequest($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config, $qbxml);
-	}
-	
-	public static function ItemSalesTaxAddResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents)
 	{
 		return QuickBooks_Callbacks_API_Callbacks::_doAddResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
 	}
@@ -1211,36 +1149,6 @@ class QuickBooks_Callbacks_API_Callbacks
 		return QuickBooks_Callbacks_API_Callbacks::_doQueryResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
 	}
 	
-	public static function ItemSalesTaxQueryRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array(), $qbxml = null)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doQueryRequest($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config, $qbxml);
-	}
-	
-	public static function ItemSalesTaxQueryResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doQueryResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
-	}
-	
-	public static function ItemSalesTaxGroupQueryRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array(), $qbxml = null)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doQueryRequest($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config, $qbxml);
-	}
-	
-	public static function ItemSalesTaxGroupQueryResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doQueryResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
-	}
-
-	public static function SalesTaxCodeQueryRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array(), $qbxml = null)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doQueryRequest($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config, $qbxml);
-	}
-	
-	public static function SalesTaxCodeQueryResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doQueryResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
-	}
-
 	public static function ItemInventoryQueryRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array(), $qbxml = null)
 	{
 		return QuickBooks_Callbacks_API_Callbacks::_doQueryRequest($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config, $qbxml);
@@ -1343,16 +1251,7 @@ class QuickBooks_Callbacks_API_Callbacks
 		return QuickBooks_Callbacks_API_Callbacks::_doQueryResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
 	}
 	
-
-	public static function UnitOfMeasureSetQueryRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array(), $qbxml = null)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doQueryRequest($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $version, $locale, $config, $qbxml);
-	}
 	
-	public static function UnitOfMeasureSetQueryResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents)
-	{
-		return QuickBooks_Callbacks_API_Callbacks::_doQueryResponse($requestID, $user, $action, $ID, $extra, $err, $last_action_time, $last_actionident_time, $xml, $idents);
-	}	
 	
 	public static function AccountQueryRequest($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $version, $locale, $config = array(), $qbxml = null)
 	{
@@ -1426,94 +1325,3 @@ class QuickBooks_Callbacks_API_Callbacks
 	}
 }
 
-/*
-$requestID = 'SXRlbVF1ZXJ5fDMyNQ==';
-$user = 'quickbooks';
-$action = QUICKBOOKS_QUERY_ITEM;
-$ID = 324;
-$extra = array();
-$err = null;
-$last_action_time = null;
-$last_actionident_time = null;
-$xml = '<?xml version="1.0" ?>
-<QBXML>
-<QBXMLMsgsRs>
-<ItemQueryRs requestID="SXRlbVF1ZXJ5fDMyNQ==" statusCode="0" statusSeverity="Info" statusMessage="Status OK">
-<ItemInventoryAssemblyRet>
-<ListID>80000317-1228629275</ListID>
-<TimeCreated>2008-12-06T21:54:35-08:00</TimeCreated>
-<TimeModified>2010-01-15T09:43:05-08:00</TimeModified>
-<EditSequence>1263577385</EditSequence>
-<Name>esp-boss-12</Name>
-<FullName>Retail 12oz bags-BOM:esp-boss-12</FullName>
-<IsActive>true</IsActive>
-<ParentRef>
-<ListID>80000306-1228267908</ListID>
-<FullName>Retail 12oz bags-BOM</FullName>
-</ParentRef>
-<Sublevel>1</Sublevel>
-<UnitOfMeasureSetRef>
-<ListID>8000000D-1197576561</ListID>
-<FullName>By the 12oz</FullName>
-</UnitOfMeasureSetRef>
-<SalesTaxCodeRef>
-<ListID>20000-1157059695</ListID>
-<FullName>Non</FullName>
-</SalesTaxCodeRef>
-<SalesDesc>The Boss Espresso Fall 2009, thick and sticky mix, 12oz bag</SalesDesc>
-<SalesPrice>13.00</SalesPrice>
-<IncomeAccountRef>
-<ListID>800000B9-1174689297</ListID>
-<FullName>Sales Wholesale:Coffee</FullName>
-</IncomeAccountRef>
-<PurchaseDesc>The Boss Espresso Fall 2009, thick and sticky mix, 12oz bag</PurchaseDesc>
-<PurchaseCost>2.69</PurchaseCost>
-<COGSAccountRef>
-<ListID>310000-1157059733</ListID>
-<FullName>Cost of Goods Sold</FullName>
-</COGSAccountRef>
-<AssetAccountRef>
-<ListID>80000222-1239318881</ListID>
-<FullName>Inventory-Green Beans</FullName>
-</AssetAccountRef>
-<QuantityOnHand>-281</QuantityOnHand>
-<AverageCost>2.695</AverageCost>
-<QuantityOnOrder>0</QuantityOnOrder>
-<QuantityOnSalesOrder>0</QuantityOnSalesOrder>
-<ItemInventoryAssemblyLine>
-<ItemInventoryRef>
-<ListID>800002BF-1217618998</ListID>
-<FullName>Green Coffee:Braz-montecristo-GREEN</FullName>
-</ItemInventoryRef>
-<Quantity>0.5</Quantity>
-</ItemInventoryAssemblyLine>
-<ItemInventoryAssemblyLine>
-<ItemInventoryRef>
-<ListID>8000038D-1249427343</ListID>
-<FullName>Green Coffee:eth-amaro-sid-GRN-09</FullName>
-</ItemInventoryRef>
-<Quantity>0.25</Quantity>
-</ItemInventoryAssemblyLine>
-<ItemInventoryAssemblyLine>
-<ItemInventoryRef>
-<ListID>800002F5-1226015694</ListID>
-<FullName>Green Coffee:eth-yirg-Dom-GRN</FullName>
-</ItemInventoryRef>
-<Quantity>0.25</Quantity>
-</ItemInventoryAssemblyLine>
-<ItemInventoryAssemblyLine>
-<ItemInventoryRef>
-<ListID>8000037D-1247094112</ListID>
-<FullName>Coffee Packaging-group:1lb. Custom kraft bag</FullName>
-</ItemInventoryRef>
-<Quantity>1</Quantity>
-</ItemInventoryAssemblyLine>
-</ItemInventoryAssemblyRet>
-</ItemQueryRs>
-</QBXMLMsgsRs>
-</QBXML>';
-$idents = array();
-$callback_options = array();
-
-QuickBooks_Callbacks_API_Callbacks::_doQueryResponse($requestID, $user, $action, $ID, $extra, &$err, $last_action_time, $last_actionident_time, $xml, $idents, $callback_options = array());
-*/

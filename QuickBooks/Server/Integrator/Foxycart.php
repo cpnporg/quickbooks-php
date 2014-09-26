@@ -1,7 +1,6 @@
 <?php
 
 /**
- * Foxycart Server Integrator for the QuickBooks Web Connector
  * 
  * 
  * 
@@ -9,28 +8,7 @@
  * @subpackage Server
  */
 
-/**
- * 
- */
 define('QUICKBOOKS_SERVER_INTEGRATOR_MODULE_FOXYCART', 'foxycart');
-
-/**
- * Enabled status - user is enabled
- * @var string
- */
-define('QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_STATUS_ENABLED', 'e');
-
-/**
- * Disabled status - user is disabled
- * @var string
- */
-define('QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_STATUS_DISABLED', 'd');
-
-/**
- * Hold status - used when we may fetch accounts, sales tax items, ship methods, etc. from Foxycart, but not send any transactions to it
- * @var string
- */
-define('QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_STATUS_HOLD', 'h');
 
 define('QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_USER', 'qb_foxycart_user');
 define('QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_LOG', 'qb_foxycart_log');
@@ -53,35 +31,39 @@ define('QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_HOOK_INSERTPRODUCT', 'QuickBooks_S
 define('QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_HOOK_UPDATEPRODUCT', 'QuickBooks_Server_Integrator_Foxycart::updateProduct');
 
 /**
- * QuickBooks server integrator base class
+ * 
  */
-QuickBooks_Loader::load('/QuickBooks/Server/Integrator.php');
+require_once 'QuickBooks.php';
 
 /**
- * Encryption factory because Foxycart sends it's data RC4 encrypted
+ * 
+ *
  */
-QuickBooks_Loader::load('/QuickBooks/Encryption/Factory.php');
+require_once 'QuickBooks/Server/Integrator.php';
 
 /**
+ * 
+ */
+require_once 'QuickBooks/Encryption/Factory.php';
+
+/**
+ * 
  * 
  */
 class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 {
 	/**
 	 * 
-	 * @var object
 	 */
 	protected $_api;
 	
 	/**
 	 * 
-	 * @var object
 	 */
 	protected $_integrator;
 	
 	/** 
 	 * 
-	 * @var array
 	 */
 	protected $_foxycart_options;
 	
@@ -114,56 +96,17 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 	 * @param boolean $debug
 	 * @return mixed
 	 */
-	public function handle($return = false, $debug = false, $die = true)
+	public function handle($return = false, $debug = false)
 	{
 		if (isset($_POST['FoxyData']))
 		{
-			return $this->_handleFoxycartData($this->_api, $this->_integrator, $this->_integrator_config, $_POST['FoxyData'], $die);
+			return $this->_foxycart($this->_api, $this->_integrator, $this->_integrator_config, $_POST['FoxyData']);
 		}
 		else
 		{
 			return parent::handle($return, $debug);
 		}
 	}
-	
-	/**
-	 * Load a configuration variable from the WHMCS user table
-	 * 
-	 * @param string $key		The key for the configuration value to load
-	 * @param mixed $set		If you want to also *set* the value, pass in the value to set here
-	 * @return mixed			The configuration key
-	 */
-	protected function _foxycartConfig($key)
-	{
-		$API = $this->_api;
-		
-		static $cache = null;
-		
-		// Get the username... 
-		$user = $API->user();
-
-		// Get the SQL driver
-		$Database = $this->_integrator;
-		
-		if (is_null($cache))
-		{
-			$errnum = null;
-			$errmsg = null;
-			$res = $Database->query("SELECT * FROM " . QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_USER . " WHERE foxycart_user_name = '" . $Database->escape($user) . "' ", $errnum, $errmsg);
-			if ($arr = $Database->fetch($res))
-			{
-				$cache = $arr;
-			}
-		}
-		
-		if ($cache and 
-			isset($cache[$key]))
-		{
-			return $cache[$key];
-		}
-		
-		return null;
-	}		
 	
 	/**
 	 * Log a message to the FoxyCart log table
@@ -199,76 +142,25 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 			)", $errnum, $errmsg);
 	}
 	
-	/**
-	 * 
-	 * 
-	 * 
-	 * 
-	 */
-	protected function _handleFoxycartData($API, $Integrator, $foxycart_config, $foxydata, $die = true)
+	protected function _foxycart($API, $Integrator, $foxycart_config, $foxydata)
 	{
 		$FOXYCART_FEED = date('Y-m-d H:i:s');
 		$FOXYCART_NOW = date('Y-m-d H:i:s');
 		$FOXYCART_USER = $API->user();
 		$FOXYCART_KEY = null;
-		$FOXYCART_ENABLED = null;
 		
 		// Check the username
 		$errnum = null;
 		$errmsg = null;
-		$foxycart_status = $this->_foxycartConfig('foxycart_user_status');
-		$foxycart_enabled = $this->_foxycartConfig('foxycart_user_enabled_datetime');
-		
-		if (!$foxycart_status)
+		$check = $Integrator->fetch($Integrator->query("SELECT * FROM " . QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_USER . " WHERE foxycart_user_name = '" . $Integrator->escape($FOXYCART_USER) . "' ", $errnum, $errmsg));
+		if (!$check)
 		{
 			$msg = 'Could not locate a user account for: [' . $FOXYCART_USER . ']';
-			$this->_foxycartLog($msg, $FOXYCART_USER, $FOXYCART_FEED);
+			$this->_log($msg, $FOXYCART_USER, $FOXYCART_FEED);
 			die($msg);
 		}
-		else if ($foxycart_status == QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_STATUS_ENABLED)
-		{
-			if (strtotime($foxycart_enabled) > strtotime('2009-01-01'))	// Check to make sure we know *when* it was enabled
-			{
-				// Good to go, set this variable and continue
-				$FOXYCART_ENABLED = $foxycart_enabled;
-			}
-			else
-			{
-				$msg = 'The user account [' . $FOXYCART_USER . '] is enabled but has the invalid enabled-datetiem of [' . $foxycart_enabled . ']. Please contact us at [' . QUICKBOOKS_PACKAGE_AUTHOR . '].';
-				$this->_foxycartLog($msg, $FOXYCART_USER, $FOXYCART_FEED);
-				die($msg);									
-			}
-		}
-		else if ($foxycart_status == QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_STATUS_DISABLED)
-		{
-			$msg = 'The user account [' . $FOXYCART_USER . '] has been disabled; transactions will not be processed. Please contact us at [' . QUICKBOOKS_PACKAGE_AUTHOR . '].';
-			$this->_foxycartLog($msg, $FOXYCART_USER, $FOXYCART_FEED);
-			die($msg);					
-		}
-		else if ($foxycart_status == QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_STATUS_HOLD)
-		{
-			$msg = 'The user account [' . $FOXYCART_USER . '] is on hold; transactions will not be processed until the account is enabled. Please contact us at [' . QUICKBOOKS_PACKAGE_AUTHOR . '].';
-			$this->_foxycartLog($msg, $FOXYCART_USER, $FOXYCART_FEED);
-			die($msg);		
-		}
-		else
-		{
-			$msg = 'An unknown user status [' . $foxycart_status . '] was encounted for user: [' . $FOXYCART_USER . ']';
-			$this->_foxycartLog($msg, $FOXYCART_USER, $FOXYCART_FEED);
-			die($msg);			
-		}
 		
-		// An extra check in case I screw something up...
-		if (!$FOXYCART_ENABLED or strtotime($FOXYCART_ENABLED) < strtotime('2009-01-01'))
-		{
-			$msg = 'The user account [' . $FOXYCART_USER . '] has a missing enabled-datetime. Please contact us at [' . QUICKBOOKS_PACKAGE_AUTHOR . '].';
-			$this->_foxycartLog($msg, $FOXYCART_USER, $FOXYCART_FEED);
-			die($msg);									
-		}
-		
-		$foxycart_secret = $this->_foxycartConfig('foxycart_secret_key');
-		
-		if (empty($foxycart_secret))
+		if (empty($foxycart_config['foxycart_secret_key']))
 		{
 			// Look it up from the QuickBooks config table
 			// @todo Ecccchhhh should I be doing this? 
@@ -281,45 +173,32 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 			{
 				$errnum = 0;
 				$errmsg = null;
-				//$res = $Integrator->query("SELECT * FROM " . QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_USER . " WHERE foxycart_user_name = '" . $Integrator->escape($FOXYCART_USER) . "' ", $errnum, $errmsg);
-				//$arr = $Integrator->fetch($res);
+				$res = $Integrator->query("SELECT * FROM " . QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_USER . " WHERE foxycart_user_name = '" . $Integrator->escape($FOXYCART_USER) . "' ", $errnum, $errmsg);
+				$arr = $Integrator->fetch($res);
 				
-				//$FOXYCART_KEY = $arr['foxycart_user_key'];
-				$FOXYCART_KEY = $this->_foxycartConfig('foxycart_user_key');
+				$FOXYCART_KEY = $arr['foxycart_user_key'];
 			}
 		}
 		else
 		{
-			//$FOXYCART_KEY = $foxycart_config['foxycart_secret_key'];
-			$FOXYCART_CONFIG = $this->_foxycartConfig('foxycart_user_key');
+			$FOXYCART_KEY = $foxycart_config['foxycart_secret_key'];
 		}
 		
-		if (substr(urldecode($foxydata), 0, 6) == '<?xml ')
+		if ($FOXYCART_KEY)
 		{
-			// This handles cases where the data is sent to us unencrypted
-			$xml = $foxydata;
-		}
-		else if ($FOXYCART_KEY)
-		{
-			// The data is encrypted
 			//$xml = rc4crypt::decrypt(FOXY_SECRET_KEY, urldecode($_POST['FoxyData']));
 			$crypt = QuickBooks_Encryption_Factory::create('RC4');
 			$xml = $crypt->decrypt($FOXYCART_KEY, urldecode($foxydata));
 		}
 		else
 		{
-			// There is something wrong with the data or decryption key... 
-			//$xml = urldecode($foxydata);
-			
-			$msg = 'Could not locate a decryption key.';
-			$this->_foxycartLog($msg, $FOXYCART_USER, $FOXYCART_FEED);
-			die($msg);
+			$xml = $foxydata;
 		}
 		
 		if ($xml[0] != '<')
 		{
 			$msg = 'Could not process data with key: [' . $FOXYCART_KEY . '], data: ' . $xml;
-			$this->_foxycartLog($msg, $FOXYCART_USER, $FOXYCART_FEED);
+			$this->_log($msg, $FOXYCART_USER, $FOXYCART_FEED);
 			die($msg);
 		}
 		
@@ -348,17 +227,10 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 			'shipping_postal_code' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_CUSTOMER, QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ), 
 			'shipping_country' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_CUSTOMER, QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ), 
 			'shipping_phone' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_CUSTOMER ), 
-			'shipto_shipping_service_description' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ),
 			
 			'id' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ), 
 			'transaction_date' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ), 
 			'purchase_order' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ), 
-			
-			'cc_number_masked' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ), 
-			'cc_type' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ), 
-			'cc_exp_month' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ), 
-			'cc_exp_year' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ), 
-			
 			'product_total' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ), 
 			'tax_total' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ), 
 			'shipping_total' => array( QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION ), 
@@ -383,14 +255,8 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 		$Parser = new QuickBooks_XML_Parser($xml);
 		if ($Doc = $Parser->parse($errnum, $errmsg))
 		{
-			//print_r($Doc);
-			//exit;
-			
 			$Root = $Doc->getRoot();
-			
-			// Log what we're doing
-			$this->_foxycartLog('Incoming Foxycart data feed!', $FOXYCART_USER, $FOXYCART_FEED);
-			
+
 			// Log the datafeed
 			$record = array(
 				'foxydata' => $xml, 
@@ -405,33 +271,11 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 			
 			foreach ($Transactions->children() as $Transaction)
 			{
-				// Foxycart sends us *all* unfed transactions (i.e. the last 3 years worth if we've never used the data feed)
-				//	when we first activate it. Rather than send over 13 bajillion orders which are probably already in QuickBooks, 
-				//	we skip anything that's way older than the date the user signed up
-				
-				// Get the transaction date
-				$trans_id = $Transaction->getChildDataAt('transaction id');
-				$trans_date = $Transaction->getChildDataAt('transaction transaction_date');
-				
-				if (!$trans_id or !$trans_date)
-				{
-					$msg = 'Transaction in feed [' . $FOXYCART_FEED . '] was skipped due to a missing transaction id or transaction date...?';
-					$this->_foxycartLog($msg, $FOXYCART_USER, $FOXYCART_FEED);					
-					continue;
-				} 
-				else if (strtotime($trans_date) < strtotime($FOXYCART_ENABLED) - (60 * 60 * 3))		// Just a little bit of look-back...
-				{
-					$msg = 'Transaction [' . $trans_id . '] was skipped; transaction date transaction:' . $trans_date . ' < enabled:' . $FOXYCART_ENABLED;
-					$this->_foxycartLog($msg, $FOXYCART_USER, $FOXYCART_FEED);
-					continue;
-				}			
-				
 				$tables = array(
 					QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_CUSTOMER => array(), 
 					QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION => array(), 
 					);
 				
-				// Go through all the fields, stuffing the fields into arrays
 				foreach ($Transaction->children() as $Data)
 				{
 					$name = $Data->name();
@@ -446,62 +290,8 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 					}
 				}
 				
-				// Check for the lack of a shipping address in the main data 
-				//	and the present of a shipping address inside the 'shipto_addresses' node
-				if (empty($tables[QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION]['shipping_address1']) and 
-					strlen($Transaction->getChildDataAt('transaction shipto_addresses shipto_address address_id')) > 0)
-				{
-					// This happens for MULTI-SHIP shipments, but we can only support a single address in QuickBooks
-					$ShipTo = $Transaction->getChildAt('transaction shipto_addresses shipto_address');
-					
-					$shipto_map = array(
-						'shipto_first_name' => 'shipping_first_name', 
-						'shipto_last_name' => 'shipping_last_name', 
-						'shipto_company' => 'shipping_company', 
-						'shipto_address1' => 'shipping_address1', 
-						'shipto_address2' => 'shipping_address2', 
-						'shipto_city' => 'shipping_city', 
-						'shipto_state' => 'shipping_state', 
-						'shipto_postal_code' => 'shipping_postal_code', 
-						'shipto_country' => 'shipping_country', 
-						);
-					
-					$do = array(
-						QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_CUSTOMER => empty($tables[QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_CUSTOMER]['']), 
-						QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION => empty($tables[QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION]['']), 
-						);
-					
-					$tmp = array();
-					foreach ($ShipTo->children() as $AddressBit)
-					{
-						$key = $AddressBit->name();
-						if (isset($shipto_map[$key]))
-						{
-							// DO EACH OF THESE TABLES
-							
-						}
-					}
-				}
+				//print_r($tables);
 				
-				print_r($tables);
-				exit;
-				
-				// Parenting is disabled... 
-				$fix_parentings = array(
-					'customer_first_name', 
-					'customer_last_name', 
-					'customer_company', 
-					);
-				
-				foreach ($fix_parentings as $fix_parenting)
-				{
-					if (isset($tables[QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_CUSTOMER][$fix_parenting]))
-					{
-						$tables[QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_CUSTOMER][$fix_parenting] = str_replace(':', '-', $tables[QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_CUSTOMER][$fix_parenting]);
-					}
-				}
-				
-				// Each $table is an array record with a bunch of table data in it
 				foreach ($tables as $table => $data)
 				{
 					$key = $primaries[$table];
@@ -515,14 +305,6 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 						
 						switch ($table)
 						{
-							case QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_CUSTOMER:
-								
-								// Log what we're doing
-								$this->_foxycartLog('EXISTING customer found: ' . $data['customer_id'], $FOXYCART_USER, $FOXYCART_FEED);
-								
-								
-								
-								break;
 							case QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION:
 								
 								break;
@@ -531,16 +313,13 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 					}
 					else
 					{
-						// Insert the data into the storage tables
+						// Insert
 						//print_r($data);
 						//exit;
 						
 						switch ($table)
 						{
 							case QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_CUSTOMER:
-								
-								// Log what we're doing
-								$this->_foxycartLog('NEW customer found: ' . $data['customer_id'], $FOXYCART_USER, $FOXYCART_FEED);
 								
 								$data['foxycart_customer_discovered_datetime'] = $FOXYCART_NOW;
 								$data['foxycart_customer_discovered_datafeed'] = $FOXYCART_FEED;
@@ -562,9 +341,6 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 								
 								break;
 							case QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_TRANSACTION:
-								
-								// Log what we're doing
-								$this->_foxycartLog('NEW order found: ' . $data['id'], $FOXYCART_USER, $FOXYCART_FEED);
 								
 								$data['foxycart_transaction_discovered_datetime'] = $FOXYCART_NOW;
 								$data['foxycart_transaction_discovered_datafeed'] = $FOXYCART_FEED;
@@ -693,23 +469,6 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 					{
 						foreach ($Node->children() as $TransactionDetail)
 						{
-							$product_name = $TransactionDetail->getChildDataAt('transaction_detail product_name');
-							
-							// If parenting is disabled, remove any : because these cause FullName/Parent references
-							if (!$this->_foxycartConfig('foxycart_user_item_parenting'))
-							{
-								$product_name = str_replace(':', '-', $product_name);
-							}
-							
-							// If we're sending them to QuickBooks with a format of {$_code}, then we need to allow multiple
-							//	products that have the same {$_name}, but NOT the same {$_code}
-							$and_code = '';
-							$product_code = $TransactionDetail->getChildDataAt('transaction_detail product_code');
-							if ($product_code)
-							{
-								$and_code = " _code = '" . $Integrator->escape($product_code) . "' AND ";
-							}
-							
 							// Let's see if we've already seen this type of product before... 
 							$errnum = 0;
 							$errmsg = '';
@@ -719,68 +478,27 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 								FROM 
 									" . QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_PRODUCT . " 
 								WHERE 
-									_name = '" . $Integrator->escape($product_name) . "' AND 
-									" . $and_code . "
+									_name = '" . $Integrator->escape($TransactionDetail->getChildDataAt('transaction_detail product_name')) . "' AND 
 									foxycart_product_user = '" . $Integrator->escape($FOXYCART_USER) . "' ", $errnum, $errmsg);
 							  
 							if ($arr_product = $Integrator->fetch($res_product))
 							{
-								// Do an UPDATE if the code is different
-
-								$tmp = array(
-									'_name' => $product_name, 
-									);
-								
-								// Log what we're doing
-								$this->_foxycartLog('EXISTING product found: ' . $tmp['_name'], $FOXYCART_USER, $FOXYCART_FEED);
-								
-								// @TODO call the hook for the product update
-								
-								// Update the product
-								$tmp = array(
-									'_price' => (float) $TransactionDetail->getChildDataAt('transaction_detail product_price'), 
-									'_weight' => (float) $TransactionDetail->getChildDataAt('transaction_detail product_weight'), 
-									'_code' => $TransactionDetail->getChildDataAt('transaction_detail product_code'), 
-									'_category_code' => $TransactionDetail->getChildDataAt('transaction_detail category_code'), 
-									'_category_description' => $TransactionDetail->getChildDataAt('transaction_detail category_description'), 
-									'foxycart_product_refreshed_datetime' => $FOXYCART_NOW,
-									'foxycart_product_refreshed_datafeed' => $FOXYCART_FEED,
-									);
-								
-								$where = array(
-									array( '_id' => $arr_product['_id'] ),
-									);
-								
-								// Update the record
-								$Integrator->update(QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_PRODUCT, $tmp, $where, false, false, false);
-								
 								$product_id = $arr_product['_id'];
 							}
 							else
 							{
 								// Product doesn't exist yet, create it
-								
-								// @TODO Categories should be an entirely separate table, not a free-form field here
 								$tmp = array(
-									'_name' => $product_name, 
-									'_price' => (float) $TransactionDetail->getChildDataAt('transaction_detail product_price'), 
-									'_weight' => (float) $TransactionDetail->getChildDataAt('transaction_detail product_weight'), 
-									'_code' => $TransactionDetail->getChildDataAt('transaction_detail product_code'), 
-									'_category_code' => $TransactionDetail->getChildDataAt('transaction_detail category_code'), 
-									'_category_description' => $TransactionDetail->getChildDataAt('transaction_detail category_description'), 
+									'_name' => $TransactionDetail->getChildDataAt('transaction_detail product_name'), 
 									'foxycart_product_discovered_datetime' => $FOXYCART_NOW,
 									'foxycart_product_discovered_datafeed' => $FOXYCART_FEED,
 									'foxycart_product_user' => $FOXYCART_USER, 
 									);
-									
-								// Log what we're doing
-								$this->_foxycartLog('NEW product found: ' . $tmp['_name'], $FOXYCART_USER, $FOXYCART_FEED);
 								
-								// Insert the product record
 								$Integrator->insert(QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_PRODUCT, $tmp, false);
 								$product_id = $Integrator->last();
 
-								// Call the hook to indicate we're adding a product
+								// Call the hook to indicate we're adding a new line item
 								$hook_data = array(
 									'product' => $tmp, 
 									);
@@ -798,20 +516,14 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 							$details = array(
 								'transaction_id' => $Transaction->getChildDataAt('transaction id'), 
 								'product__id' => $product_id, 
-								'product_name' => $product_name, 
+								'product_name' => $TransactionDetail->getChildDataAt('transaction_detail product_name'), 
 								'product_price' => $TransactionDetail->getChildDataAt('transaction_detail product_price'), 
 								'product_quantity' => $TransactionDetail->getChildDataAt('transaction_detail product_quantity'), 
 								'product_weight' => $TransactionDetail->getChildDataAt('transaction_detail product_weight'), 
 								'product_code' => $TransactionDetail->getChildDataAt('transaction_detail product_code'), 
-								'downloadable_url' => $TransactionDetail->getChildDataAt('transaction_detail downloadable_url'), 
-								'subscription_frequency' => $TransactionDetail->getChildDataAt('transaction_detail subscription_frequency'), 
-								'subscription_startdate' => $TransactionDetail->getChildDataAt('transaction_detail subscription_startdate'), 
-								'product_delivery_type' => $TransactionDetail->getChildDataAt('transaction_detail product_delivery_type'), 
-								'category_code' => $TransactionDetail->getChildDataAt('transaction_detail category_code'), 
-								'category_description' => $TransactionDetail->getChildDataAt('transaction_detail category_description'), 
 								'foxycart_transaction_detail_user' => $FOXYCART_USER, 
 								);
-							
+
 							// Call the hook to indicate we're adding a new line item
 							$hook_data = array(
 								'orderline' => $details, 
@@ -855,61 +567,6 @@ class QuickBooks_Server_Integrator_FoxyCart extends QuickBooks_Server_Integrator
 			}
 		}
 		
-		// If this server is configured to relay data to another server, do the 
-		//	relaying here.
-		$res = $Integrator->query("SELECT foxycart_user_relay FROM " . QUICKBOOKS_SERVER_INTEGRATOR_FOXYCART_TABLE_USER . " WHERE foxycart_user_name = '" . $Integrator->escape($FOXYCART_USER) . "' ", $errnum, $errmsg);
-		$arr = $Integrator->fetch($res);
-						
-		if (!empty($arr['foxycart_user_relay']))
-		{
-			// @todo Can we support something other than HTTP/HTTPS here (SMTP?)? Is there a need for it?
-			
-			$this->_relayFoxycartData($FOXYCART_USER, $FOXYCART_FEED, $arr['foxycart_user_relay'], $_POST);
-		}
-		
-		// 
-		if ($die)
-		{
-			die('foxy');
-		}
-		else
-		{
-			print('foxy');
-		}
-	}
-	
-	/**
-	 * Relay Foxycart HTTP POST data to another URL
-	 * 
-	 * @param string $FOXYCART_USER
-	 * @param string $FOXYCART_FEED
-	 * @param string $relay_to
-	 * @param array $http_post_values
-	 * @return boolean
-	 */
-	protected function _relayFoxycartData($FOXYCART_USER, $FOXYCART_FEED, $relay_to, $http_post_values)
-	{
-		$HTTP = new QuickBooks_HTTP($relay_to);
-		$HTTP->setPOSTValues($http_post_values);
-		
-		// Log what we're doing...
-		$message = 'Relay: Relaying FoxyData to URL: ' . $relay_to;
-		$this->_foxycartLog($message, $FOXYCART_USER, $FOXYCART_FEED);
-		
-		// Enable debug mode?
-		//$debug_mode = true;
-		//$HTTP->useDebugMode($debug_mode);
-		
-		// Send the data
-		$HTTP->POST();
-		
-		// Get some diagnostic information
-		$request = $HTTP->lastRequest();
-		$response = $HTTP->lastResponse();
-		
-		$message = 'Relay: Received response: ' . $response;
-		$this->_foxycartLog($message, $FOXYCART_USER, $FOXYCART_FEED);
-		
-		return true;
+		die('foxy');
 	}
 }

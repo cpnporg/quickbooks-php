@@ -15,14 +15,19 @@
 
 /**
  * 
+ */
+require_once 'QuickBooks.php';
+
+/**
+ * 
  *
  */
-QuickBooks_Loader::load('/QuickBooks/Server/Integrator.php');
+require_once 'QuickBooks/Server/Integrator.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Encryption/Factory.php');
+require_once 'QuickBooks/Encryption/Factory.php';
 
 /**
  * 

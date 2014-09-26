@@ -33,12 +33,12 @@
 /**
  * Authenticate interface
  */
-QuickBooks_Loader::load('/QuickBooks/Authenticate.php');
+require_once 'QuickBooks/Authenticate.php';
 
 /**
  * Utilities for parsing DSN string
  */
-QuickBooks_Loader::load('/QuickBooks/Utilities.php');
+require_once 'QuickBooks/Utilities.php';
 
 /**
  * Authenticate against a user-defined function

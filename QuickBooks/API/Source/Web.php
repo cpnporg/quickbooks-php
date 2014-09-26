@@ -13,7 +13,7 @@
 /**
  * API source base class (web connector source, online edition source, COM source, etc.)
  */
-QuickBooks_Loader::load('/QuickBooks/API/Source.php');
+require_once 'QuickBooks/API/Source.php';
 
 /**
  * 
@@ -43,10 +43,6 @@ class QuickBooks_API_Source_Web extends QuickBooks_API_Source
 	 */
 	protected $_config;
 	
-	protected $_qbxml_version;
-	
-	protected $_qbxml_locale;
-	
 	/**
 	 * 
 	 * 
@@ -57,12 +53,6 @@ class QuickBooks_API_Source_Web extends QuickBooks_API_Source
 		$this->_user = $user;
 		
 		$this->_config = $this->_defaults($options);
-		
-		//$this->_qbxml_version = null;
-		//$this->_qbxml_locale = null;
-		
-		$this->_qbXMLLocale($this->_config['qbxml_locale']);
-		$this->_qbXMLVersion($this->_config['qbxml_version']);
 		
 		// This particular 'source' uses the same database connection/DSN as 
 		//	the driver, so there's no real reason to pull the user from 
@@ -80,7 +70,6 @@ class QuickBooks_API_Source_Web extends QuickBooks_API_Source
 		$defaults = array(
 			'qbxml_version' => '{$version}', 
 			'qbxml_onerror' => '{$onerror}', 
-			'qbxml_locale' => QUICKBOOKS_LOCALE_US, 
 			'always_use_iterator' => false, 
 			);
 		
@@ -95,7 +84,7 @@ class QuickBooks_API_Source_Web extends QuickBooks_API_Source
 	 * @param string $onerror
 	 * @return string
 	 */
-	protected function _makeValidQBXML($xml, $version = '{$version}', $locale = '{$locale}', $onerror = '{$onerror}')
+	protected function _makeValidQBXML($xml, $version = '{$version}', $onerror = '{$onerror}')
 	{
 		$pre = '<?xml version="1.0" encoding="utf-8"?>
 			<?qbxml version="' . $version . '"?>
@@ -128,78 +117,27 @@ class QuickBooks_API_Source_Web extends QuickBooks_API_Source
 	}
 
 	/**
-	 * Set the connection ticket (the Web Connector has no notion of connection tickets, so this does nothing!)
 	 * 
-	 * @return void
 	 */
 	protected function _connectionTicket($cticket)
 	{
 		return null;
 	}
-
-	/**
-	 * Set the framework ticket (due to the non-real-time nature of the Web Connector, this does nothing!)
-	 *
-	 * @return void
-	 */
-	protected function _frameworkTicket($lticket)
-	{
-		return null;
-	}
 	
-	/**
-	 * Set the session ticket (due to the non-real-time nature of the Web Connector, this does nothing!)
-	 * 
-	 * @return void
-	 */
 	protected function _sessionTicket($sticket)
 	{
 		return null;
 	}
 	
-	/**
-	 * Set the application ID (the Web Connector has no notion of application IDs, so this does nothing!)
-	 * 
-	 * @return void
-	 */
 	protected function _applicationID($appid)
 	{
 		return null;
 	}
 	
-	/**
-	 * Set the application login (the Web Connector has no notion of application logins, so this does nothing!)
-	 * 
-	 * @return void
-	 */
 	protected function _applicationLogin($login)
 	{
 		return null;
 	}
-	
-	protected function _qbXMLVersion($version = null)
-	{
-		$current = $this->_qbxml_version;
-		
-		if ($version)
-		{
-			$this->_qbxml_version = $version;
-		}
-		
-		return $current;
-	}
-	
-	protected function _qbXMLLocale($locale = null)
-	{
-		$current = $this->_qbxml_locale;
-		
-		if ($locale)
-		{
-			$this->_qbxml_locale = $locale;
-		}
-		
-		return $current;
-	}	
 	
 	public function useLiveEnvironment($yes_or_no)
 	{
@@ -305,18 +243,6 @@ class QuickBooks_API_Source_Web extends QuickBooks_API_Source
 			QUICKBOOKS_MOD_ACCOUNT, 
 			QUICKBOOKS_QUERY_ACCOUNT, 
 			
-			QUICKBOOKS_ADD_BILL, 
-			QUICKBOOKS_MOD_BILL, 
-			QUICKBOOKS_QUERY_BILL, 
-			
-			QUICKBOOKS_ADD_BILLPAYMENTCHECK, 
-			QUICKBOOKS_MOD_BILLPAYMENTCHECK, 
-			QUICKBOOKS_QUERY_BILLPAYMENTCHECK, 
-			
-			QUICKBOOKS_ADD_BILLPAYMENTCREDITCARD, 
-			QUICKBOOKS_MOD_BILLPAYMENTCREDITCARD, 
-			QUICKBOOKS_QUERY_BILLPAYMENTCREDITCARD, 			
-			
 			QUICKBOOKS_ADD_CUSTOMER,
 			QUICKBOOKS_MOD_CUSTOMER,  
 			QUICKBOOKS_QUERY_CUSTOMER,
@@ -383,21 +309,13 @@ class QuickBooks_API_Source_Web extends QuickBooks_API_Source
 			QUICKBOOKS_MOD_OTHERCHARGEITEM, 
 			QUICKBOOKS_QUERY_OTHERCHARGEITEM, 
 
-			QUICKBOOKS_ADD_ITEMRECEIPT,
-			QUICKBOOKS_MOD_ITEMRECEIPT,
-			QUICKBOOKS_QUERY_ITEMRECEIPT,
-
-			QUICKBOOKS_ADD_SALESTAXCODE, 
-			//QUICKBOOKS_MOD_SALESTAXCODE, 
-			QUICKBOOKS_QUERY_SALESTAXCODE, 
+			QUICKBOOKS_ADD_RECEIPTITEM,
+			QUICKBOOKS_MOD_RECEIPTITEM,
+			QUICKBOOKS_QUERY_RECEIPTITEM,
 
 			QUICKBOOKS_ADD_SALESTAXITEM, 
 			QUICKBOOKS_MOD_SALESTAXITEM, 
 			QUICKBOOKS_QUERY_SALESTAXITEM,
-			
-			QUICKBOOKS_ADD_SALESTAXGROUPITEM, 
-			QUICKBOOKS_MOD_SALESTAXGROUPITEM, 
-			QUICKBOOKS_QUERY_SALESTAXGROUPITEM, 
 			
 			QUICKBOOKS_ADD_SALESRECEIPT, 
 			QUICKBOOKS_MOD_SALESRECEIPT, 
@@ -405,10 +323,6 @@ class QuickBooks_API_Source_Web extends QuickBooks_API_Source
 			
 			QUICKBOOKS_ADD_SHIPMETHOD, 
 			QUICKBOOKS_QUERY_SHIPMETHOD, 						
-			
-			QUICKBOOKS_ADD_UNITOFMEASURESET, 
-			//QUICKBOOKS_MOD_UNITOFMEASURESET, 
-			QUICKBOOKS_QUERY_UNITOFMEASURESET, 
 			
 			QUICKBOOKS_ADD_VENDOR, 
 			QUICKBOOKS_MOD_VENDOR, 

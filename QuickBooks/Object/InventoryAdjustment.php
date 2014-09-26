@@ -13,14 +13,19 @@
  */
 
 /**
+ * QuickBooks base
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks object base class
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  * InventoryAdjustmentLine lines for InventoryAdjustments
  */
-QuickBooks_Loader::load('/QuickBooks/Object/InventoryAdjustment/InventoryAdjustmentLine.php');
+require_once 'QuickBooks/Object/InventoryAdjustment/InventoryAdjustmentLine.php';
 
 /**
  * Quickbooks InventoryAdjustment definition
@@ -541,25 +546,19 @@ class QuickBooks_Object_InventoryAdjustment extends QuickBooks_Object
 		return parent::asArray($request, $nest);
 	}
 
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
-		if (is_null($object))
-		{
-			$object = $this->_object;
-		}
-		
 		switch ($root)
 		{
 			case QUICKBOOKS_ADD_INVENTORYADJUSTMENT:
-				foreach ($object['InventoryAdjustmentLineAdd'] as $key => $obj)
+				foreach ($this->_object['InventoryAdjustmentLineAdd'] as $key => $obj)
 				{
 					$obj->setOverride('InventoryAdjustmentLineAdd');
 				}
-				$parent = null;
 				break;
 		}
 
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root);
 	}
 	/**
 	 * Convert this object to a valid qbXML request

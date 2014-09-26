@@ -10,12 +10,17 @@
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks.php';
 
 /**
  * 
  */
-QuickBooks_Loader::load('/QuickBooks/Object/SalesReceipt.php');
+require_once 'QuickBooks/Object.php';
+
+/**
+ * 
+ */
+require_once 'QuickBooks/Object/SalesReceipt.php';
 
 /**
  * 
@@ -57,18 +62,13 @@ class QuickBooks_Object_SalesReceipt_SalesReceiptLine extends QuickBooks_Object
 	
 	/**
 	 * Set the item name for this invoice line
-	 * @deprecated
+	 * 
 	 * @param string $name
 	 * @return boolean
 	 */
 	public function setItemName($name)
 	{
 		return $this->set('ItemRef FullName', $name);
-	}
-	
-	public function setItemFullName($FullName)
-	{
-		return $this->setFullNameType('ItemRef FullName', null, null, $FullName);
 	}
 	
 	/**
@@ -95,7 +95,7 @@ class QuickBooks_Object_SalesReceipt_SalesReceiptLine extends QuickBooks_Object
 	
 	/**
 	 * Get the name of the item for this invoice line item
-	 * @deprecated
+	 * 
 	 * @return string
 	 */
 	public function getItemName()
@@ -103,10 +103,6 @@ class QuickBooks_Object_SalesReceipt_SalesReceiptLine extends QuickBooks_Object
 		return $this->get('ItemRef FullName');
 	}
 	
-	public function getItemFullName()
-	{
-		return $this->get('ItemRef FullName');
-	}
 	
 	public function setDesc($descrip)
 	{
@@ -132,16 +128,6 @@ class QuickBooks_Object_SalesReceipt_SalesReceiptLine extends QuickBooks_Object
 	{
 		return $this->setAmountType('Amount', $amount);
 	}
-	
-	public function setUnitOfMeasure($uom)
-	{
-		return $this->set('UnitOfMeasure', $uom);
-	}
-	
-	public function getUnitOfMeasure()
-	{
-		return $this->get('UnitOfMeasure');
-	}
 			
 	public function setTaxable()
 	{
@@ -155,12 +141,7 @@ class QuickBooks_Object_SalesReceipt_SalesReceiptLine extends QuickBooks_Object
 	
 	public function setSalesTaxCodeName($name)
 	{
-		return $this->setSalesTaxCodeFullName($name);
-	}
-	
-	public function setSalesTaxCodeFullName($FullName)
-	{
-		return $this->setFullNameType('SalesTaxCodeRef FullName', null, null, $FullName);
+		return $this->set('SalesTaxCodeRef FullName', $name);
 	}
 	
 	public function setSalesTaxCodeListID($ListID)
@@ -199,21 +180,19 @@ class QuickBooks_Object_SalesReceipt_SalesReceiptLine extends QuickBooks_Object
 		return parent::asArray($request, $nest);
 	}
 	
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
 		switch ($parent)
 		{
 			case QUICKBOOKS_ADD_SALESRECEIPT:
 				$root = 'SalesReceiptLineAdd';
-				$parent = null;
 				break;
 			case QUICKBOOKS_MOD_SALESRECEIPT:
 				$root = 'SalesReceiptLineMod';
-				$parent = null;
 				break;
 		}
 		
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root);
 	}
 	
 	/**
@@ -224,14 +203,14 @@ class QuickBooks_Object_SalesReceipt_SalesReceiptLine extends QuickBooks_Object
 	 * @param string $root
 	 * @return string
 	 */
-	/*public function asQBXML($request, $todo_for_empty_elements = QUICKBOOKS_OBJECT_XML_DROP, $indent = "\t", $root = null)
+	public function asQBXML($request, $todo_for_empty_elements = QUICKBOOKS_OBJECT_XML_DROP, $indent = "\t", $root = null)
 	{
 		$this->_cleanup();
 		
 		
 		
 		return parent::asQBXML($request, $todo_for_empty_elements, $indent, $root);
-	}*/
+	}
 	
 	/**
 	 * Tell the type of object this is
@@ -243,3 +222,5 @@ class QuickBooks_Object_SalesReceipt_SalesReceiptLine extends QuickBooks_Object
 		return 'SalesReceiptLine';
 	}
 }
+
+?>

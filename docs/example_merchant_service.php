@@ -12,7 +12,21 @@
  * @subpackage Documentation
  */
 
-// 
+/*
+Master Card 		5105105105105100
+Master Card 		5555555555554444
+VISA 				4222222222222
+VISA 				4111111111111111
+VISA 				4012888888881881
+American Express 	378282246310005
+American Express	371449635398431
+Amex Corporate 		378734493671000
+Diners Club 		38520000023237
+Diners Club 		30569309025904
+Discover 			6011111111111117
+Discover 			6011000990139424
+*/
+
 ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . '/Users/keithpalmerjr/Projects/QuickBooks/');
 
 // I always program in E_STRICT error mode... 
@@ -51,15 +65,13 @@ $dsn = null;
 // If you're using the 'Hosted' model, you should see the additional 
 //	documentation about how to set up your certificate here: 
 //		http://wiki.consolibyte.com/wiki/doku.php/quickbooks_qbms_integration
-//$path_to_private_key_and_certificate = '/Users/keithpalmerjr/Projects/QuickBooks/QuickBooks/dev/test_qbms.pem';
+$path_to_private_key_and_certificate = '/Users/keithpalmerjr/Projects/QuickBooks/QuickBooks/dev/test_qbms.pem';
 //$path_to_private_key_and_certificate = '/path/doesnt/exist.pem'; 		// This should trigger an error
 //$path_to_private_key_and_certificate = null;							// If you're using the DESKTOP model
-$path_to_private_key_and_certificate = null;
 
 // This is your login ID that Intuit assignes you during the application 
 //	registration process.
-//$application_login = 'test.www.academickeys.com';
-$application_login = 'test.foxycart.com';
+$application_login = 'test.www.academickeys.com';
 
 // This is the connection ticket assigned to you during the application 
 //	registration process. To conform to Intuit security practices, you are 
@@ -69,8 +81,7 @@ $application_login = 'test.foxycart.com';
 //	connection ticket in plain text as shown below. You should store it in your 
 //	database or in a separate file, outside of the web server document root, 
 //	encrypted with a crypto library such as {@link http://www.php.net/mcrypt}.
-//$connection_ticket = 'TGT-152-LWGj1YQUufTAlSW8DK1c6A';
-$connection_ticket = 'TGT-145-niiEL2kCFoOTYHvkwBarmg';
+$connection_ticket = 'TGT-152-LWGj1YQUufTAlSW8DK1c6A';
 
 // Create an instance of the MerchantService object 
 $MS = new QuickBooks_MerchantService(
@@ -122,23 +133,6 @@ The most common methods are described below:
 
 */
 
-/**
- * There are a number of test credit card numbers you can use while testing
- * 
- * Master Card 			5105105105105100
- * Master Card 			5555555555554444
- * VISA 				4222222222222
- * VISA 				4111111111111111
- * VISA 				4012888888881881
- * American Express 	378282246310005
- * American Express		371449635398431
- * Amex Corporate 		378734493671000
- * Diners Club 			38520000023237
- * Diners Club 			30569309025904
- * Discover 			6011111111111117
- * Discover 			6011000990139424
- */
-
 // Now, let's create a credit card object, and authorize an amount agains the card
 $name = 'Keith Palmer';
 $number = '5105105105105100';
@@ -153,15 +147,14 @@ $cvv = null;
  * errors occuring. You pass these test configuration constants in as the $name 
  * parameter to the credit card to trigger various errors/warnings. 
  */
-// $name = QUICKBOOKS_MERCHANTSERVICE_TEST_AVSZIPCVVFAIL;		// Simulate a sucessful transaction that failed all AVS and CVV checks, but was still processed (i.e. your gateway is set up to accept everything)
-// $name = QUICKBOOKS_MERCHANTSERVICE_TEST_COMMUNICATIONERROR;	// Simulate a general communication error
+//$name = QUICKBOOKS_MERCHANTSERVICE_TEST_AVSZIPCVVFAIL;		// Simulate a sucessful transaction that failed all AVS and CVV checks, but was still processed (i.e. your gateway is set up to accept everything)
+//$name = QUICKBOOKS_MERCHANTSERVICE_TEST_COMMUNICATIONERROR;	// Simulate a general communication error
 
 // Create the CreditCard object
 $Card = new QuickBooks_MerchantService_CreditCard($name, $number, $expyear, $expmonth, $address, $postalcode, $cvv);
 
 // We're going to authorize $295.00
 $amount = 295.0;
-
 
 if ($Transaction = $MS->authorize($Card, $amount))
 {
@@ -170,14 +163,16 @@ if ($Transaction = $MS->authorize($Card, $amount))
 	
 	//exit;
 		
-	// 	Every time the MerchantService class returns a $Transaction object to you, 
-	// 	you should store the returned $Transaction. You'll need the returned 
-	// 	$Transaction object (or at the very least the data contained therein) in 
-	// 	order to push these transactions to QuickBooks, to actually capture the 
-	// 	funds, to issue a refund, or to issue a void. 
-	// 	
-	// 	There are several convienence methods to convert the $Transaction object to 
-	// 	more storage-friendly formats if you would prefer to use these: 
+	/*
+	Every time the MerchantService class returns a $Transaction object to you, 
+	you should store the returned $Transaction. You'll need the returned 
+	$Transaction object (or at the very least the data contained therein) in 
+	order to push these transactions to QuickBooks, to actually capture the 
+	funds, to issue a refund, or to issue a void. 
+	
+	There are several convienence methods to convert the $Transaction object to 
+	more storage-friendly formats if you would prefer to use these: 
+	*/
 	
 	// Get the transaction as a string which can later be turned back into a transaction object
 	$str = $Transaction->serialize(); 
@@ -202,18 +197,16 @@ if ($Transaction = $MS->authorize($Card, $amount))
 	// ... and back again? 
 	$Transaction = QuickBooks_MerchantService_Transaction::fromXML($xml);
 	
-	// How about XML that can be used in a qbXML SalesReceiptAdd request?
-	$qbxml = $Transaction->toQBXML();
-	print('qbXML transaction info: ' . $qbxml . "\n\n");
+	/* 
+	Now that that card has been authorized, let's actually capture the funds. 
 	
-	// Now that that card has been authorized, let's actually capture the funds. 
-	// 
-	// You can just pass in the transaction if you want to capture for the same 
-	// amount as the authorization. Alternatively, you can pass in a different 
-	// amount *less than* the authorization amount to only capture a portion of 
-	// the authorization. 
-	// 	
-	// If you want to capture more than the authorization was for, use charge(). 
+	You can just pass in the transaction if you want to capture for the same 
+	amount as the authorization. Alternatively, you can pass in a different 
+	amount *less than* the authorization amount to only capture a portion of 
+	the authorization. 
+	
+	If you want to capture more than the authorization was for, use charge(). 
+	*/
 	
 	// Only capture $50.00
 	// $amount = 50.0;
@@ -222,15 +215,11 @@ if ($Transaction = $MS->authorize($Card, $amount))
 	{
 		print('Card captured!' . "\n");
 		print_r($Transaction);	
-		
-		// Let's print that qbXML bit again because it'll have more data now
-		$qbxml = $Transaction->toQBXML();
-		print('qbXML transaction info: ' . $qbxml . "\n\n");		
 	}
 	else
 	{
 		print('An error occured during capture: ' . $MS->errorNumber() . ': ' . $MS->errorMessage() . "\n");
-	}
+	}	
 }
 else
 {
@@ -238,7 +227,7 @@ else
 }
 
 
-exit;
+//exit;
 
 // If you didn't want to 
 if ($Transaction = $MS->charge($Card, $amount))
@@ -246,10 +235,7 @@ if ($Transaction = $MS->charge($Card, $amount))
 	print('Card charged!' . "\n");
 	print_r($Transaction);
 	
-	print('Transaction array: ' . "\n");
-	print_r($Transaction->toArray());
 	
-	print("\n");
 }
 else
 {

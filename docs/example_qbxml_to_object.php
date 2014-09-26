@@ -8,7 +8,7 @@
  */
 
 // include path
-ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . '/Users/keithpalmerjr/Projects/QuickBooks/');
+ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . '/Users/kpalmer/Projects/QuickBooks/');
 
 // error reporting
 ini_set('display_errors', 1);
@@ -19,7 +19,6 @@ error_reporting(E_ALL | E_STRICT);
  */
 require_once 'QuickBooks.php';
 
-/*
 // Our qbXML string
 $qbxml = '
 	<SalesReceiptRet>
@@ -206,94 +205,3 @@ $Object = QuickBooks_Object::fromQBXML($qbxml);
 
 // Print it...
 print_r($Object);
-
-// How about with vendors from QuickBooks Online Edition?
-$qbxml = '<VendorRet>
-		<ListID>146</ListID>
-		<TimeCreated>2009-10-24T00:34:07</TimeCreated>
-		<TimeModified>2009-11-05T03:13:46</TimeModified>
-		<EditSequence>19</EditSequence>
-		<Name>Automotive Core Supply</Name>
-		<CompanyName>Automotive Core Supply</CompanyName>
-		<FirstName>Automotive</FirstName>
-		<LastName>Core Supply</LastName>
-		<VendorAddress>
-			<City>Worcester</City>
-			<State>MA</State>
-			<PostalCode>03546</PostalCode>
-			<Country>US</Country>
-		</VendorAddress>
-		<Phone>9884040132</Phone>
-		<Fax>9884040132</Fax>
-		<Email>baburaj@securenext.net</Email>
-		<NameOnCheck>Automotive Core Supply</NameOnCheck>
-		<AccountNumber>0014000000OvgNBAAZ</AccountNumber>
-		<IsVendorEligibleFor1099>false</IsVendorEligibleFor1099>
-		<Balance>0.00</Balance>
-	</VendorRet>';
-
-// Create the object from the qbXML
-$Object = QuickBooks_Object::fromQBXML($qbxml);
-
-// Print it
-print_r($Object);
-
-print($Object->asQBXML(QUICKBOOKS_ADD_VENDOR));
-*/
-
-/*
-// Does it work for sales tax item groups?
-$qbxml = '<ItemSalesTaxGroupRet>
-		<ListID>4E0000-1044396142</ListID>
-		<TimeCreated>2009-11-05T03:13:13</TimeCreated>
-		<TimeModified>2009-11-05T03:13:13</TimeModified>
-		<EditSequence>1044396142</EditSequence>
-		<Name>CO TAX</Name>
-		<IsActive>true</IsActive>
-		<ItemDesc>CO Combined Sales Tax</ItemDesc>
-		<ItemSalesTaxRef>
-			<ListID>CO Sales Tax</ListID>
-			<FullName>5F0000-1044396142</FullName>
-		</ItemSalesTaxRef>
-		<ItemSalesTaxRef>
-			<ListID>610000-1044396142</ListID>
-			<FullName>RTD</FullName>
-		</ItemSalesTaxRef>
-	</ItemSalesTaxGroupRet>';
-
-// Create it...
-$Object = QuickBooks_Object::fromQBXML($qbxml);
-
-// Print it...
-print_r($Object);
-
-// ... and some qbXML for good measure! 
-print('[' . $Object->object() . ']: ' . $Object->asQBXML(QUICKBOOKS_ADD_SALESTAXGROUPITEM));
-*/
-
-// Does it work for service items?
-$qbxml = '<ItemServiceRet>
-<ListID>280001-1265079883</ListID>
-<TimeCreated>2010-02-01T22:04:43-05:00</TimeCreated>
-<TimeModified>2010-02-01T22:04:43-05:00</TimeModified>
-<EditSequence>1265079883</EditSequence>
-<Name>Crazy Horse</Name>
-<FullName>Crazy Horse</FullName>
-<IsActive>true</IsActive>
-<Sublevel>0</Sublevel>
-<SalesTaxCodeRef>
-<ListID>10000-1211065841</ListID>
-<FullName>Tax</FullName>
-</SalesTaxCodeRef>
-<SalesOrPurchase>
-<Price>0.00</Price>
-<AccountRef>
-<ListID>440000-1265079854</ListID>
-<FullName>Consulting Income</FullName>
-</AccountRef>
-</SalesOrPurchase>
-</ItemServiceRet>';
-
-$Object = QuickBooks_Object::fromQBXML($qbxml, QUICKBOOKS_QUERY_ITEM);
-
-print('[' . $Object->object() . ']: ' . $Object->asQBXML(QUICKBOOKS_ADD_SERVICEITEM));

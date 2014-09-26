@@ -11,29 +11,34 @@
  */ 
 
 /**
+ * QuickBooks base includes
+ */
+require_once 'QuickBooks.php';
+
+/**
  * QuickBooks object base class
  */
-QuickBooks_Loader::load('/QuickBooks/Object.php');
+require_once 'QuickBooks/Object.php';
 
 /**
  *
  */
-QuickBooks_Loader::load('/QuickBooks/Object/Check/ExpenseLine.php');
+require_once 'QuickBooks/Object/Check/ExpenseLine.php';
 
 /**
  *
  */
-QuickBooks_Loader::load('/QuickBooks/Object/Check/ItemLine.php');
+require_once 'QuickBooks/Object/Check/ItemLine.php';
 
 /**
  *
  */
-QuickBooks_Loader::load('/QuickBooks/Object/Check/ItemGroupLine.php');
+require_once 'QuickBooks/Object/Check/ItemGroupLine.php';
 
 /**
  *
  */
-QuickBooks_Loader::load('/QuickBooks/Object/Check/ApplyCheckToTxn.php');
+require_once 'QuickBooks/Object/Check/ApplyCheckToTxn.php';
 
 /**
  * 
@@ -159,7 +164,7 @@ class QuickBooks_Object_Check extends QuickBooks_Object
 	 * @param string $FullName		The FullName of the record to reference
 	 * @return boolean
 	 */
-	public function setPayeeEntityFullName($FullName)
+	public function setPayeeEntityName($FullName)
 	{
 		return $this->set('PayeeEntityRef FullName', $FullName);
 	}
@@ -169,7 +174,7 @@ class QuickBooks_Object_Check extends QuickBooks_Object
 	 * 
 	 * @return string
 	 */
-	public function getPayeeEntityFullName()
+	public function getPayeeEntityName()
 	{
 		return $this->get('PayeeEntityRef FullName');
 	}
@@ -423,44 +428,39 @@ class QuickBooks_Object_Check extends QuickBooks_Object
 		return parent::asList($request);
 	}
 	
-	public function asXML($root = null, $parent = null, $object = null)
+	public function asXML($root = null, $parent = null)
 	{
-		if (is_null($object))
-		{
-			$object = $this->_object;
-		}
-		
 		switch ($root)
 		{
 			case QUICKBOOKS_ADD_CHECK:
 				
-				if (!empty($object['ItemLineAdd']))
+				if (!empty($this->_object['ItemLineAdd']))
 				{
-					foreach ($object['ItemLineAdd'] as $key => $obj)
+					foreach ($this->_object['ItemLineAdd'] as $key => $obj)
 					{
 						$obj->setOverride('ItemLineAdd');
 					}
 				}
 
-				if (!empty($object['ItemGroupLineAdd']))
+				if (!empty($this->_object['ItemGroupLineAdd']))
 				{
-					foreach ($object['ItemGroupLineAdd'] as $key => $obj)
+					foreach ($this->_object['ItemGroupLineAdd'] as $key => $obj)
 					{
 						$obj->setOverride('ItemGroupLineAdd');
 					}				
 				}
 				
-				if (!empty($object['ExpenseLineAdd']))
+				if (!empty($this->_object['ExpenseLineAdd']))
 				{
-					foreach ($object['ExpenseLineAdd'] as $key => $obj)
+					foreach ($this->_object['ExpenseLineAdd'] as $key => $obj)
 					{
 						$obj->setOverride('ExpenseLineAdd');
 					}
 				}
 				
-				if (!empty($object['ApplyCheckToTxnAdd']))
+				if (!empty($this->_object['ApplyCheckToTxnAdd']))
 				{
-					foreach ($object['ApplyCheckToTxnAdd'] as $key => $obj)
+					foreach ($this->_object['ApplyCheckToTxnAdd'] as $key => $obj)
 					{
 						$obj->setOverride('ApplyCheckToTxnAdd');
 					}			
@@ -468,14 +468,14 @@ class QuickBooks_Object_Check extends QuickBooks_Object
 				
 				break;
 			case QUICKBOOKS_MOD_CHECK:
-				if (isset($object['ItemLine']))
+				if (isset($this->_object['ItemLine']))
 				{
-					$object['ItemLineMod'] = $object['ItemLine'];
+					$this->_object['ItemLineMod'] = $this->_object['ItemLine'];
 				}
 				break;
 		}
 		
-		return parent::asXML($root, $parent, $object);
+		return parent::asXML($root, $parent);
 	}
 	
 	/**

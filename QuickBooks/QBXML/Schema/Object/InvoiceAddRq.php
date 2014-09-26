@@ -579,30 +579,18 @@ class QuickBooks_QBXML_Schema_Object_InvoiceAddRq extends QuickBooks_QBXML_Schem
 			
 		return $paths;
 	}
-
+	
 	/*
-	protected function &_inLocalePaths()
+	abstract protected function &_inLocalePaths()
 	{
 		static $paths = array(
-			'SalesTaxLineAdd Amount' => array( 'QBUS' ), 
-			'ItemSalesTaxRef FullName' => array( 'QBOE' ), 
-			'InvoiceLineAdd SalesTaxCodeRef FullName' => array( 'QBOE' ), 
+			'FirstName' => array( 'QBD', 'QBCA', 'QBUK', 'QBAU' ), 
+			'LastName' => array( 'QBD', 'QBCA', 'QBUK', 'QBAU' ),
 			);
 		
 		return $paths;
 	}
 	*/
-	
-	protected function &_inLocalePaths()
-	{
-		static $paths = array(
-			'SalesTaxLineAdd Amount' => array( 'QBUS' ), 
-			'ItemSalesTaxRef FullName' => array( 'QBOE' ), 
-			'InvoiceLineAdd SalesTaxCodeRef FullName' => array( 'QBOE' ), 
-			);
-		
-		return $paths;
-	}
 	
 	protected function &_reorderPathsPaths()
 	{

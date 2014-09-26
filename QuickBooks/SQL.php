@@ -11,41 +11,40 @@
  */
 
 /**
+ * Hook which occurs every time a new record is INSERTed into the SQL mirror
+ */
+define('QUICKBOOKS_SQL_HOOK_SQL_INSERT', 'QuickBooks_SQL sql-insert');
+
+/**
+ * Hook which occurs every time a record is UPDATEd in the SQL mirror 
+ */
+define('QUICKBOOKS_SQL_HOOK_SQL_UPDATE', 'QuickBooks_SQL sql-update');
+
+/**
+ *
+ */
+define('QUICKBOOKS_SQL_HOOK_SQL_DELETE', 'QuickBooks_SQL sql-delete');
+
+/**
+ *
+ */
+define('QUICKBOOKS_SQL_HOOK_QUICKBOOKS_INSERT', 'QuickBooks_SQL quickbooks-insert');
+
+/**
+ *
+ */
+define('QUICKBOOKS_SQL_HOOK_QUICKBOOKS_UPDATE', 'QuickBooks_SQL quickbooks-update');
+
+/**
+ *
+ */
+define('QUICKBOOKS_SQL_HOOK_QUICKBOOKS_DELETE', 'QuickBooks_SQL quickbooks-delete');
+
+/**
  * 
  */
 class QuickBooks_SQL
 {
-	/**
-	 * Hook which occurs every time a new record is INSERTed into the SQL mirror
-	 */
-	const HOOK_SQL_INSERT = 'QuickBooks_SQL sql-insert';
-	
-	/**
-	 * Hook which occurs every time a record is UPDATEd in the SQL mirror 
-	 */
-	const HOOK_SQL_UPDATE = 'QuickBooks_SQL sql-update';
-	
-	/**
-	 *
-	 */
-	const HOOK_SQL_DELETE = 'QuickBooks_SQL sql-delete';
-	
-	/**
-	 *
-	 */
-	const HOOK_QUICKBOOKS_INSERT = 'QuickBooks_SQL quickbooks-insert';
-	
-	/**
-	 *
-	 */
-	const HOOK_QUICKBOOKS_UPDATE = 'QuickBooks_SQL quickbooks-update';
-	
-	/**
-	 *
-	 */
-	const HOOK_QUICKBOOKS_DELETE = 'QuickBooks_SQL quickbooks-delete';
-	
-	
 	/**
 	 * 
 	 */
@@ -170,3 +169,5 @@ class QuickBooks_SQL
 		
 	}
 }
+
+?>

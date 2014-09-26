@@ -13,10 +13,7 @@
  */
 
 // 
-header('Content-Type: text/plain');
-
-// 
-ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . '/Users/keithpalmerjr/Projects/QuickBooks/');
+ini_set('include_path', ini_get('include_path') . PATH_SEPARATOR . '/Users/kpalmer/Projects/QuickBooks/');
 error_reporting(E_ALL | E_STRICT);
 
 /**
@@ -30,7 +27,7 @@ $username = 'api';
 $password = 'password';
 
 // Tell the QuickBooks_API class you'll be connecting to QuickBooks Online Edition
-$source_type = QuickBooks_API::SOURCE_ONLINE_EDITION;
+$source_type = QUICKBOOKS_API_SOURCE_ONLINE_EDITION;
 
 // If you want to log requests/responses to a database, you can provide a DSN-
 //	style connection string to the database here. 
@@ -70,7 +67,7 @@ $source_options = array(
 	//	
 	//	You'll then save that someplace safe with a .pem extension, and point 
 	//	this file path to that file. 
-	'certificate' => '/Users/keithpalmerjr/Projects/QuickBooks/QuickBooks/dev/test_qboe.pem', 
+	'certificate' => '/Users/kpalmer/Projects/QuickBooks/QuickBooks/dev/test_qboe.pem', 
 	
 	// These next 3 configuration options are *required* 
 	//	You should have been supplied with all 3 of these values when you went 
@@ -85,7 +82,7 @@ $source_options = array(
 	'application_id' => '134476472', 
 	
 	// This is just for debugging/testing, and you should comment this out... 
-	//'override_session_ticket' => 'V1-184-uVBpWbpD17931L2hMNMw$A:134864687', 	// Comment this line out unless you know what you're doing!
+	//'override_session_ticket' => 'V1-184-KUvW2h21VA7N3MNOgLXotw:134864687', 	// Comment this line out unless you know what you're doing!
 	);
 
 // Driver options
@@ -121,7 +118,6 @@ print('Last error number: ' . $API->errorNumber() . "\n");
 print('Last error message: ' . $API->errorMessage() . "\n");
 print("\n");
 
-
 // The "raw" approach to accessing QuickBooks Online Edition is to build and 
 //	parse the qbXML requests/responses send to/from QuickBooks yourself. Here 
 //	is an example of querying for a customer by building a raw qbXML request. 
@@ -130,54 +126,13 @@ print("\n");
 $return = $API->qbxml('
 		<CustomerQueryRq>
 			<FullName>Keith Palmer Jr.</FullName>
-		</CustomerQueryRq>', '_raw_qbxml_callback_1');
+		</CustomerQueryRq>', '_raw_qbxml_callback');
 
 // This function gets called when QuickBooks Online Edition sends a response back
-function _raw_qbxml_callback_1($method, $action, $ID, &$err, $qbxml, $Iterator, $qbres)
+function _raw_qbxml_callback($method, $action, $ID, &$err, $qbxml, $Iterator, $qbres)
 {
-	print('We got back this Customer qbXML from QuickBooks Online Edition: ' . $qbxml . ', iterator: ' . print_r($Iterator, true));
+	print('We got back this qbXML from QuickBooks Online Edition: ' . $qbxml);
 }
-
-print("\n\n");
-
-// Let's try it for accounts too
-$return = $API->qbxml('
-		<AccountQueryRq>
-		</AccountQueryRq>', '_raw_qbxml_callback_2');
-
-// This function gets called when QuickBooks Online Edition sends a response back
-function _raw_qbxml_callback_2($method, $action, $ID, &$err, $qbxml, $Iterator, $qbres)
-{
-	print('We got back this Account qbXML from QuickBooks Online Edition: ' . $qbxml . ', iterator: ' . print_r($Iterator, true));
-}
-
-print("\n\n");
-
-
-/*
-$API->searchCustomers(array( 'FullName' => 'Keith Palmer Jr.' ), '_callback_3');
-
-function _callback_3($method, $action, $ID, &$err, $qbxml, $Iterator, $qbres)
-{
-	print_r($qbxml);
-	print_r($Iterator);
-}
-
-print("\n\n");
-
-$API->searchAccounts(array(), '_callback_4');
-
-function _callback_4($method, $action, $ID, &$err, $qbxml, $Iterator, $qbres)
-{
-	print_r($qbxml);
-	print_r($Iterator);
-}
-
-
-print("\n\n");
-*/
-
-exit;
 
 // For QuickBooks Online Edition, you can use real-time connections so that you 
 //	get return values instead of having to write callback functions. Note that 
@@ -190,7 +145,7 @@ if ($API->usingRealtime())
 	print_r($return);
 }
 
-//exit;
+exit;
 
 // You can also create QuickBooks_Object_* instances and send them directly to 
 //	QBOE via the API as show below. The API takes care of transforming those 

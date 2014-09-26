@@ -25,122 +25,50 @@
 abstract class QuickBooks_API_Source
 {
 	/**
-	 * The last error number which occurred
-	 * @var string
-	 */
-	protected $_errnum;
-	
-	/**
-	 * The last error message that occurred
-	 * @var string
-	 */
-	protected $_errmsg;
-	
-	/**
-	 * The last outgoing qbXML request that was sent
-	 * @var string
-	 */
-	protected $_last_request;
-	
-	/**
-	 * The last incoming qbXML response which was received
-	 * @var string
-	 */
-	protected $_last_response;
-	
-	/**
 	 * Create a new API source
 	 */
 	abstract public function __construct(&$driver_obj, $user, $dsn, $options = array());
 	
 	/**
-	 * Log a message to the log (if the log is enabled and it's of high enough priority)
-	 * 
-	 * @param string $message		The message to log
-	 * @param integer $level		The logging level
-	 * @return boolean				Whether or not the message was sent to the driver for logging (does *NOT* neccessarily indicate it was actually logged!)
-	 */
-	protected function _log($message, $level = QUICKBOOKS_LOG_NORMAL)
-	{
-		if ($this->_masking)
-		{
-			// Mask credit card numbers, session tickets, and connection tickets
-			$message = QuickBooks_Utilities::mask($message);
-		}
-		
-		if ($this->_debug)
-		{
-			print($message . QUICKBOOKS_CRLF);
-		}
-		
-		if ($this->_driver)
-		{
-			$this->_driver->log($message, $this->frameworkTicket(), $level);
-		}
-		
-		return true;
-	}
-	
-	/**
 	 * Get the error number of the last error that occured
 	 * 
-	 * @return mixed		Usually an integer error, but sometimes QuickBooks throws other weird errors
+	 * 
 	 */
 	public function errorNumber()
 	{
 		return $this->_errnum;
 	}
 	
-	/**
-	 * Get the last error message which occurred
-	 * 
-	 * @return string
-	 */
 	public function errorMessage()
 	{
 		return $this->_errmsg;
 	}	
 	
-	/**
-	 * Get the last response from the source gateway
-	 * 
-	 * @return string
-	 */
 	public function lastResponse()
 	{
 		return $this->_last_response;
 	}
 	
-	/**
-	 * Get the last request from the source gateway
-	 * 
-	 * @return string
-	 */
 	public function lastRequest()
 	{
 		return $this->_last_request;
 	}
 	
 	/**
-	 * Set an error message which occurred
 	 * 
-	 * @param integer $errnum		The error number
-	 * @param string $errmsg		The error message
+	 * 
+	 * @param integer $errnum
+	 * @param string $errmsg
 	 * @return void
 	 */
 	protected function _setError($errnum, $errmsg = '')
 	{
-		if ($errnum != QUICKBOOKS_API_ERROR_OK)
-		{
-			$this->_log('An error has been encountered: ' . $errnum . ': ' . $errmsg);
-		}
-		
 		$this->_errnum = $errnum;
 		$this->_errmsg = $errmsg;
 	}	
 	
 	/**
-	 * Set the last response from the source gateway
+	 * 
 	 * 
 	 * @param integer $errnum
 	 * @param string $errmsg
@@ -175,27 +103,8 @@ abstract class QuickBooks_API_Source
 		return $this->_sessionTicket($sticket);
 	}
 	
-	/**
-	 * 
-	 */
 	abstract protected function _sessionTicket($sticket);
-
-	/**
-	 *
-	 */
-	public function frameworkTicket($sticket = null)
-	{
-		return $this->_frameworkTicket($sticket);
-	}
 	
-	/**
-	 *
-	 */
-	abstract protected function _frameworkTicket($sticket);
-	
-	/**
-	 *
-	 */
 	public function applicationID($appid = null)
 	{
 		return $this->_applicationID($appid);
@@ -209,20 +118,6 @@ abstract class QuickBooks_API_Source
 	}
 	
 	abstract protected function _applicationLogin($login);
-	
-	public function qbXMLVersion($version = null)
-	{
-		return $this->_qbXMLVersion($version);
-	}
-	
-	abstract protected function _qbXMLVersion($version = null);
-	
-	public function qbXMLLocale($locale = null)
-	{
-		return $this->_qbXMLLocale($locale);
-	}
-	
-	abstract protected function _qbXMLLocale($locale = null);
 	
 	/**
 	 * Handle an SQL query
@@ -313,7 +208,7 @@ abstract class QuickBooks_API_Source
 			$this->supportsModifying() and 
 			$this->supportsDeleting();
 	}
-		
+	
 	/**
 	 * Tell whether or not the API source supports mapping of application IDs
 	 * 
@@ -374,3 +269,5 @@ abstract class QuickBooks_API_Source
 	
 	abstract public function understandsSQL();
 }
+
+?>

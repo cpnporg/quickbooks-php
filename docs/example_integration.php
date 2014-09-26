@@ -41,3 +41,5 @@ if ($_POST['customer'])
 	$queue->enqueue('CustomerAdd', $id_value);
 }
 
+
+?>
